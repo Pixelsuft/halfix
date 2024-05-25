@@ -90,6 +90,7 @@ for (var i = 0; i < argv.length; i++) {
             break;
         case 'win32':
             build_type = 'win32';
+            end_flags = end_flags.slice(2);
             end_flags.push('-lgdi32', '-lcomdlg32');
             break;
         case 'libcpu':

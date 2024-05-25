@@ -40,7 +40,7 @@ void afree(void* ptr);
 #ifdef LOGGING_DISABLED
 #define LOG(component, x, ...) NOP()
 #else
-#define LOG(component, x, ...) fprintf(stderr, "[" component "] " x, ##__VA_ARGS__)
+#define LOG(component, x, ...) fprintf(stdout, "[" component "] " x, ##__VA_ARGS__)
 #endif
 
 typedef uint64_t itick_t;
