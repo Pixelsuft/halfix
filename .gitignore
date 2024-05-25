@@ -1,6 +1,23 @@
-# Don't include build files
-*.o
-*.a
-halfix
+.vscode
+.vs
+__pycache__
+node_modules
+Release
+Debug
+x64
 [Bb]uild/
 [Bb]uild-*/
+*.o
+*.a
+*.exe
+*.dll
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.xz
+*.img
+*.iso
+*.flp
+halfix
