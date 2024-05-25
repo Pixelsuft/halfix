@@ -967,7 +967,9 @@ void vga_update(void)
     case ALPHANUMERIC_RENDERER:
         cursor_scanline_start = vga.crt[0x0A] & 0x1F;
         cursor_scanline_end = vga.crt[0x0B] & 0x1F;
-        cursor_enabled = (vga.crt[0x0B] & 0x20) || (framectr >= 0x20);
+        // Blinking doesn't look good since emulator doesn't sync
+        // cursor_enabled = (vga.crt[0x0B] & 0x20) || (framectr >= 0x20);
+        cursor_enabled = 1;
         cursor_address = (vga.crt[0x0E] << 8 | vga.crt[0x0F]) << 2;
         underline_location = vga.crt[0x14] & 0x1F;
         line_graphics = vga.char_width == 9 ? ((vga.attr[0x10] & 4) ? 0xE0 : 0) : 0;
