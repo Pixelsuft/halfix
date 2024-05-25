@@ -12,7 +12,7 @@ set(HALFIX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(ZLIB REQUIRED)
+# find_package(ZLIB REQUIRED)
 
 if (WIN32 AND MSVC)
 message("Building for Windows")

@@ -5,6 +5,7 @@ node_modules
 Release
 Debug
 x64
+vs
 [Bb]uild/
 [Bb]uild-*/
 *.o

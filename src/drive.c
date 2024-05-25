@@ -23,7 +23,9 @@ typedef SSIZE_T ssize_t;
 #else
 #include <unistd.h>
 #endif
+#ifndef _MSC_VER
 #include <zlib.h>
+#endif
 #else
 #include <emscripten.h>
 #endif
