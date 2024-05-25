@@ -281,8 +281,11 @@ static int drive_internal_read_check(struct drive_internal_info* this, void* buf
             retval |= 1;
 #endif
         }
-
+#ifdef _MSC_VER
         (uint8_t *)buffer += len;
+#else
+        buffer += len;
+#endif
         currentFilePosition += len;
     }
     return retval;
@@ -417,8 +420,11 @@ static int drive_internal_write_check(struct drive_internal_info* this, void* bu
             retval |= 1;
 #endif
         }
-
+#ifdef _MSC_VER
         (uint8_t *)buffer += len;
+#else
+        buffer += len;
+#endif
         currentFilePosition += len;
     }
     return retval;
@@ -854,7 +860,11 @@ static int drive_simple_write(void* this, void* cb_ptr, void* buffer, uint32_t s
             if (write(info->fd, buffer, 512) != 512)
                 DRIVE_FATAL("Unable to write 512 bytes to image file\n");
         }
+#ifdef _MSC_VER
         (uint8_t *)buffer += 512;
+#else
+        buffer += 512;
+#endif
         offset += 512;
     }
     return DRIVE_RESULT_SYNC;
@@ -878,7 +888,11 @@ static int drive_simple_read(void* this, void* cb_ptr, void* buffer, uint32_t si
             if (read(info->fd, buffer, 512) != 512)
                 DRIVE_FATAL("Unable to read 512 bytes from image file\n");
         }
+#ifdef _MSC_VER
         (uint8_t *)buffer += 512;
+#else
+        buffer += 512;
+#endif
         offset += 512;
     }
     return DRIVE_RESULT_SYNC;

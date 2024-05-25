@@ -431,7 +431,11 @@ static void dma_run_transfers(void)
                         else
                             *(uint8_t*)buf = *(uint8_t*)((uint8_t *)mem + current_addr);
                     }
+#ifdef _MSC_VER
                     (uint8_t *)buf += size;
+#else
+                    buf += size;
+#endif
                     addr += incdec;
                     ccount--;
                 }
