@@ -20,4 +20,5 @@ x64
 *.img
 *.iso
 *.flp
+test.conf
 halfix
