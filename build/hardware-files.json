@@ -5,13 +5,13 @@
         "dependencies": [
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
             "include/state.h",
             "include/cpuapi.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/util.h"
         ],
         "include_paths": [
@@ -27,7 +27,7 @@
         "dependencies": [
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
@@ -46,11 +46,11 @@
         "dependencies": [
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/state.h",
             "include/util.h"
         ],
@@ -68,7 +68,7 @@
             "include/cpuapi.h",
             "include/util.h",
             "include/devices.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
@@ -88,7 +88,7 @@
             "include/cpuapi.h",
             "include/util.h",
             "include/devices.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
@@ -108,12 +108,12 @@
         "dependencies": [
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
             "include/display.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/state.h"
         ],
         "include_paths": [
@@ -127,7 +127,7 @@
         "dependencies": [
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
@@ -149,10 +149,10 @@
             "include/state.h",
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/cpu/instrument.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/state.h",
             "include/cpuapi.h",
             "include/util.h"
@@ -171,11 +171,11 @@
             "include/cpuapi.h",
             "include/util.h",
             "include/devices.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h"
         ],
         "include_paths": [
@@ -194,9 +194,9 @@
             "include/state.h",
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
-            "include/io.h"
+            "include/mmio.h"
         ],
         "include_paths": [
             "include"
@@ -214,9 +214,9 @@
             "include/state.h",
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
-            "include/io.h"
+            "include/mmio.h"
         ],
         "include_paths": [
             "include"
@@ -234,9 +234,9 @@
             "include/state.h",
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
-            "include/io.h"
+            "include/mmio.h"
         ],
         "include_paths": [
             "include"

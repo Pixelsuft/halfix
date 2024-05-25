@@ -6,7 +6,7 @@
             "include/cpu/cpu.h",
             "include/cpu/instruction.h",
             "include/util.h",
-            "include/io.h"
+            "include/mmio.h"
         ],
         "include_paths": [
             "include"
@@ -59,7 +59,7 @@
             "include/cpuapi.h",
             "include/util.h",
             "include/devices.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h"
@@ -183,7 +183,7 @@
             "include/cpuapi.h",
             "include/util.h",
             "include/devices.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h"
@@ -216,7 +216,7 @@
         "tasks": [],
         "rebuild_flags": [],
         "dependencies": [
-            "include/io.h",
+            "include/mmio.h",
             "include/cpu/cpu.h",
             "include/cpu/instruction.h",
             "include/util.h"
@@ -327,7 +327,7 @@
             "include/cpu/instrument.h",
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",
@@ -354,7 +354,7 @@
             "include/cpu/instrument.h",
             "include/devices.h",
             "include/util.h",
-            "include/io.h",
+            "include/mmio.h",
             "include/pc.h",
             "include/drive.h",
             "include/state.h",

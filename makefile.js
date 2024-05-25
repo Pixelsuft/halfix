@@ -29,7 +29,10 @@ for (var i = 0; i < files.length; i++) {
 }
 
 var bits = os.arch() === "x64" ? 64 : 32; // Add your architecture here!
-var flags = ["-Wall", "-Wextra", "-Werror", "-g3", "-std=c99"];
+var flags = [
+    "-Wall", "-Wextra",
+    "-g3", "-std=c99"
+];
 var end_flags = [], fincc_flags = [];
 
 // flags.push.apply(flags, "-I/usr/include/SDL -D_GNU_SOURCE=1
