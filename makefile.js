@@ -77,7 +77,7 @@ for (var i = 0; i < argv.length; i++) {
             break;
         case "clean":
             console.log("Removing all built files in build/");
-            child_process.execSync("rm build/objs/*.o");
+            child_process.execSync(process.platform.startsWith('win') ? "del build\\objs\\*.o" : "rm build/objs/*.o");
             process.exit(0);
             break;
         case "gtk":
