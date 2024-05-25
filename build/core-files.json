@@ -85,7 +85,7 @@
         ],
         "additional_flags": []
     },
-    "src/display.c": {
+    "src/display-sdl1.c": {
         "tasks": [],
         "rebuild_flags": [],
         "dependencies": [
