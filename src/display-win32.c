@@ -22,28 +22,22 @@ static HBITMAP hBmp;
 static int screenx, screeny;
 // Position of the cursor, relative to the window
 static int windowx, windowy;
-static int lastx, lasty;
-// Coordinates of cursor when captured
-static int original_x, original_y;
+static uint8_t display_inited;
 
 enum {
     MENU_EXIT,
-    MENU_SAVE_STATE
+    MENU_SAVE_STATE,
+    MENU_SEND_CTRL_ALT_DELETE,
+    MENU_SEND_SHIFT_F10,
+    MENU_SEND_ALT_F4,
+    MENU_SEND_ALT_TAB
 };
-
-static inline void lparam_to_xy(LPARAM lparam, int* x, int* y)
-{
-    *x = GET_X_LPARAM(lparam);
-    *y = GET_Y_LPARAM(lparam);
-}
 
 static void display_set_title(void)
 {
     char buffer[1000];
-    sprintf(buffer, "Halfix x86 Emulator - "
-                    " [%d x %d] - %s",
-        cwidth, cheight,
-        mouse_enabled ? "Press ESC to release mouse" : "Right-click to capture mouse");
+    sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", cwidth, cheight,
+        mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
     SetWindowText(hWnd, buffer);
 }
 
@@ -52,13 +46,17 @@ static void display_capture_mouse(int yes)
     if (yes) {
         RECT rect;
         // Get window size and adjust it
-        GetWindowRect(hWnd, &rect);
+        // GetWindowRect(hWnd, &rect);
+        rect.left = screenx - windowx;
+        rect.top = screeny - windowy;
+        rect.right = rect.left + cwidth;
+        rect.bottom = rect.top + cheight;
         ClipCursor(&rect);
         SetCapture(hWnd);
         ShowCursor(FALSE);
         SetCursorPos(screenx, screeny);
     } else {
-        //ClipCursor(NULL);
+        ClipCursor(NULL);
         SetCapture(NULL);
         ShowCursor(TRUE);
     }
@@ -69,7 +67,7 @@ static void display_capture_mouse(int yes)
 // Converts a Win32 virtual key code to a PS/2 scan code.
 // See "sdl_keysym_to_scancode" in display.c for a similar implementation
 // https://stanislavs.org/helppc/make_codes.html
-static int win32_to_scancode(int w)
+static int win32_to_scancode(WPARAM w)
 {
     // NOTE: this code might be replaced by calling MapVirtualKeyA instead
     switch (w) {
@@ -86,6 +84,7 @@ static int win32_to_scancode(int w)
     case VK_CONTROL:
         return 0x1D; // using left ctrl
     case VK_LSHIFT:
+    case 0x10: // WTF ???
         return 0x2A;
     case VK_NUMLOCK:
         return 0x45;
@@ -253,13 +252,43 @@ static int win32_to_scancode(int w)
         printf("Unexpected Win32 virtual key code received -- aborting\n");
         abort();
     }
+    return 0;
 }
 
 static inline void display_kbd_send_key(int k)
 {
+    if (!k)
+        return;
     if (k & 0xFF00)
         kbd_add_key(k >> 8);
     kbd_add_key(k & 0xFF);
+}
+
+static void display_send_shortcut(WORD param, int down) {
+    down = down ? 0 : 0x80;
+    switch (param) {
+        case MENU_SEND_CTRL_ALT_DELETE: {
+            display_kbd_send_key(0x1D | down);
+            display_kbd_send_key(0xE038 | down);
+            display_kbd_send_key(0xE053 | down);
+            break;
+        }
+        case MENU_SEND_SHIFT_F10: {
+            display_kbd_send_key(0x2A | down);
+            display_kbd_send_key(0x44 | down);
+            break;
+        }
+        case MENU_SEND_ALT_F4: {
+            display_kbd_send_key(0xE038 | down);
+            display_kbd_send_key(0x3E | down);
+            break;
+        }
+        case MENU_SEND_ALT_TAB: {
+            display_kbd_send_key(0xE038 | down);
+            display_kbd_send_key(0x0F | down);
+            break;
+        }
+    }
 }
 
 static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
@@ -276,57 +305,70 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
         screeny = windowy + HIWORD(lparam);
         break;
     case WM_DESTROY:
-        printf("Exiting.\n");
+        display_quit();
         exit(0);
         break;
     case WM_KEYDOWN:
-        if (wparam == VK_ESCAPE && mouse_enabled)
-            display_capture_mouse(0);
-        else
+        if (wparam == VK_ESCAPE && mouse_enabled) {
+            // display_capture_mouse(0);
+        }
+        else 
             display_kbd_send_key(win32_to_scancode(wparam));
-        printf("Key down!!\n");
         break;
     case WM_KEYUP:
-        printf("Key up!!\n");
+        if (wparam == VK_ESCAPE && mouse_enabled) {
+            display_capture_mouse(0);
+        }
+        else 
+            display_kbd_send_key(win32_to_scancode(wparam) | 0x80);
         break;
     case WM_MOUSEMOVE:
         if (mouse_enabled) {
             // Windows gives us absolute coordinates, so we have to do the calculations ourselves
-            int x, y;
-            lparam_to_xy(lparam, &x, &y);
-            int dx = x - windowx, dy = y - windowy;
-            //printf("x/y: %d, %d wx/wy: %d, %d, dx/dy: %d, %d\n", x, y, windowx, windowy, dx, dy);
-            kbd_send_mouse_move(dx, -dy, 0, 0);
-            SetCursorPos(screenx, screeny);
+            int dx = (int)GET_X_LPARAM(lparam) - windowx, dy = (int)GET_Y_LPARAM(lparam) - windowy;
+            // printf("x/y: %d, %d wx/wy: %d, %d, dx/dy: %d, %d\n", x, y, windowx, windowy, dx, dy);
+            if (dx || dy) {
+                kbd_send_mouse_move(dx, dy, 0, 0);
+                SetCursorPos(screenx, screeny);
+            }
         }
         break;
     case WM_RBUTTONDOWN:
-        if (!mouse_enabled) {
-            lparam_to_xy(lparam, &lastx, &lasty);
-            display_capture_mouse(1);
-        } else {
+        if (mouse_enabled)
             kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_PRESSED);
-        }
         break;
     case WM_RBUTTONUP:
-        kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_RELEASED);
+        if (mouse_enabled)
+            kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_RELEASED);
         break;
     case WM_LBUTTONDOWN:
-        kbd_mouse_down(MOUSE_STATUS_PRESSED, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE);
+        if (mouse_enabled)
+            kbd_mouse_down(MOUSE_STATUS_PRESSED, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE);
         break;
     case WM_LBUTTONUP:
-        kbd_mouse_down(MOUSE_STATUS_RELEASED, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE);
+        if (mouse_enabled)
+            kbd_mouse_down(MOUSE_STATUS_RELEASED, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE);
+        else
+            display_capture_mouse(1);
         break;
     case WM_MBUTTONDOWN:
-        kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_PRESSED, MOUSE_STATUS_NOCHANGE);
+        if (mouse_enabled)
+            kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_PRESSED, MOUSE_STATUS_NOCHANGE);
         break;
     case WM_MBUTTONUP:
-        kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_RELEASED, MOUSE_STATUS_NOCHANGE);
+        if (mouse_enabled)
+            kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_RELEASED, MOUSE_STATUS_NOCHANGE);
+        break;
+    case WM_MOUSEWHEEL:
+        if (mouse_enabled) {
+            int wdy = (int)GET_WHEEL_DELTA_WPARAM(wparam);
+            kbd_send_mouse_move(0, 0, 0, -wdy / 120);
+        }
         break;
     case WM_COMMAND:
         switch (LOWORD(wparam)) {
         case MENU_EXIT:
-            printf("Exiting.\n");
+            display_quit();
             exit(0);
         case MENU_SAVE_STATE: {
             OPENFILENAME ofn;
@@ -345,10 +387,18 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
 
             if (GetSaveFileName(&ofn)) {
                 state_store_to_file(filename);
-                printf("SELECTED\n");
+                // printf("SELECTED\n");
             } else {
-                printf("NOT SELECTED\n");
+                // printf("NOT SELECTED\n");
             }
+            break;
+        }
+        case MENU_SEND_CTRL_ALT_DELETE:
+        case MENU_SEND_SHIFT_F10:
+        case MENU_SEND_ALT_F4:
+        case MENU_SEND_ALT_TAB: {
+            display_send_shortcut(LOWORD(wparam), 1);
+            display_send_shortcut(LOWORD(wparam), 0);
             break;
         }
         }
@@ -362,12 +412,28 @@ void display_init(void)
     // https://stackoverflow.com/questions/21718027/getmodulehandlenull-vs-hinstance
     hInst = GetModuleHandle(NULL);
     wc.lpszClassName = "Halfix";
+    wc.lpszMenuName = "HalfixMenu";
     wc.hInstance = hInst;
     wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
     wc.lpfnWndProc = display_callback;
     wc.hCursor = LoadCursor(0, IDC_ARROW);
 
     RegisterClass(&wc);
+
+    HMENU bar = CreateMenu(),
+          file = CreateMenu(),
+          hotkeys = CreateMenu();
+
+    AppendMenu(file, MF_STRING, MENU_EXIT, "&Exit");
+    AppendMenu(file, MF_STRING, MENU_SAVE_STATE, "&Save State");
+
+    AppendMenu(hotkeys, MF_STRING, MENU_SEND_CTRL_ALT_DELETE, "&Ctrl + Alt + Delete");
+    AppendMenu(hotkeys, MF_STRING, MENU_SEND_SHIFT_F10, "&Shift + F10");
+    AppendMenu(hotkeys, MF_STRING, MENU_SEND_ALT_F4, "&Alt + F4");
+    AppendMenu(hotkeys, MF_STRING, MENU_SEND_ALT_TAB, "Alt + &Tab");
+
+    AppendMenu(bar, MF_POPUP, (UINT_PTR)file, "&File");
+    AppendMenu(bar, MF_POPUP, (UINT_PTR)hotkeys, "&Hotkeys");
 
     hWnd = CreateWindow(
         wc.lpszClassName,
@@ -376,38 +442,42 @@ void display_init(void)
         // Create it at some random spot
         100,
         100,
-        // Make it 640x400
+        // Make it 640x480
         640,
-        400,
+        480,
         // No parent window
         NULL,
-        // No menu
-        NULL,
+        // Menu
+        bar,
         // HINSTANCE
         hInst,
         // void
-        NULL);
-
-    HMENU bar = CreateMenu(),
-          file = CreateMenu();
-
-    AppendMenu(file, MF_STRING, MENU_EXIT, "&Exit");
-    AppendMenu(file, MF_STRING, MENU_SAVE_STATE, "&Save State");
-
-    AppendMenu(bar, MF_POPUP, file, "&File");
-    SetMenu(hWnd, bar);
+        NULL
+    );
 
     dc_dest = GetDC(hWnd);
+    display_inited = 1;
 
     display_set_resolution(640, 400);
 
     // Now let it run through a few events.
-    MSG blah;
-    while (PeekMessage(&blah, hWnd, 0, 0, PM_REMOVE)) {
-        TranslateMessage(&blah);
-        DispatchMessage(&blah);
-    }
+    display_handle_events();
 }
+
+void display_quit(void) {
+    if (!display_inited)
+        return;
+    display_inited = 0;
+    if (dc_src)
+        DeleteObject(dc_src);
+    if (dc_dest)
+        DeleteObject(dc_dest);
+    if (hBmp)
+        DeleteObject(hBmp);
+    if (hWnd && 0)
+        DestroyWindow(hWnd);
+}
+
 void display_update(int scanline_start, int scanlines)
 {
     HDC hdc, mdc;
@@ -416,15 +486,15 @@ void display_update(int scanline_start, int scanlines)
     SelectObject(mdc, hBmp);
     BitBlt(
         // Destination context
-        dc_dest,
+        hdc,
         // Destination is at (0, 0)
-        0, 0,
+        0, scanline_start,
         // Copy the entire rectangle
-        cwidth, cheight,
+        cwidth, scanlines,
         // Our device context source
         dc_src,
         // Copy from top corner of rectangle
-        0, 0,
+        0, scanline_start,
         // Just copy -- don't do anything fancy.
         SRCCOPY);
     ReleaseDC(hWnd, hdc);
@@ -452,14 +522,15 @@ void display_set_resolution(int width, int height)
 
     void* pvBits;
     HDC hdc = GetDC(hWnd);
+    if (hBmp)
+        DeleteObject(hBmp);
     hBmp = CreateDIBSection(hdc, &i, DIB_RGB_COLORS, &pvBits, NULL, 0);
     ReleaseDC(hWnd, hdc);
     if (!hBmp) {
-        printf("Failed to create DIB section: %p [%d %d]\n", dc_dest, width, height);
+        // printf("Failed to create DIB section: %p [%dx%d]\n", dc_dest, width, height);
         abort();
     }
     pixels = pvBits;
-    UNUSED(hBmp);
 
     SelectObject(dc_src, hBmp);
 
@@ -478,10 +549,17 @@ void display_set_resolution(int width, int height)
     // y-coordinate
     rect.bottom = cheight;
     if (!AdjustWindowRectEx(&rect, GetWindowLong(hWnd, GWL_STYLE), TRUE, 0)) {
-        printf("Failed to AdjustWindowRect\n");
+        // printf("Failed to AdjustWindowRect\n");
         exit(0);
     }
     SetWindowPos(hWnd, (HWND)0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOMOVE | SWP_NOOWNERZORDER);
+    LONG offsetx = -rect.left;
+    LONG offsety = -rect.top;
+    GetWindowRect(hWnd, &rect);
+    windowx = (cwidth >> 1);
+    windowy = (cheight >> 1);
+    screenx = rect.left + offsetx + windowx;
+    screeny = rect.top + offsety + windowy;
 }
 void* display_get_pixels(void)
 {

@@ -762,9 +762,9 @@ void kbd_send_mouse_move(int xrel, int yrel, int wxrel, int wyrel)
 {
     if (kbd.mouse_stream_mode && !kbd.mouse_stream_inactive) {
         kbd.xrel += xrel;
-        kbd.yrel -= yrel;
+        kbd.yrel += yrel;
         kbd.wxrel += wxrel;
-        kbd.wyrel -= wyrel;
+        kbd.wyrel += wyrel;
         // Don't send if we haven't read all the elements in the buffer yet.
         if (!kbd_queue_has(&kbd.queues[1]))
             mouse_move(0);
