@@ -151,6 +151,9 @@ for (var i = 0; i < argv.length; i++) {
             end_flags.push('-lz');
             flags.push('-DENABLE_ZLIB');
             break;
+        case '--logging':
+            flags.push('-DENABLE_LOGGING');
+            break;
         case 'emscripten':
             result = 'halfix.js';
             fincc = cc = 'emcc';
@@ -216,6 +219,11 @@ if (build_type === 'emscripten') {
     //end_flags.push(
     //    '-s', '\'EXTRA_EXPORTED_RUNTIME_METHODS=['dynCall_vii']\'');
     console.log(end_flags);
+}
+
+if (build_type === 'native') {
+    flags.push('-DSDL2_BUILD');
+    flags.push('-DSDL2_INC_DIR');
 }
 
 // https://github.com/emscripten-core/emscripten/issues/5659

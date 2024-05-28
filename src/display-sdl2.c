@@ -8,16 +8,23 @@
 #include "display.h"
 #include "devices.h"
 #include "util.h"
-#include <SDL/SDL.h>
-#include <stdlib.h>
-
-#ifdef EMSCRIPTEN
-#include <emscripten.h>
-
-// These are two functions that can be more efficiently offered in native JavaScript.
-void emscripten_handle_resize(void* framebuffer, int w, int h);
-void emscripten_flip(void);
+#ifdef SDL2_INC_DIR
+#include <SDL2/SDL.h>
+#ifdef _WIN32
+#include <SDL2/SDL_syswm.h>
+#include <windows.h>
 #endif
+#else
+#include <SDL.h>
+#ifdef _WIN32
+#include <SDL_syswm.h>
+#include <windows.h>
+#endif
+#endif
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define SDL2_LOCK_IMPL
 
 #define DISPLAY_LOG(x, ...) LOG("DISPLAY", x, ##__VA_ARGS__)
 #define DISPLAY_FATAL(x, ...)          \
@@ -26,32 +33,33 @@ void emscripten_flip(void);
         ABORT();                       \
     } while (0)
 
-static SDL_Surface* surface = NULL;
-#ifndef EMSCRIPTEN
-static SDL_Surface* screen = NULL;
-static void* surface_pixels;
+#ifdef SDL2_LOCK_IMPL
+static int pitch;
 #endif
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+static SDL_Texture* texture = NULL;
+static void* surface_pixels = NULL;
 
 void* display_get_pixels(void)
 {
-#ifdef EMSCRIPTEN
-    return surface->pixels;
-#else
     return surface_pixels;
-#endif
 }
 
+static float scale_x = 1.0f;
+static float scale_y = 1.0f;
+static SDL_bool resizable = SDL_FALSE;
+static int fullscreen = 0;
+static int display_inited = 0;
 static int h, w, mouse_enabled = 0, mhz_rating = -1;
 
 static void display_set_title(void)
 {
     char buffer[1000];
     UNUSED(mhz_rating);
-    sprintf(buffer, "Halfix x86 Emulator - "
-                    " [%d x %d] - %s",
-        w, h,
-        mouse_enabled ? "Press ESC to release mouse" : "Right-click to capture mouse");
-    SDL_WM_SetCaption(buffer, "Halfix");
+    sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", w, h,
+        mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
+    SDL_SetWindowTitle(window, buffer);
 }
 
 void display_update_cycles(int cycles_elapsed, int us)
@@ -65,41 +73,41 @@ static int resized = 0;
 void display_set_resolution(int width, int height)
 {
     resized = 1;
-    if ((!width && !height)) {
-        display_set_resolution(640, 480);
-        return;
+    if (!width || !height) {
+        return display_set_resolution(640, 480);
     }
     DISPLAY_LOG("Changed resolution to w=%d h=%d\n", width, height);
-#ifdef EMSCRIPTEN
-    // SetVideoMode already works, no need to play around with that:
-    // https://jamesfriend.com.au/working-implementation-sdlcreatergbsurfacefrom-emscripten
-    surface = SDL_SetVideoMode(width, height, 32, SDL_SWSURFACE);
-#else
 
+#ifndef SDL2_LOCK_IMPL
     if (surface_pixels)
         free(surface_pixels);
     surface_pixels = malloc(width * height * 4);
-
-    if (surface)
-        SDL_FreeSurface(surface);
-    if (screen)
-        SDL_FreeSurface(screen);
-
-    screen = SDL_SetVideoMode(width, height, 32, SDL_SWSURFACE);
-    surface = SDL_CreateRGBSurfaceFrom(surface_pixels, width, height, 32,
-        width * 4, // pitch -- number of bytes per row
-        0x00ff0000, // red
-        0x0000ff00, // green
-        0x000000ff, // blue
-        0xff000000); // alpha
 #endif
+    if (texture) {
+#ifdef SDL2_LOCK_IMPL
+        SDL_UnlockTexture(texture);
+#endif
+        SDL_DestroyTexture(texture);
+    }
+    texture = SDL_CreateTexture(
+        renderer, SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING, width, height
+    );
+#ifdef SDL2_LOCK_IMPL
+    SDL_LockTexture(texture, NULL, &surface_pixels, &pitch);
+#endif
+    SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
     w = width;
     h = height;
+    if (scale_x == 1.0f && scale_y == 1.0f)
+        SDL_SetWindowSize(window, width, height);
+    else {
+        int sw, sh;
+        SDL_GetWindowSize(window, &sw, &sh);
+        scale_x = (float)sw / (float)w;
+        scale_y = (float)sh / (float)h;
+    }
     display_set_title();
-
-#ifdef EMSCRIPTEN
-    emscripten_handle_resize(surface->pixels, width, height);
-#endif
 }
 
 void display_update(int scanline_start, int scanlines)
@@ -112,30 +120,30 @@ void display_update(int scanline_start, int scanlines)
         printf("%d x %d [%d %d]\n", w, h, scanline_start, scanlines);
         ABORT();
     } else {
-//printf("Updating %d scanlines starting from %d\n", scanlines, scanline_start);
-#ifndef EMSCRIPTEN
-        SDL_Rect rect;
-        rect.x = 0;
-        rect.y = 0;
-        rect.w = w;
-        rect.h = h;
         //__asm__("int3");
-        SDL_BlitSurface(surface, &rect, screen, &rect);
-        SDL_Flip(screen);
+#ifdef SDL2_LOCK_IMPL
+        SDL_UnlockTexture(texture);
+        SDL_RenderCopyF(renderer, texture, NULL, NULL);
+        SDL_LockTexture(texture, NULL, &surface_pixels, &pitch);
 #else
-        emscripten_flip();
+        SDL_UpdateTexture(texture, NULL, surface_pixels, 4 * w);
+        SDL_Rect src_rect = {
+            .x = 0, .y = scanline_start, .w = w, .h = scanlines
+        };
+        SDL_FRect dst_rect = {
+            .x = 0.0f, .y = (float)scanline_start * scale_y, .w = (float)w * scale_x, .h = (float)scanlines * scale_y
+        };
+        SDL_RenderCopyF(renderer, texture, &src_rect, &dst_rect);
 #endif
-        //SDL_UpdateRect(surface, 0, scanline_start, w, scanlines);
+        SDL_RenderPresent(renderer);
     }
 }
 
-static int input_captured = 0;
 static void display_mouse_capture_update(int y)
 {
-    input_captured = y;
-    SDL_WM_GrabInput(y);
-    SDL_ShowCursor(SDL_TRUE ^ y);
     mouse_enabled = y;
+    SDL_SetRelativeMouseMode(y ? SDL_TRUE : SDL_FALSE);
+    SDL_SetWindowKeyboardGrab(window, y ? SDL_TRUE : SDL_FALSE);
     display_set_title();
 }
 
@@ -156,13 +164,8 @@ static int sdl_keysym_to_scancode(int sym)
             n = 10;
         return n + 1;
     case SDLK_ESCAPE:
-        if (mouse_enabled) {
-            // Pressing ESC while trying to leave mouse grab keeps closing windows and dialogs.
-            // Only accept ESC if it's from outside.
-            display_mouse_capture_update(0);
-            return KEYMOD_INVALID;
-        }
-        return 1;
+        display_mouse_capture_update(0);
+        return KEYMOD_INVALID;
     case SDLK_EQUALS:
         return 0x0D;
     case SDLK_RETURN:
@@ -269,6 +272,11 @@ static int sdl_keysym_to_scancode(int sym)
         return 0x29;
     case SDLK_TAB:
         return 0x0F;
+    case SDLK_LGUI:
+    case SDLK_APPLICATION:
+        return 0xE05B;
+    case SDLK_RGUI:
+        return 0xE05C;
     default:
         printf("Unknown keysym: %d\n", sym);
         return KEYMOD_INVALID;
@@ -283,11 +291,32 @@ static inline void display_kbd_send_key(int k)
         kbd_add_key(k >> 8);
     kbd_add_key(k & 0xFF);
 }
-// XXX: work around a SDL bug?
-static inline void send_keymod_scancode(int k, int or)
+
+void display_send_hotkey(int hotkey, int down)
 {
-    if (k & KMOD_ALT) {
-        display_kbd_send_key(0xE038 | or);
+    down = down ? 0 : 0x80;
+    switch (hotkey) {
+        case 0: { // Ctrl + Alt + Del
+            display_kbd_send_key(0x1D | down);
+            display_kbd_send_key(0xE038 | down);
+            display_kbd_send_key(0xE053 | down);
+            break;
+        }
+        case 1: { // Shift + F10
+            display_kbd_send_key(0x2A | down);
+            display_kbd_send_key(0x44 | down);
+            break;
+        }
+        case 2: { // Alt + F4
+            display_kbd_send_key(0xE038 | down);
+            display_kbd_send_key(0x3E | down);
+            break;
+        }
+        case 3: { // Alt + TAB
+            display_kbd_send_key(0xE038 | down);
+            display_kbd_send_key(0x0F | down);
+            break;
+        }
     }
 }
 
@@ -298,90 +327,247 @@ void display_handle_events(void)
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_QUIT:
-            printf("QUIT\n");
-            exit(0);
+            if (!mouse_enabled) {
+                display_quit();
+                exit(0);
+            }
             break;
         case SDL_KEYDOWN: {
-            //printf("KeyDown\n");
             display_set_title();
-            send_keymod_scancode(event.key.keysym.mod, 0);
-            display_kbd_send_key(sdl_keysym_to_scancode(event.key.keysym.sym));
+            if (mouse_enabled) {
+                display_kbd_send_key(sdl_keysym_to_scancode(event.key.keysym.sym));
+            }
+            else {
+                switch (event.key.keysym.sym) {
+                    case SDLK_1...SDLK_4:
+                        display_send_hotkey(event.key.keysym.sym - SDLK_1, 1);
+                        break;
+                    case SDLK_ESCAPE: {
+                        display_kbd_send_key(1);
+                        break;
+                    }
+                    case SDLK_c: {
+                        SDL_DisplayMode mode;
+                        int index = SDL_GetWindowDisplayIndex(window);
+                        SDL_GetCurrentDisplayMode(index, &mode);
+                        SDL_SetWindowPosition(
+                            window,
+                            (mode.w - w) >> 1, (mode.h - h) >> 1
+                        );
+                        break;
+                    }
+                    case SDLK_q: {
+                        display_quit();
+                        exit(0);
+                        break;
+                    }
+                    case SDLK_r: {
+                        scale_x = scale_y = 1.0f;
+                        if (!fullscreen)
+                            SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
+                        break;
+                    }
+                    case SDLK_z: {
+                        if (resizable) {
+                            scale_x += 0.25f;
+                            scale_y += 0.25f;
+                            if (!fullscreen)
+                                SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
+                        }
+                        break;
+                    }
+                    case SDLK_x: {
+                        if (resizable && scale_x > 0.25f && scale_y > 0.25f) {
+                            scale_x -= 0.25f;
+                            scale_y -= 0.25f;
+                            if (!fullscreen)
+                                SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
+                        }
+                        break;
+                    }
+                    case SDLK_s: {
+                        resizable = !resizable;
+                        SDL_SetWindowResizable(window, resizable);
+                        if (!resizable) {
+                            scale_x = scale_y = 1.0f;
+                        }
+                        if (!fullscreen)
+                            SDL_SetWindowSize(window, w, h);
+                        break;
+                    }
+                    case SDLK_d:
+                    case SDLK_f: {
+                        fullscreen = fullscreen ? 0 : (
+                            event.key.keysym.sym == SDLK_d ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN
+                        );
+                        SDL_SetWindowFullscreen(window, fullscreen);
+                        if (fullscreen) {
+                            resizable = 1;
+                            int sw, sh;
+                            SDL_GetWindowSize(window, &sw, &sh);
+                            scale_x = (float)sw / (float)w;
+                            scale_y = (float)sh / (float)h;
+                        }
+                        else {
+                            SDL_SetWindowSize(window, w, h);
+                            if (!resizable) {
+                                scale_x = scale_y = 1.0f;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
             break;
         }
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP: {
             k = event.type == SDL_MOUSEBUTTONDOWN ? MOUSE_STATUS_PRESSED : MOUSE_STATUS_RELEASED;
-            //printf("Mouse button %s\n", k == MOUSE_STATUS_PRESSED ? "down" : "up");
             switch (event.button.button) {
             case SDL_BUTTON_LEFT:
-                kbd_mouse_down(k, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE);
-                break;
-            case SDL_BUTTON_MIDDLE:
-                kbd_mouse_down(MOUSE_STATUS_NOCHANGE, k, MOUSE_STATUS_NOCHANGE);
-                break;
-            case SDL_BUTTON_RIGHT:
-#ifndef EMSCRIPTEN
                 if (k == MOUSE_STATUS_PRESSED && !mouse_enabled) // Don't send anything
                     display_mouse_capture_update(1);
-                else
-#endif
+                else if (mouse_enabled)
+                    kbd_mouse_down(k, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE);
+                break;
+            case SDL_BUTTON_MIDDLE:
+                if (mouse_enabled)
+                    kbd_mouse_down(MOUSE_STATUS_NOCHANGE, k, MOUSE_STATUS_NOCHANGE);
+                break;
+            case SDL_BUTTON_RIGHT:
+                if (mouse_enabled)
                     kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE, k);
                 break;
             }
             break;
         }
         case SDL_MOUSEMOTION: {
-            if (input_captured)
-                kbd_send_mouse_move(event.motion.xrel, event.motion.yrel);
+            if (mouse_enabled)
+                kbd_send_mouse_move(event.motion.xrel, event.motion.yrel, 0, 0);
+            break;
+        }
+        case SDL_MOUSEWHEEL: {
+            if (mouse_enabled)
+                kbd_send_mouse_move(0, 0, event.wheel.x, event.wheel.y);
             break;
         }
         case SDL_KEYUP: {
-            //printf("KeyUp\n");
-            int c = sdl_keysym_to_scancode(event.key.keysym.sym);
-            send_keymod_scancode(event.key.keysym.mod, 0x80);
-            display_kbd_send_key(c | 0x80);
+            if (mouse_enabled) {
+                int c = sdl_keysym_to_scancode(event.key.keysym.sym);
+                display_kbd_send_key(c | 0x80);
+            }
+            else {
+                switch (event.key.keysym.sym) {
+                    case SDLK_1...SDLK_4:
+                        display_send_hotkey(event.key.keysym.sym - SDLK_1, 0);
+                        break;
+                    case SDLK_ESCAPE: {
+                        display_kbd_send_key(1 | 0x80);
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        case SDL_WINDOWEVENT: {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                scale_x = (float)event.window.data1 / (float)w;
+                scale_y = (float)event.window.data2 / (float)h;
+            }
             break;
         }
         }
     }
 }
 
-// Send the CTRL+ALT+DEL sequence to the emulator
-#ifdef EMSCRIPTEN
-EMSCRIPTEN_KEEPALIVE
-#endif
-void display_send_ctrl_alt_del(int down)
-{
-    down = down ? 0 : 0x80;
-    display_kbd_send_key(0x1D | down); // CTRL
-    display_kbd_send_key(0xE038 | down); // ALT
-    display_kbd_send_key(0xE053 | down); // DEL
-}
-
-#ifdef EMSCRIPTEN
-EMSCRIPTEN_KEEPALIVE
-#endif
 void display_send_scancode(int key)
 {
     display_kbd_send_key(key);
 }
 
+#ifdef _WIN32
+void display_check_dark_mode(void)
+{
+    // TODO: make better
+    /* HMODULE dwm = LoadLibraryA("dwmapi.dll");
+    if (!dwm)
+        return;
+    HMODULE uxtheme = LoadLibraryA("uxtheme.dll");
+    if (!uxtheme) {
+        FreeLibrary(dwm);
+        return;
+    }
+    typedef HRESULT (*DwmSetWindowAttributePTR)(HWND, DWORD, LPCVOID, DWORD);
+    DwmSetWindowAttributePTR DwmSetWindowAttribute = (DwmSetWindowAttributePTR)GetProcAddress(dwm, "DwmSetWindowAttribute");
+    typedef bool (WINAPI *ShouldAppsUseDarkModePTR)();
+    ShouldAppsUseDarkModePTR ShouldAppsUseDarkMode = (ShouldAppsUseDarkModePTR)GetProcAddress(uxtheme, MAKEINTRESOURCEA(132));
+    if (!DwmSetWindowAttribute || !ShouldAppsUseDarkMode || !ShouldAppsUseDarkMode()) {
+        FreeLibrary(uxtheme);
+        FreeLibrary(dwm);
+        return;
+    }
+    SDL_SysWMinfo wm_info;
+    SDL_VERSION(&wm_info.version);
+    SDL_GetWindowWMInfo(window, &wm_info);
+    HWND hwnd = (HWND)wm_info.info.win.window;
+    BOOL dark_mode = 1;
+    if (!DwmSetWindowAttribute(hwnd, 20, &dark_mode, sizeof(BOOL))) {
+        dark_mode = 1;
+        DwmSetWindowAttribute(hwnd, 19, &dark_mode, sizeof(BOOL));
+    }
+    FreeLibrary(uxtheme);
+    FreeLibrary(dwm); */
+}
+#endif
+
 void display_init(void)
 {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE))
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
         DISPLAY_FATAL("Unable to initialize SDL");
 
-    display_set_title();
-    display_set_resolution(640, 480);
+    window = SDL_CreateWindow(
+        "halfix",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        640, 480,
+        SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN
+    );
+    if (window == NULL)
+        DISPLAY_FATAL("Unable to create window");
 
-#ifndef EMSCRIPTEN
-    screen = SDL_SetVideoMode(640, 400, 32, SDL_SWSURFACE);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL)
+        DISPLAY_FATAL("Unable to create renderer");
+#ifdef _WIN32
+    display_check_dark_mode();
 #endif
+    SDL_ShowWindow(window);
+
+    display_inited = 1;
+
+    display_set_title();
 
     resized = 0;
-#ifdef EMSCRIPTEN
-    display_mouse_capture_update(1);
+}
+void display_quit(void) {
+    if (display_inited < 1)
+        return;
+    display_inited = 0;
+    if (texture) {
+#ifdef SDL2_LOCK_IMPL
+        SDL_UnlockTexture(texture);
+#else
+        if (surface_pixels)
+            free(surface_pixels);
 #endif
+        SDL_DestroyTexture(texture);
+    }
+    if (renderer) {
+        SDL_DestroyRenderer(renderer);
+    }
+    if (window) {
+        SDL_DestroyWindow(window);
+    }
+    SDL_Quit();
 }
 void display_sleep(int ms)
 {

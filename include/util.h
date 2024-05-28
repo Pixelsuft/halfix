@@ -4,6 +4,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef SDL2_BUILD
+#if defined(_WIN32) && !defined(_MSC_VER)
+#define SDL_MAIN_HANDLED
+#endif
+#ifdef SDL2_INC_DIR
+#include <SDL2/SDL.h>
+#else
+#include <SDL.h>
+#endif
+#endif
 
 #define UNUSED(x) (void)(x)
 
