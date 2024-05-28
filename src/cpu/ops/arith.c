@@ -522,7 +522,7 @@ int cpu_muldiv32(int op, uint32_t src)
         break;
     case 5: // imul
         result = (uint64_t)(int32_t)src * (uint64_t)(int32_t)cpu.reg32[EAX];
-        low = result;
+        low = (int32_t)result;
         high = result >> 32;
         cpu.lop1 = low >> 31;
         cpu.lop2 = high;
@@ -535,8 +535,8 @@ int cpu_muldiv32(int op, uint32_t src)
         if (result > 0xFFFFFFFF)
             EXCEPTION_DE();
         result_mod = original % src;
-        cpu.reg32[EAX] = result;
-        cpu.reg32[EDX] = result_mod;
+        cpu.reg32[EAX] = (uint32_t)result;
+        cpu.reg32[EDX] = (uint32_t)result_mod;
         return 0;
     case 7: { // idiv
         int64_t temp;
@@ -548,14 +548,14 @@ int cpu_muldiv32(int op, uint32_t src)
         if (temp > 0x7FFFFFFF || temp < -(int64_t)0x80000000)
             EXCEPTION_DE();
         result_mod = (int64_t)original % (int32_t)src;
-        cpu.reg32[EAX] = result;
-        cpu.reg32[EDX] = result_mod;
+        cpu.reg32[EAX] = (uint32_t)result;
+        cpu.reg32[EDX] = (uint32_t)result_mod;
         return 0;
     }
     }
-    cpu.lr = result;
+    cpu.lr = (uint32_t)result;
     cpu.laux = MUL;
-    cpu.reg32[EAX] = result;
+    cpu.reg32[EAX] = (uint32_t)result;
     cpu.reg32[EDX] = result >> 32;
     return 0;
 }
@@ -570,17 +570,17 @@ int cpu_muldiv32(int op, uint32_t src)
 // in terms of flags, results, etc.
 void cpu_neg8(uint8_t* dest)
 {
-    cpu.lr = (int8_t)(*dest = -(cpu.lop2 = *dest));
+    cpu.lr = (int8_t)(*dest = (uint8_t)(-(int16_t)(cpu.lop2 = (uint32_t)*dest)));
     cpu.laux = SUB8;
 }
 void cpu_neg16(uint16_t* dest)
 {
-    cpu.lr = (int16_t)(*dest = -(cpu.lop2 = *dest));
+    cpu.lr = (int16_t)(*dest = (uint16_t)(-(int32_t)(cpu.lop2 = *dest)));
     cpu.laux = SUB16;
 }
 void cpu_neg32(uint32_t* dest)
 {
-    cpu.lr = *dest = -(cpu.lop2 = *dest);
+    cpu.lr = *dest = (int32_t)(-(int32_t)(cpu.lop2 = *dest));
     cpu.laux = SUB32;
 }
 
@@ -733,7 +733,7 @@ uint8_t cpu_imul8(uint8_t op1, uint8_t op2)
 {
     uint16_t result = (uint16_t)(int8_t)op1 * (uint16_t)(int8_t)op2;
     cpu.laux = MUL;
-    int8_t high = result >> 8, low = result;
+    int8_t high = (int8_t)(result >> 8), low = (int8_t)result;
     cpu.lop1 = low >> 7;
     cpu.lop2 = high;
     cpu.lr = low;
@@ -753,7 +753,7 @@ uint32_t cpu_imul32(uint32_t op1, uint32_t op2)
 {
     uint64_t result = (uint64_t)(int32_t)op1 * (uint64_t)(int32_t)op2;
     cpu.laux = MUL;
-    int32_t high = result >> 32, low = result;
+    int32_t high = (int32_t)(result >> 32), low = (int32_t)result;
     cpu.lop1 = low >> 31;
     cpu.lop2 = high;
     cpu.lr = low;
