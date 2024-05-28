@@ -157,6 +157,9 @@ static int drive_read_block_internal(struct drive_internal_info* this, struct bl
 // Read file from cache, uncompress, and return allocated value
 static void* drive_read_file(struct drive_internal_info* this, char* fn)
 {
+#ifdef _MSC_VER
+    return NULL; // TODO: hack
+#else
     char temp[1024 + 8];
     int fd;
     unsigned int size;
@@ -210,6 +213,7 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
     free(readbuf);
     close(fd);
     return data;
+#endif
 }
 #endif
 
