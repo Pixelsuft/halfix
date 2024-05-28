@@ -1762,12 +1762,12 @@ int execute_0F60_67(struct decoded_instruction* i)
     case PCMPGTB_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pcmpgtb((int8_t*)dest32, result_ptr, 8);
+        pcmpgtb((int8_t*)dest32, (int8_t*)result_ptr, 8);
         break;
     case PCMPGTB_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pcmpgtb((int8_t*)dest32, result_ptr, 16);
+        pcmpgtb((int8_t*)dest32, (int8_t*)result_ptr, 16);
         break;
     case PCMPGTW_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));

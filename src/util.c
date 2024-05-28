@@ -27,7 +27,7 @@ void qmalloc_init(void)
 {
     if (qmalloc_slabs == NULL) {
         qmalloc_slabs_size = 1;
-        qmalloc_slabs = malloc(1);
+        qmalloc_slabs = malloc(8);
         qmalloc_slabs_resize();
     }
     qmalloc_data = malloc(QMALLOC_SIZE);

@@ -686,7 +686,7 @@ static
     drv->block_size = internal->block_size;
     drv->size = internal->size;
     drv->block_count = (internal->block_size + internal->size - 1) / internal->block_size;
-    drv->blocks = calloc(sizeof(struct block_info), drv->block_count);
+    drv->blocks = calloc(drv->block_count, sizeof(struct block_info));
 
     info->data = drv;
     info->read = drive_internal_read;
@@ -927,7 +927,7 @@ int drive_simple_init(struct drive_info* info, char* filename)
     sync_info->image_size = size;
     sync_info->block_size = BLOCK_SIZE;
     sync_info->block_array_size = (uint32_t)(((drv_offset_t)size + sync_info->block_size - 1) / sync_info->block_size);
-    sync_info->blocks = calloc(sizeof(uint8_t*), sync_info->block_array_size);
+    sync_info->blocks = calloc(sync_info->block_array_size, sizeof(uint8_t*));
 
     sync_info->raw_file_access = info->modify_backing_file;
 

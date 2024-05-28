@@ -254,7 +254,7 @@ struct bjson_object* state_create_bjson_object(int keyvalues)
 {
     struct bjson_object* obj = malloc(sizeof(struct bjson_object));
     obj->length = keyvalues;
-    obj->keys = calloc(sizeof(struct bjson_key_value), keyvalues);
+    obj->keys = calloc(keyvalues, sizeof(struct bjson_key_value));
     return obj;
 }
 void state_init_bjson_mem(struct bjson_data* arr, int length)

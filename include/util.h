@@ -35,6 +35,7 @@ void afree(void* ptr);
 #define FATAL(component, x, ...)                              \
     do {                                                      \
         fprintf(stderr, "[" component "] " x, ##__VA_ARGS__); \
+        break;                                                \
     } while (0)
 #endif
 #define NOP() \
