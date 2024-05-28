@@ -16,9 +16,9 @@
 static HINSTANCE hInst;
 static HWND hWnd;
 #ifdef DISPLAY_WIN32_USE_ANSI
-static WNDCLASSA wc;
+static WNDCLASSEXA wc;
 #else
-static WNDCLASSW wc;
+static WNDCLASSEXW wc;
 #endif
 static HDC dc_dest, dc_src; // Drawing contexts
 static void* pixels;
@@ -422,15 +422,17 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
 
 void display_init(void)
 {
-    // Hopefully, this file will always be compiled into an executable:
-    // https://stackoverflow.com/questions/21718027/getmodulehandlenull-vs-hinstance
 #ifdef DISPLAY_WIN32_USE_ANSI
+    ZeroMemory(&wc, sizeof(WNDCLASSEXA));
     hInst = GetModuleHandleA(NULL);
+    wc.cbSize = sizeof(WNDCLASSEXA);
     wc.lpszClassName = "Halfix";
     wc.lpszMenuName = "HalfixMenu";
     wc.hCursor = LoadCursorA(0, MAKEINTRESOURCEA(32512));
 #else
+    ZeroMemory(&wc, sizeof(WNDCLASSEXW));
     hInst = GetModuleHandleW(NULL);
+    wc.cbSize = sizeof(WNDCLASSEXW);
     wc.lpszClassName = L"Halfix";
     wc.lpszMenuName = L"HalfixMenu";
     wc.hCursor = LoadCursorW(0, MAKEINTRESOURCEW(32512));
@@ -440,9 +442,9 @@ void display_init(void)
     wc.lpfnWndProc = display_callback;
 
 #ifdef DISPLAY_WIN32_USE_ANSI
-    RegisterClassA(&wc);
+    RegisterClassExA(&wc);
 #else
-    RegisterClassW(&wc);
+    RegisterClassExW(&wc);
 #endif
 
     HMENU bar = CreateMenu(),
@@ -474,7 +476,8 @@ void display_init(void)
 #endif
 
 #ifdef DISPLAY_WIN32_USE_ANSI
-    hWnd = CreateWindowA(
+    hWnd = CreateWindowExA(
+        0,
         wc.lpszClassName,
         "Halfix",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
@@ -494,7 +497,8 @@ void display_init(void)
         NULL
     );
 #else
-    hWnd = CreateWindowW(
+    hWnd = CreateWindowExW(
+        0,
         wc.lpszClassName,
         L"Halfix",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
