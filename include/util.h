@@ -15,12 +15,8 @@
 void* aalloc(int size, int align);
 void afree(void* ptr);
 
-//#define LOGGING_DISABLED
+// #define LOGGING_ENABLED
 
-#ifdef EMSCRIPTEN
-//#if 0
-#define LOGGING_DISABLED
-#endif
 //#define LOG(component, x, ...) fprintf(stderr, "[" component "] " x, ##__VA_ARGS__)
 //#define LOG(component, x, ...) printf("[" component "] " x, ##__VA_ARGS__)
 // We have the Halfix abort function (which releases the mouse and optionally writes out the event log) and then the real abort function to appease the compiler.
@@ -45,10 +41,10 @@ void afree(void* ptr);
 #define ABORT() util_abort()
 #define debugger util_debug()
 
-#ifdef LOGGING_DISABLED
-#define LOG(component, x, ...) NOP()
-#else
+#ifdef LOGGING_ENABLED
 #define LOG(component, x, ...) fprintf(stdout, "[" component "] " x, ##__VA_ARGS__)
+#else
+#define LOG(component, x, ...) NOP()
 #endif
 
 typedef uint64_t itick_t;

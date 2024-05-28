@@ -1586,10 +1586,10 @@ static void ide_read_dma_handler(void* this, int status)
             dma_bytes = bytes_in_buffer;
 
         // This should be a sync read
-        IDE_LOG("PCI IDE read\n");
+        /* IDE_LOG("PCI IDE read\n");
         IDE_LOG(" -- Destination: %08x\n", dest);
         IDE_LOG(" -- Length: %08x [real: %08x] End? %s\n", count, dma_bytes, end ? "Yes" : "No");
-        IDE_LOG(" -- sector: %llx\n", (unsigned long long)offset >> 9);
+        IDE_LOG(" -- sector: %llx\n", (unsigned long long)offset >> 9); */
         //if(offset == 0x19ba15000) __asm__("int3");
 
         // Invalidate the TLB for all the pages we are going to mess with
@@ -1662,10 +1662,10 @@ static void ide_write_dma_handler(void* this, int status)
             dma_bytes = bytes_in_buffer;
 
         // This should be a sync read
-        IDE_LOG("PCI IDE write\n");
+        /* IDE_LOG("PCI IDE write\n");
         IDE_LOG(" -- Destination: %08x\n", dest);
         IDE_LOG(" -- Length: %08x [real: %08x] End? %s\n", count, dma_bytes, end ? "Yes" : "No");
-        IDE_LOG(" -- sector: %llx\n", (unsigned long long)offset >> 9);
+        IDE_LOG(" -- sector: %llx\n", (unsigned long long)offset >> 9); */
         while (dma_bytes >= 512) {
             int res = drive_write(drv, NULL, (uint8_t *)mem + dest, 512, offset, NULL);
             if (res != DRIVE_RESULT_SYNC)
