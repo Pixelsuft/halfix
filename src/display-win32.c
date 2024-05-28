@@ -527,6 +527,7 @@ void display_init(void)
     display_inited = 1;
 
     display_set_resolution(640, 400);
+    // SetForegroundWindow(hWnd);
 
     // Now let it run through a few events.
     display_handle_events();

@@ -417,8 +417,16 @@ static
                 if (diffxor & VBE_DISPI_ENABLED) {
                     vga_change_renderer();
                     if (vga.vbe_enable & VBE_DISPI_ENABLED)
-                        if (!(data & VBE_DISPI_NOCLEARMEM)) // should i use diffxor or data?
-                            memset(vga.vram, 0, vga.vram_size);
+                        if (!(data & VBE_DISPI_NOCLEARMEM)) { // should i use diffxor or data?
+                            // memset(vga.vram, 0, vga.vram_size);
+                            // This looks better
+                            for (int i = 0; i < vga.vram_size; i += 4) {
+                                vga.vram[i] = 100;
+                                vga.vram[i + 1] = 0;
+                                vga.vram[i + 2] = 0;
+                                vga.vram[i + 3] = 255;
+                            }
+                        }
                 }
 
                 if (diffxor & VBE_DISPI_8BIT_DAC) {
@@ -632,6 +640,8 @@ bit   0  If set Color Emulation. Base Address=3Dxh else Mono Emulation. Base
                 }
                 if (diffxor & 0x01) { // 8/9 Dot Clocks
                     vga.char_width = 9 ^ (data & 1);
+                    // if (vga.char_width == 8)
+                    //     vga.char_width = 9;
                     vga_update_size();
                     vga_complete_redraw();
                 }

@@ -24,7 +24,7 @@ vs
 *.stackdump
 *.tmp
 *.old
-test.conf
+test*.conf
 seabios.bin
 seavgabios.bin
 halfix
