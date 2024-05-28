@@ -488,15 +488,15 @@ void display_send_scancode(int key)
 #ifdef _WIN32
 void display_check_dark_mode(void)
 {
-    HMODULE ntdll = LoadLibraryExA("ntdll.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE ntdll = LoadLibraryExW(L"ntdll.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!ntdll)
         return;
-    HMODULE dwm = LoadLibraryExA("dwmapi.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE dwm = LoadLibraryExW(L"dwmapi.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!dwm) {
         FreeLibrary(ntdll);
         return;
     }
-    HMODULE uxtheme = LoadLibraryExA("uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!uxtheme) {
         FreeLibrary(dwm);
         FreeLibrary(ntdll);
@@ -561,7 +561,6 @@ void display_init(void)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
         DISPLAY_FATAL("Unable to initialize SDL");
-
     window = SDL_CreateWindow(
         "halfix",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
