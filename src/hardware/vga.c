@@ -1540,7 +1540,7 @@ static int vga_pci_write(uint8_t* ptr, uint8_t addr, uint8_t data)
         uint32_t data;
         if (new_mmio == 0xFFFFFFFE) {
             // Load the new pointer with our rom size
-            data = -vga.rom_size;
+            data = (uint32_t)(-(int32_t)vga.rom_size);
         } else {
             data = 0xFEB00000;
         }

@@ -1048,7 +1048,7 @@ static void ide_pio_read_callback(struct ide_controller* ctrl)
                     IDE_LOG("Continue frame: %08x/%08x\n", ctrl->pio_position, ctrl->pio_length);
                 }
             } else {
-                IDE_LOG("Reading sector %d - %d left - frame %d/%d [res: %d], sectsize=%d\n", ctrl->atapi_lba, ctrl->atapi_sectors_to_read, ctrl->atapi_frame_bytes_transferred, ctrl->atapi_frame_bytes_to_transfer, -(ctrl->atapi_frame_bytes_transferred - ctrl->atapi_frame_bytes_to_transfer), ctrl->atapi_sector_size);
+                // IDE_LOG("Reading sector %d - %d left - frame %d/%d [res: %d], sectsize=%d\n", ctrl->atapi_lba, ctrl->atapi_sectors_to_read, ctrl->atapi_frame_bytes_transferred, ctrl->atapi_frame_bytes_to_transfer, -(ctrl->atapi_frame_bytes_transferred - ctrl->atapi_frame_bytes_to_transfer), ctrl->atapi_sector_size);
                 // Reload, but don't reset anything.
                 int res = drive_read(SELECTED(ctrl, info), ctrl, ctrl->pio_buffer, ctrl->atapi_sector_size, ctrl->atapi_lba * ctrl->atapi_sector_size, ide_atapi_read_complete);
 

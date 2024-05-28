@@ -1802,7 +1802,7 @@ int fpu_fwait(void)
     // Now is as good of a time as any to call FPU exceptions
     if (fpu.status_word & 0x80) {
         if (cpu.cr[0] & CR0_NE)
-            EXCEPTION_MF();
+            EXCEPTION_MF(0);
         else {
             // yucky, but works. OS/2 uses this method
             pic_lower_irq(13);

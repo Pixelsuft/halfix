@@ -442,7 +442,8 @@ void display_init(void)
     wc.hCursor = LoadCursorW(0, MAKEINTRESOURCEW(32512));
 #endif
     wc.hInstance = hInst;
-    wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
+    // wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
+    wc.hbrBackground = GetSysColorBrush(COLOR_BACKGROUND);
     wc.lpfnWndProc = display_callback;
 
 #ifdef DISPLAY_WIN32_USE_ANSI

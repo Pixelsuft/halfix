@@ -188,7 +188,7 @@ uint32_t cpu_seg_descriptor_address(int tbl, uint16_t sel)
         else
             tbl = SEG_GDTR;
     }
-    if ((sel | 7) > cpu.seg_limit[tbl])
+    if ((uint32_t)(sel | 7) > (uint32_t)cpu.seg_limit[tbl])
         return RESULT_INVALID;
     return (sel & ~7) + cpu.seg_base[tbl];
 }

@@ -173,7 +173,7 @@ static void apic_send_highest_priority_interrupt(void)
     // If the interrupt requested has a greater priority, then send another one.
     if (highest_interrupt_in_service < highest_interrupt_requested) {
         // "The processor will deliver only those interrupts that have an interrupt-priority class higher than the processor-priority class in the PPR." (page 391)
-        if ((highest_interrupt_requested & 0xF0) > (apic.task_priority & 0xF0)) {
+        if ((uint32_t)(highest_interrupt_requested & 0xF0) > (apic.task_priority & 0xF0)) {
             // At this point, the interrupt will be serviced, so set all approriate fields
             apic.processor_priority = highest_interrupt_requested & 0xF0; // "PPR[7:4] (the processor-priority class) the maximum of TPR[7:4] (the task- priority class) and ISRV[7:4] (the priority of the highest priority interrupt in service)."
 
