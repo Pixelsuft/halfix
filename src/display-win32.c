@@ -296,7 +296,7 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
             lparam_to_xy(lparam, &x, &y);
             int dx = x - windowx, dy = y - windowy;
             //printf("x/y: %d, %d wx/wy: %d, %d, dx/dy: %d, %d\n", x, y, windowx, windowy, dx, dy);
-            kbd_send_mouse_move(dx, dy);
+            kbd_send_mouse_move(dx, -dy, 0, 0);
             SetCursorPos(screenx, screeny);
         }
         break;

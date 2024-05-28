@@ -132,10 +132,12 @@ void util_debug(void)
 {
     display_release_mouse();
 #ifndef EMSCRIPTEN
+#if ENABLE_BREAKPOINTS
 #ifdef _MSC_VER
     __debugbreak();
 #else
     __asm__("int3");
+#endif
 #endif
 #else
     printf("Breakpoint reached -- aborting\n");

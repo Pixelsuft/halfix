@@ -100,7 +100,10 @@ struct
     int mouse_sample_rate;
 
     int xrel, yrel;
+    int wxrel, wyrel;
 
+    uint8_t mouse_id;
+    uint8_t mouse_detect_state;
     uint8_t status, command, keyboard_command, mouse_command;
 
     uint8_t mouse_button_state; // The current status of the mouse buttons held down
@@ -137,6 +140,8 @@ static void kbd_state(void)
     state_field(obj, 1, "kbd.keyboard_command", &kbd.keyboard_command);
     state_field(obj, 1, "kbd.mouse_command", &kbd.mouse_command);
     state_field(obj, 1, "kbd.mouse_button_state", &kbd.mouse_button_state);
+    state_field(obj, 1, "kbd.mouse_id", &kbd.mouse_id);
+    state_field(obj, 1, "kbd.mouse_detect_state", &kbd.mouse_detect_state);
     // <<< END AUTOGENERATE "state" >>>
     kbd_queue_state(obj, &kbd.queues[0], 0);
     kbd_queue_state(obj, &kbd.queues[1], 1);
@@ -259,6 +264,8 @@ static void kbd_reset_port(int port)
         kbd.mouse_stream_inactive = 1;
         kbd.mouse_resolution = 4;
         kbd.mouse_sample_rate = 100;
+        kbd.mouse_id = 0;
+        kbd.mouse_detect_state = 0;
     }
 }
 
@@ -555,6 +562,29 @@ static void kbd_write(uint32_t port, uint32_t data)
                 break;
             case 0xF3: // Sample Rate
                 kbd.mouse_sample_rate = data;
+                // Detect IMPS/2 or IMEX
+                switch (kbd.mouse_detect_state) {
+                    default:
+                    case 0:
+                        if (data == 200)
+                            kbd.mouse_detect_state = 1;
+                        break;
+                    case 1:
+                        if (data == 100)
+                            kbd.mouse_detect_state = 2;
+                        else if (data == 200)
+                            kbd.mouse_detect_state = 3;
+                        else
+                            kbd.mouse_detect_state = 0;
+                        break;
+                    case 2:
+                    case 3:
+                        if (data == 80)
+                            kbd.mouse_id = kbd.mouse_detect_state + 1;
+                        kbd.mouse_detect_state = 0;
+                        KBD_LOG("PS2 mouse extended with %s\n", kbd.mouse_id == 4 ? "IMEX" : "IMPS/2");
+                        break;
+                }
                 kbd_add(AUX_QUEUE, 0xFA);
                 kbd.mouse_command = NO_COMMAND;
                 break;
@@ -582,7 +612,7 @@ static void kbd_write(uint32_t port, uint32_t data)
                     break;
                 case 0xF2: // Get mouse ID
                     kbd_add(AUX_QUEUE, 0xFA);
-                    kbd_add(AUX_QUEUE, 0);
+                    kbd_add(AUX_QUEUE, kbd.mouse_id);
                     break;
                 case 0xF3: // Set sample rate
                     kbd.mouse_command = data;
@@ -667,7 +697,7 @@ void kbd_add_key(uint8_t data)
 // This sends a mouse packet to the controller if something has changed.
 static void mouse_move(int clicked)
 {
-    if (clicked || (kbd.xrel | kbd.yrel) != 0) {
+    if (clicked || ((kbd.xrel | kbd.yrel) != 0) || ((kbd.wxrel | kbd.wyrel) != 0)) {
         int dx, dy;
         kbd.yrel = -kbd.yrel;
 
@@ -689,9 +719,21 @@ static void mouse_move(int clicked)
         kbd_add(AUX_QUEUE, res);
         kbd_add(AUX_QUEUE, dx);
         kbd_add(AUX_QUEUE, dy);
+        if (kbd.mouse_id == 4) {
+            kbd_add(
+                AUX_QUEUE,
+                0 << 5 | 0 << 4 | // TODO: 4th and 5th buttons
+                ((kbd.wyrel + kbd.wxrel * 2) & 0x0F)
+            );
+        }
+        else if (kbd.mouse_id == 3) {
+            kbd_add(AUX_QUEUE, kbd.wyrel & 0xFF);
+        }
 
         kbd.xrel = 0;
         kbd.yrel = 0;
+        kbd.wxrel = 0;
+        kbd.wyrel = 0;
     }
 }
 
@@ -716,11 +758,13 @@ void kbd_mouse_down(int left, int center, int right)
 }
 
 void display_release_mouse(void);
-void kbd_send_mouse_move(int xrel, int yrel)
+void kbd_send_mouse_move(int xrel, int yrel, int wxrel, int wyrel)
 {
     if (kbd.mouse_stream_mode && !kbd.mouse_stream_inactive) {
         kbd.xrel += xrel;
-        kbd.yrel += yrel;
+        kbd.yrel -= yrel;
+        kbd.wxrel += wxrel;
+        kbd.wyrel -= wyrel;
         // Don't send if we haven't read all the elements in the buffer yet.
         if (!kbd_queue_has(&kbd.queues[1]))
             mouse_move(0);

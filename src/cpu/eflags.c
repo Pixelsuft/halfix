@@ -126,6 +126,7 @@ int cpu_get_of(void)
     default:
         CPU_FATAL("Unknown of op: %d\n", cpu.laux & LAUX_METHOD_MASK);
     }
+    return 0;
 }
 
 void cpu_set_of(int set)
@@ -192,6 +193,7 @@ int cpu_get_af(void)
     default:
         CPU_FATAL("Unknown af op: %d\n", cpu.laux & LAUX_METHOD_MASK);
     }
+    return 0;
 }
 void cpu_set_af(int set)
 {
@@ -270,6 +272,7 @@ int cpu_get_cf(void)
     default:
         CPU_FATAL("Unknown cf op: %d\n", cpu.laux & LAUX_METHOD_MASK);
     }
+    return 0;
 }
 void cpu_set_cf(int set)
 {

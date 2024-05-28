@@ -2,6 +2,7 @@
 #define DISPLAY_H
 
 void display_init(void);
+void display_quit(void);
 void display_update(int scanline_start, int scanlines);
 void display_set_resolution(int width, int height);
 void* display_get_pixels(void);

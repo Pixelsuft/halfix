@@ -136,6 +136,7 @@ static uint32_t acpi_sm_read(uint32_t addr)
         default:
             ACPI_FATAL("TODO: system management read: %04x\n", addr);
     }
+    return 0;
 }
 static void acpi_sm_write(uint32_t addr, uint32_t data)
 {
@@ -283,6 +284,7 @@ static int acpi_pci_write(uint8_t* ptr, uint8_t addr, uint8_t data)
         return 0;
     }
     ACPI_FATAL("Unknown write: %p addr=%02x data=%02x\n", ptr, addr, data);
+    return 0;
 }
 
 // ACPI timer

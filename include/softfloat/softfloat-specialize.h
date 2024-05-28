@@ -30,6 +30,7 @@ these four paragraphs for those parts of this code that are retained.
 #ifndef _SOFTFLOAT_SPECIALIZE_H_
 #define _SOFTFLOAT_SPECIALIZE_H_
 
+#include <stdbool.h>
 #include "softfloat.h"
 
 /*============================================================================
@@ -554,7 +555,8 @@ BX_CPP_INLINE floatx80 packFloatx80(int zSign, int32_t zExp, uint64_t zSig)
 
 BX_CPP_INLINE int floatx80_is_nan(floatx80 a)
 {
-    return ((a.exp & 0x7FFF) == 0x7FFF) && (int64_t) (a.fraction<<1);
+    // return ((a.exp & 0x7FFF) == 0x7FFF) && (int64_t) (a.fraction<<1);
+    return ((a.exp & 0x7FFF) == 0x7FFF) && ((bool)(a.fraction<<1)); // Is this right?
 }
 
 /*----------------------------------------------------------------------------

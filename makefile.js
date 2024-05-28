@@ -39,7 +39,13 @@ var end_flags = [], fincc_flags = [];
 // -D_REENTRANT'.split(' '));
 // flags.push.apply(flags, '-L/usr/lib/x86_64-linux-gnu -lSDL -lSDLmain'.split('
 // '));
-end_flags = '-lSDL -lSDLmain -lm -lz'.split(' ');
+end_flags = '-lSDL2 -lSDL2main -lm'.split(' ');
+
+if (process.platform.endsWith('bsd')) {
+    end_flags.splice(0, 0, process.platform == 'netbsd' ? '-L/usr/pkg/lib' : '-L/usr/local/lib');
+    flags.push(process.platform == 'netbsd' ? '-I/usr/pkg/include' : '-I/usr/local/include');
+    flags.push('-DBSD_BUILD');
+}
 
 if (os.endianness() === 'BE') {
     console.warn('WARNING: This emulator has not been tested on big-endian platforms and may not work.');
@@ -90,7 +96,10 @@ for (var i = 0; i < argv.length; i++) {
             break;
         case 'win32':
             build_type = 'win32';
-            end_flags = end_flags.slice(2);
+            if (end_flags.includes('-lSDL2'))
+                end_flags.splice(end_flags.indexOf('-lSDL2'), 1);
+            if (end_flags.includes('-lSDL2main'))
+                end_flags.splice(end_flags.indexOf('-lSDL2main'), 1);
             end_flags.push('-lgdi32', '-lcomdlg32');
             break;
         case 'libcpu':
@@ -112,7 +121,8 @@ for (var i = 0; i < argv.length; i++) {
             flags.push('-DLIBCPU');
             break;
         case 'release':
-            argv.push('--optimization-level', '3');
+            if (!argv.includes('--optimization-level'))
+                argv.push('--optimization-level', '3');
             argv.push('--disable-debug');
             break;
         case '--optimization-level':
@@ -135,6 +145,10 @@ for (var i = 0; i < argv.length; i++) {
             break;
         case '--output':
             result = argv[++i];
+            break;
+        case '--zlib':
+            end_flags.push('-lz');
+            flags.push('-DENABLE_ZLIB');
             break;
         case 'emscripten':
             result = 'halfix.js';

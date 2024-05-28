@@ -323,6 +323,17 @@ static uint32_t apic_read(uint32_t addr)
         return 0x14 | (5 << 16) | (0 << 24); // Version 14h, 6 LVT entries supported, EOI something something unsupported
     case 0x08:
         return apic.task_priority;
+    case 0x0A: {
+        int tpr = apic.task_priority >> 4;
+        int isrv = apic_get_interrupt();
+        if (isrv < 0)
+            isrv = 0;
+        isrv >>= 4;
+        if (tpr >= isrv)
+            return apic.task_priority;
+        else
+            return isrv << 4;
+    }
     case 0x0B: // Note: no error when reading from EOI
         return 0;
     case 0x0D:
@@ -383,6 +394,7 @@ static uint32_t apic_read(uint32_t addr)
     default:
         APIC_FATAL("TODO: APIC read %08x\n", addr);
     }
+    return 0;
 }
 static void apic_write(uint32_t addr, uint32_t data)
 {

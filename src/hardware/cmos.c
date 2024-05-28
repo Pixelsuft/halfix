@@ -134,8 +134,10 @@ static uint8_t cmos_ram_read(uint8_t addr)
     }
     case 0x0D:
         return 0x80; // has power
+    default:
+        CMOS_FATAL("should not be here\n");
     }
-    CMOS_FATAL("should not be here\n");
+    return 0;
 }
 static uint32_t cmos_readb(uint32_t port)
 {
@@ -151,8 +153,10 @@ static uint32_t cmos_readb(uint32_t port)
             return cmos_ram_read(cmos.addr);
         else
             return cmos.ram[cmos.addr];
+    default:
+        CMOS_FATAL("should not be here\n");
     }
-    CMOS_FATAL("should not be here\n");
+    return 0;
 }
 
 static inline void cmos_update_timer(void)
@@ -344,6 +348,7 @@ static void cmos_reset(void)
     cmos.ram[0x0B] = 0x02;
     cmos.ram[0x0C] = 0x00;
     cmos.ram[0x0D] = 0x80;
+    cmos.ram[0x3F] = 0x01; // TODO: Configure disabling boot menu
 }
 
 void cmos_init(uint64_t now)

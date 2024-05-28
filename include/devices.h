@@ -28,7 +28,7 @@ uint8_t pic_get_interrupt(void);
 int pic_has_interrupt(void);
 void kbd_add_key(uint8_t data);
 void kbd_mouse_down(int left, int center, int right);
-void kbd_send_mouse_move(int xrel, int yrel);
+void kbd_send_mouse_move(int xrel, int yre, int wxrel, int wyrel);
 
 void vga_update(void);
 void vga_restore_from_ptr(void* ptr);

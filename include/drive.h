@@ -9,6 +9,10 @@
 #endif
 
 #ifdef ALLOW_64BIT_OFFSETS
+#define _FILE_OFFSET_BITS 64
+#define __USE_LARGEFILE64
+#define _LARGEFILE_SOURCE
+#define _LARGEFILE64_SOURCE
 typedef uint64_t drv_offset_t;
 #else
 typedef uint32_t drv_offset_t;

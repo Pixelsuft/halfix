@@ -569,8 +569,10 @@ static void ne2000_receive(void* data, int len)
         memstart = ne2000.mem + ne2000.pagestart;
         // Copy the rest of the bytes to the beginning of pagestart
         printf("addr=%p len=%d\n", data + (len1 - 4), len - (len1 + 4));
+#if ENABLE_BREAKPOINTS
         if ((len - (len1 + 4)) < 0)
             __asm__("int3");
+#endif
         memcpy(memstart, data + (len1 - 4), len - (len1 + 4));
     }
     ne2000.curr = nextpg;

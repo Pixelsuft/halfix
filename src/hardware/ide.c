@@ -691,7 +691,7 @@ static void ide_atapi_run_command(struct ide_controller* ctrl)
         IDE_LOG("Command: ATAPI: Read table of contents\n");
         // Read table of contents. Based on values observed from Bochs and QEMU
         // https://www.bswd.com/sff8020i.pdf starting page 183
-        int length = read16be(command + 7), nlength,
+        int length = read16be(command + 7), nlength = 0,
             format = command[9] >> 6,
             track_start = command[6],
             bufpos, sectors;
@@ -1315,6 +1315,7 @@ static uint32_t ide_read(uint32_t port)
     default:
         IDE_FATAL("Unknown IDE readb: 0x%x\n", port);
     }
+    return 0;
 }
 
 static void ide_update_head(struct ide_controller* ctrl)
@@ -1467,9 +1468,9 @@ static void ide_identify(struct ide_controller* ctrl)
         ide_pio_clear(ctrl, 0, 512);
         ide_pio_store_word(ctrl, 0, 0x85C0);
         // Serial number
-        ide_pio_store_string(ctrl, "HFXCD 000000", 10 << 1, 20, 1, 1);
+        ide_pio_store_string(ctrl, "HFXCD 123456", 10 << 1, 20, 1, 1);
         ide_pio_store_string(ctrl, "0.0.1", 23 << 1, 8, 1, 1);
-        ide_pio_store_string(ctrl, "Halfix CD-ROM drive", 27 << 1, 40, 1, 1);
+        ide_pio_store_string(ctrl, "Halfix Virtual CD-ROM Drive", 27 << 1, 40, 1, 1);
         ide_pio_store_word(ctrl, 48 << 1, 1);
         int v = 512;
         if (ctrl->dma_enabled)
@@ -1504,7 +1505,7 @@ static void ide_identify(struct ide_controller* ctrl)
         ide_pio_store_word(ctrl, 7 << 1, 0);
         ide_pio_store_word(ctrl, 8 << 1, 0);
         ide_pio_store_word(ctrl, 9 << 1, 0);
-        ide_pio_store_string(ctrl, "HFXHD 000000", 10 << 1, 20, 1, 0);
+        ide_pio_store_string(ctrl, "HFXHD 123456", 10 << 1, 20, 1, 0);
         ide_pio_store_word(ctrl, 20 << 1, 3);
         ide_pio_store_word(ctrl, 21 << 1, 16 * 512 / 512);
         ide_pio_store_word(ctrl, 22 << 1, 4);
@@ -1512,7 +1513,7 @@ static void ide_identify(struct ide_controller* ctrl)
         ide_pio_store_word(ctrl, 24 << 1, 4);
         ide_pio_store_word(ctrl, 25 << 1, 4);
         ide_pio_store_word(ctrl, 26 << 1, 4);
-        ide_pio_store_string(ctrl, "HALFIX 123456", 27 << 1, 40, 1, 1);
+        ide_pio_store_string(ctrl, "Halfix Virtual Hard Drive", 27 << 1, 40, 1, 1);
         ide_pio_store_word(ctrl, 47 << 1, MAX_MULTIPLE_SECTORS); // Max multiple sectors
         ide_pio_store_word(ctrl, 48 << 1, 1); // DWORD IO supported
         ide_pio_store_word(ctrl, 49 << 1, 1 << 9); // LBA supported (TODO: DMA)
@@ -2145,7 +2146,7 @@ void ide_init(struct pc_settings* pc)
         ctrl->dma_enabled = pc->pci_enabled;
 
         if (info->sectors != 0) {
-            printf("Initializing disk %d\n", i);
+            IDE_LOG("Initializing disk %d\n", i);
             // Set appropriate DMA status bit
             ctrl->dma_status |= 0x20 << (i & 1);
 

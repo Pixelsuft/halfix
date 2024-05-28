@@ -6,7 +6,11 @@
 #ifdef _WIN32
 #include <malloc.h>
 #else
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(BSD_BUILD)
+#include <stdlib.h>
+#else
 #include <alloca.h>
+#endif
 // This flag is required for MSVCRT to read binary files normally.
 #define O_BINARY 0 
 #endif
