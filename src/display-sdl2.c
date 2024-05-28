@@ -489,18 +489,18 @@ void display_send_scancode(int key)
 void display_check_dark_mode(void)
 {
     // TODO: make better
-    /* HMODULE dwm = LoadLibraryA("dwmapi.dll");
+    HMODULE dwm = LoadLibraryExA("dwmapi.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!dwm)
         return;
-    HMODULE uxtheme = LoadLibraryA("uxtheme.dll");
+    HMODULE uxtheme = LoadLibraryExA("uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!uxtheme) {
         FreeLibrary(dwm);
         return;
     }
     typedef HRESULT (*DwmSetWindowAttributePTR)(HWND, DWORD, LPCVOID, DWORD);
-    DwmSetWindowAttributePTR DwmSetWindowAttribute = (DwmSetWindowAttributePTR)GetProcAddress(dwm, "DwmSetWindowAttribute");
+    DwmSetWindowAttributePTR DwmSetWindowAttribute = (DwmSetWindowAttributePTR)((size_t)GetProcAddress(dwm, "DwmSetWindowAttribute"));
     typedef bool (WINAPI *ShouldAppsUseDarkModePTR)();
-    ShouldAppsUseDarkModePTR ShouldAppsUseDarkMode = (ShouldAppsUseDarkModePTR)GetProcAddress(uxtheme, MAKEINTRESOURCEA(132));
+    ShouldAppsUseDarkModePTR ShouldAppsUseDarkMode = (ShouldAppsUseDarkModePTR)((size_t)GetProcAddress(uxtheme, MAKEINTRESOURCEA(132)));
     if (!DwmSetWindowAttribute || !ShouldAppsUseDarkMode || !ShouldAppsUseDarkMode()) {
         FreeLibrary(uxtheme);
         FreeLibrary(dwm);
@@ -516,7 +516,7 @@ void display_check_dark_mode(void)
         DwmSetWindowAttribute(hwnd, 19, &dark_mode, sizeof(BOOL));
     }
     FreeLibrary(uxtheme);
-    FreeLibrary(dwm); */
+    FreeLibrary(dwm);
 }
 #endif
 
@@ -533,7 +533,6 @@ void display_init(void)
     );
     if (window == NULL)
         DISPLAY_FATAL("Unable to create window");
-
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
         DISPLAY_FATAL("Unable to create renderer");
@@ -541,11 +540,8 @@ void display_init(void)
     display_check_dark_mode();
 #endif
     SDL_ShowWindow(window);
-
     display_inited = 1;
-
     display_set_title();
-
     resized = 0;
 }
 void display_quit(void) {
