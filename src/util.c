@@ -28,7 +28,7 @@ static int qmalloc_slabs_size = 0;
 
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
 static HANDLE h_heap = NULL;
-#define HEAP_FLAGS HEAP_GENERATE_EXCEPTIONS | HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY
+#define HEAP_FLAGS HEAP_GENERATE_EXCEPTIONS | HEAP_NO_SERIALIZE
 #endif
 
 void* h_malloc(size_t size) {

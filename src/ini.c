@@ -73,6 +73,7 @@ static struct ini_section* ini_parse(char* x)
         length = (int)strlen(x),
         i = 0, strstart = 0, strend = 0, include_whitespace = 0;
     struct ini_section *result = h_calloc(1, sizeof(struct ini_section)), *head = result;
+    memset(result, 0, sizeof(struct ini_section));
     struct ini_field* current_field = NULL;
     while (i < length) {
         int c = x[i++];
@@ -98,6 +99,7 @@ static struct ini_section* ini_parse(char* x)
             if (c == ']') {
                 // Add an element to our linked list.
                 struct ini_section* sect = h_calloc(1, sizeof(struct ini_section));
+                memset(sect, 0, sizeof(struct ini_section));
                 sect->name = slice_string(x, strstart, i - 1);
                 head->next = sect;
                 head = sect;
@@ -108,6 +110,7 @@ static struct ini_section* ini_parse(char* x)
             // keystart[\s]=[\s+]
             if (c == '=') {
                 struct ini_field *field = h_calloc(1, sizeof(struct ini_field)), *temp;
+                memset(field, 0, sizeof(struct ini_field));
                 field->name = slice_string(x, strstart, strend);
                 temp = head->fields;
                 head->fields = field;
