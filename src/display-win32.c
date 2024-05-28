@@ -47,10 +47,10 @@ static void display_set_title(void)
         mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
     SetWindowTextA(hWnd, buffer);
 #else
-    char buffer[1000];
+    /* char buffer[1000];
     sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", cwidth, cheight,
         mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
-    SetWindowTextA(hWnd, buffer);
+    SetWindowTextA(hWnd, buffer); */
 #endif
 }
 
@@ -417,7 +417,11 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
         }
         }
     }
-    return DefWindowProc(hwnd, msg, wparam, lparam);
+#ifdef DISPLAY_WIN32_USE_ANSI
+    return DefWindowProcA(hwnd, msg, wparam, lparam);
+#else
+    return DefWindowProcW(hwnd, msg, wparam, lparam);
+#endif
 }
 
 void display_init(void)
@@ -633,10 +637,17 @@ void* display_get_pixels(void)
 void display_handle_events(void)
 {
     MSG blah;
+#ifdef DISPLAY_WIN32_USE_ANSI
     while (PeekMessageA(&blah, hWnd, 0, 0, PM_REMOVE)) {
         TranslateMessage(&blah);
         DispatchMessageA(&blah);
     }
+#else
+    while (PeekMessageW(&blah, hWnd, 0, 0, PM_REMOVE)) {
+        TranslateMessage(&blah);
+        DispatchMessageW(&blah);
+    }
+#endif
 }
 void display_release_mouse(void)
 {
