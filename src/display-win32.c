@@ -13,7 +13,7 @@
 
 static HINSTANCE hInst;
 static HWND hWnd;
-static WNDCLASS wc;
+static WNDCLASSA wc;
 static HDC dc_dest, dc_src; // Drawing contexts
 static void* pixels;
 static int cheight, cwidth, mouse_enabled;
@@ -418,24 +418,24 @@ void display_init(void)
     wc.lpfnWndProc = display_callback;
     wc.hCursor = LoadCursor(0, IDC_ARROW);
 
-    RegisterClass(&wc);
+    RegisterClassA(&wc);
 
     HMENU bar = CreateMenu(),
           file = CreateMenu(),
           hotkeys = CreateMenu();
 
-    AppendMenu(file, MF_STRING, MENU_EXIT, "&Exit");
-    AppendMenu(file, MF_STRING, MENU_SAVE_STATE, "&Save State");
+    AppendMenuA(file, MF_STRING, MENU_EXIT, "&Exit");
+    AppendMenuA(file, MF_STRING, MENU_SAVE_STATE, "&Save State");
 
-    AppendMenu(hotkeys, MF_STRING, MENU_SEND_CTRL_ALT_DELETE, "&Ctrl + Alt + Delete");
-    AppendMenu(hotkeys, MF_STRING, MENU_SEND_SHIFT_F10, "&Shift + F10");
-    AppendMenu(hotkeys, MF_STRING, MENU_SEND_ALT_F4, "&Alt + F4");
-    AppendMenu(hotkeys, MF_STRING, MENU_SEND_ALT_TAB, "Alt + &Tab");
+    AppendMenuA(hotkeys, MF_STRING, MENU_SEND_CTRL_ALT_DELETE, "&Ctrl + Alt + Delete");
+    AppendMenuA(hotkeys, MF_STRING, MENU_SEND_SHIFT_F10, "&Shift + F10");
+    AppendMenuA(hotkeys, MF_STRING, MENU_SEND_ALT_F4, "&Alt + F4");
+    AppendMenuA(hotkeys, MF_STRING, MENU_SEND_ALT_TAB, "Alt + &Tab");
 
-    AppendMenu(bar, MF_POPUP, (UINT_PTR)file, "&File");
-    AppendMenu(bar, MF_POPUP, (UINT_PTR)hotkeys, "&Hotkeys");
+    AppendMenuA(bar, MF_POPUP, (UINT_PTR)file, "&File");
+    AppendMenuA(bar, MF_POPUP, (UINT_PTR)hotkeys, "&Hotkeys");
 
-    hWnd = CreateWindow(
+    hWnd = CreateWindowA(
         wc.lpszClassName,
         "Halfix",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
@@ -568,9 +568,9 @@ void* display_get_pixels(void)
 void display_handle_events(void)
 {
     MSG blah;
-    while (PeekMessage(&blah, hWnd, 0, 0, PM_REMOVE)) {
+    while (PeekMessageA(&blah, hWnd, 0, 0, PM_REMOVE)) {
         TranslateMessage(&blah);
-        DispatchMessage(&blah);
+        DispatchMessageA(&blah);
     }
 }
 void display_release_mouse(void)
