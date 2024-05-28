@@ -21,6 +21,9 @@ vs
 *.img
 *.iso
 *.flp
+*.stackdump
+*.tmp
+*.old
 test.conf
 seabios.bin
 seavgabios.bin
