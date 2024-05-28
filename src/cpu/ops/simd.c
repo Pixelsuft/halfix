@@ -131,7 +131,7 @@ static int get_read_ptr(uint32_t flags, struct decoded_instruction* i, int dword
             EXCEPTION_GP(0);
         for (int i = 0, j = 0; i < dwords; i++, j += 4)
             cpu_read32(linaddr + j, temp.d128[i], cpu.tlb_shift_read);
-        result_ptr = temp.d128;
+        result_ptr = (uint8_t*)temp.d128;
         write_back_dwords = dwords;
         write_back_linaddr = linaddr;
         return 0;
@@ -142,17 +142,17 @@ static int get_read_ptr(uint32_t flags, struct decoded_instruction* i, int dword
             return 1;
     }
 
-    uint32_t* host_ptr = cpu.tlb[linaddr >> 12] + linaddr;
+    uint32_t* host_ptr = (uint32_t*)(cpu.tlb[linaddr >> 12] + linaddr);
     uint32_t phys = PTR_TO_PHYS(host_ptr);
     if ((phys >= 0xA0000 && phys < 0xC0000) || (phys >= cpu.memory_size)) {
         for (int i = 0, j = 0; i < dwords; i++, j += 4)
             temp.d128[i] = io_handle_mmio_read(phys + j, 2);
-        result_ptr = temp.d128;
+        result_ptr = (uint8_t*)temp.d128;
         write_back_dwords = dwords;
         write_back_linaddr = linaddr;
         return 0;
     }
-    result_ptr = host_ptr;
+    result_ptr = (uint8_t*)host_ptr;
     return 0;
 }
 static int get_write_ptr(uint32_t flags, struct decoded_instruction* i, int dwords, int unaligned_exception)
@@ -162,7 +162,7 @@ static int get_write_ptr(uint32_t flags, struct decoded_instruction* i, int dwor
     if (linaddr & ((dwords << 2) - 1)) {
         if (unaligned_exception)
             EXCEPTION_GP(0);
-        result_ptr = temp.d128;
+        result_ptr = (uint8_t*)temp.d128;
         write_back = 1;
         write_back_dwords = dwords;
         write_back_linaddr = linaddr;
@@ -174,23 +174,23 @@ static int get_write_ptr(uint32_t flags, struct decoded_instruction* i, int dwor
             return 1;
     }
 
-    uint32_t* host_ptr = cpu.tlb[linaddr >> 12] + linaddr;
+    uint32_t* host_ptr = (uint32_t*)(cpu.tlb[linaddr >> 12] + linaddr);
     uint32_t phys = PTR_TO_PHYS(host_ptr);
     if ((phys >= 0xA0000 && phys < 0xC0000) || (phys >= cpu.memory_size)) {
         write_back = 1;
-        result_ptr = temp.d128;
+        result_ptr = (uint8_t*)temp.d128;
         write_back_dwords = dwords;
         write_back_linaddr = linaddr;
         return 0;
     }
     write_back = 0;
-    result_ptr = host_ptr;
+    result_ptr = (uint8_t*)host_ptr;
     return 0;
 }
 static int get_sse_read_ptr(uint32_t flags, struct decoded_instruction* i, int dwords, int unaligned_exception)
 {
     if (I_OP2(flags)) {
-        result_ptr = &XMM32(I_RM(flags));
+        result_ptr = (uint8_t*)&XMM32(I_RM(flags));
         return 0;
     } else
         return get_read_ptr(flags, i, dwords, unaligned_exception);
@@ -198,7 +198,7 @@ static int get_sse_read_ptr(uint32_t flags, struct decoded_instruction* i, int d
 static int get_sse_write_ptr(uint32_t flags, struct decoded_instruction* i, int dwords, int unaligned_exception)
 {
     if (I_OP2(flags)) {
-        result_ptr = &XMM32(I_RM(flags));
+        result_ptr = (uint8_t*)&XMM32(I_RM(flags));
         write_back = 0;
         return 0;
     } else
@@ -207,7 +207,7 @@ static int get_sse_write_ptr(uint32_t flags, struct decoded_instruction* i, int 
 static int get_mmx_read_ptr(uint32_t flags, struct decoded_instruction* i, int dwords)
 {
     if (I_OP2(flags)) {
-        result_ptr = &MM32(I_RM(flags));
+        result_ptr = (uint8_t*)&MM32(I_RM(flags));
         return 0;
     } else
         return get_read_ptr(flags, i, dwords, 0);
@@ -216,7 +216,7 @@ static int get_mmx_write_ptr(uint32_t flags, struct decoded_instruction* i, int 
 {
     if (I_OP2(flags)) {
         int reg = I_RM(flags);
-        result_ptr = &MM32(reg);
+        result_ptr = (uint8_t*)&MM32(reg);
         fpu.mm[reg].dummy = 0xFFFF;
         write_back = 0;
         return 0;
@@ -226,7 +226,7 @@ static int get_mmx_write_ptr(uint32_t flags, struct decoded_instruction* i, int 
 static int get_reg_read_ptr(uint32_t flags, struct decoded_instruction* i)
 {
     if (I_OP2(flags)) {
-        result_ptr = &cpu.reg32[I_RM(flags)];
+        result_ptr = (uint8_t*)&cpu.reg32[I_RM(flags)];
         return 0;
     } else
         return get_read_ptr(flags, i, 1, 0);
@@ -234,7 +234,7 @@ static int get_reg_read_ptr(uint32_t flags, struct decoded_instruction* i)
 static int get_reg_write_ptr(uint32_t flags, struct decoded_instruction* i)
 {
     if (I_OP2(flags)) {
-        result_ptr = &cpu.reg32[I_RM(flags)];
+        result_ptr = (uint8_t*)&cpu.reg32[I_RM(flags)];
         write_back = 0;
         return 0;
     } else
@@ -309,7 +309,7 @@ static inline uint8_t pack_i16_to_i8(uint16_t x)
         if (x > 0x7F)
             return 0x7F;
     }
-    return x;
+    return (uint8_t)x;
 }
 static void packssdw(void* dest, void* src, int dwordcount)
 {
@@ -589,8 +589,8 @@ static void packuswb(void* dest, void* src, int wordcount)
     uint8_t res[16];
     uint16_t *dest16 = dest, *src16 = src;
     for (int i = 0; i < wordcount; i++) {
-        res[i] = pack_i16_to_u8(dest16[i]);
-        res[i | wordcount] = pack_i16_to_u8(src16[i]);
+        res[i] = (uint8_t)pack_i16_to_u8(dest16[i]);
+        res[i | wordcount] = (uint8_t)pack_i16_to_u8(src16[i]);
     }
     memcpy(dest, res, wordcount << 1);
 }
@@ -624,7 +624,7 @@ static void pmuludq(void* dest, void* src, int dwordcount)
     uint32_t *dest32 = dest, *src32 = src;
     for (int i = 0; i < dwordcount; i += 2) {
         uint64_t result = (uint64_t)dest32[i] * (uint64_t)src32[i];
-        dest32[i] = result;
+        dest32[i] = (uint32_t)result;
         dest32[i + 1] = result >> 32L;
     }
 }
@@ -1065,7 +1065,7 @@ int execute_0F28_2F(struct decoded_instruction* i)
         // DEST[20...3F] = Int32ToFloat(SRC[20...3F])
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         dest32[0] = int32_to_float32(src32[0], &status);
         dest32[1] = int32_to_float32(src32[1], &status);
         fp_exception = cpu_sse_handle_exceptions();
@@ -1074,7 +1074,7 @@ int execute_0F28_2F(struct decoded_instruction* i)
         // DEST[00...1F] = Int32ToFloat(SRC[00...1F])
         EX(get_reg_read_ptr(flags, i));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         dest32[0] = int32_to_float32(src32[0], &status);
         fp_exception = cpu_sse_handle_exceptions();
         break;
@@ -1083,7 +1083,7 @@ int execute_0F28_2F(struct decoded_instruction* i)
         // DEST[40...6F] = Int32ToDouble(SRC[20...3F])
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         *(uint64_t*)(&dest32[0]) = int32_to_float64(src32[0]);
         *(uint64_t*)(&dest32[2]) = int32_to_float64(src32[1]);
         fp_exception = cpu_sse_handle_exceptions();
@@ -1092,7 +1092,7 @@ int execute_0F28_2F(struct decoded_instruction* i)
         // DEST[00...1F] = Int32ToDouble(SRC[00...1F])
         EX(get_reg_read_ptr(flags, i));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         *(uint64_t*)(&dest32[0]) = int32_to_float64(src32[0]);
         fp_exception = cpu_sse_handle_exceptions();
         break;
@@ -1101,7 +1101,7 @@ int execute_0F28_2F(struct decoded_instruction* i)
         // DEST[20...3F] = Int32ToDouble(SRC[20...3F])
         EX(get_sse_read_ptr(flags, i, 2, 1));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         if (i->imm8 & 16) {
             dest32[0] = float32_to_int32(src32[0], &status);
             dest32[1] = float32_to_int32(src32[1], &status);
@@ -1115,7 +1115,7 @@ int execute_0F28_2F(struct decoded_instruction* i)
         // DEST[00...1F] = Int32ToDouble(SRC[00...1F])
         EX(get_sse_read_ptr(flags, i, 1, 1));
         dest32 = get_reg_dest(I_REG(flags));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         if (i->imm8 & 16)
             dest32[0] = float32_to_int32(src32[0], &status);
         else
@@ -1127,7 +1127,7 @@ int execute_0F28_2F(struct decoded_instruction* i)
         // DEST[20...3F] = Int32ToDouble(SRC[40...7F])
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         if (i->imm8 & 16) {
             dest32[0] = float64_to_int32(*(uint64_t*)(&src32[0]), &status);
             dest32[1] = float64_to_int32(*(uint64_t*)(&src32[2]), &status);
@@ -1141,7 +1141,7 @@ int execute_0F28_2F(struct decoded_instruction* i)
         // DEST[00...1F] = Int32ToDouble(SRC[00...3F])
         EX(get_sse_read_ptr(flags, i, 1, 1));
         dest32 = get_reg_dest(I_REG(flags));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         if (i->imm8 & 16)
             dest32[0] = float64_to_int32(*(uint64_t*)(&src32[0]), &status);
         else
@@ -1226,7 +1226,7 @@ int execute_0F50_57(struct decoded_instruction* i)
     switch (i->imm8 & 15) {
     case MOVMSKPS_GdXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         result = 0;
         result = src32[0] >> 31;
         result |= src32[1] >> 30 & 2;
@@ -1236,7 +1236,7 @@ int execute_0F50_57(struct decoded_instruction* i)
         break;
     case MOVMSKPD_GdXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         result = 0;
         result = src32[1] >> 31;
         result |= src32[3] >> 30 & 2;
@@ -1244,7 +1244,7 @@ int execute_0F50_57(struct decoded_instruction* i)
         break;
     case SQRTPS_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         dest32 = get_sse_reg_dest(I_REG(flags));
         dest32[0] = float32_sqrt(src32[0], &status);
         dest32[1] = float32_sqrt(src32[1], &status);
@@ -1254,14 +1254,14 @@ int execute_0F50_57(struct decoded_instruction* i)
         break;
     case SQRTSS_XGdXEd:
         EX(get_sse_read_ptr(flags, i, 1, 1));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         dest32 = get_sse_reg_dest(I_REG(flags));
         dest32[0] = float32_sqrt(src32[0], &status);
         fp_exception = cpu_sse_handle_exceptions();
         break;
     case SQRTPD_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         dest32 = get_sse_reg_dest(I_REG(flags));
         *(uint64_t*)&dest32[0] = float64_sqrt(*(uint64_t*)&src32[0], &status);
         *(uint64_t*)&dest32[2] = float64_sqrt(*(uint64_t*)&src32[2], &status);
@@ -1269,7 +1269,7 @@ int execute_0F50_57(struct decoded_instruction* i)
         break;
     case SQRTSD_XGqXEq:
         EX(get_sse_read_ptr(flags, i, 2, 0));
-        src32 = result_ptr;
+        src32 = (uint32_t*)result_ptr;
         dest32 = get_sse_reg_dest(I_REG(flags));
         *(uint64_t*)&dest32[0] = float64_sqrt(*(uint64_t*)&src32[0], &status);
         fp_exception = cpu_sse_handle_exceptions();
@@ -1486,22 +1486,22 @@ int execute_0FE8_EF(struct decoded_instruction* i)
     case PSUBSW_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        psubsw((uint16_t*)dest32, result_ptr, 4);
+        psubsw((uint16_t*)dest32, (uint16_t*)result_ptr, 4);
         break;
     case PSUBSW_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        psubsw((uint16_t*)dest32, result_ptr, 8);
+        psubsw((uint16_t*)dest32, (uint16_t*)result_ptr, 8);
         break;
     case PMINSW_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pminsw((int16_t*)dest32, result_ptr, 4);
+        pminsw((int16_t*)dest32, (int16_t*)result_ptr, 4);
         break;
     case PMINSW_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pminsw((int16_t*)dest32, result_ptr, 8);
+        pminsw((int16_t*)dest32, (int16_t*)result_ptr, 8);
         break;
     case POR_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
@@ -1530,22 +1530,22 @@ int execute_0FE8_EF(struct decoded_instruction* i)
     case PADDSW_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        paddsw((uint16_t*)dest32, result_ptr, 4);
+        paddsw((uint16_t*)dest32, (uint16_t*)result_ptr, 4);
         break;
     case PADDSW_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        paddsw((uint16_t*)dest32, result_ptr, 8);
+        paddsw((uint16_t*)dest32, (uint16_t*)result_ptr, 8);
         break;
     case PMAXSW_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pmaxsw((int16_t*)dest32, result_ptr, 4);
+        pmaxsw((int16_t*)dest32, (int16_t*)result_ptr, 4);
         break;
     case PMAXSW_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pmaxsw((int16_t*)dest32, result_ptr, 8);
+        pmaxsw((int16_t*)dest32, (int16_t*)result_ptr, 8);
         break;
     case PXOR_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
@@ -1687,25 +1687,25 @@ int execute_0F70_76(struct decoded_instruction* i)
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pcmpeqw((uint16_t*)dest32, result_ptr, 4);
+        pcmpeqw((uint16_t*)dest32, (uint16_t*)result_ptr, 4);
         break;
     case PCMPEQW_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pcmpeqw((uint16_t*)dest32, result_ptr, 8);
+        pcmpeqw((uint16_t*)dest32, (uint16_t*)result_ptr, 8);
         break;
     case PCMPEQD_MGqMEq:
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pcmpeqd(dest32, result_ptr, 2);
+        pcmpeqd(dest32, (uint32_t*)result_ptr, 2);
         break;
     case PCMPEQD_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pcmpeqd(dest32, result_ptr, 4);
+        pcmpeqd(dest32, (uint32_t*)result_ptr, 4);
         break;
     }
     return 0;
@@ -1772,22 +1772,22 @@ int execute_0F60_67(struct decoded_instruction* i)
     case PCMPGTW_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pcmpgtw((int16_t*)dest32, result_ptr, 4);
+        pcmpgtw((int16_t*)dest32, (int16_t*)result_ptr, 4);
         break;
     case PCMPGTW_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pcmpgtw((int16_t*)dest32, result_ptr, 8);
+        pcmpgtw((int16_t*)dest32, (int16_t*)result_ptr, 8);
         break;
     case PCMPGTD_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pcmpgtd((int32_t*)dest32, result_ptr, 2);
+        pcmpgtd((int32_t*)dest32, (int32_t*)result_ptr, 2);
         break;
     case PCMPGTD_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pcmpgtd((int32_t*)dest32, result_ptr, 4);
+        pcmpgtd((int32_t*)dest32, (int32_t*)result_ptr, 4);
         break;
     case PACKUSWB_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
@@ -1870,13 +1870,13 @@ int execute_0FD0_D7(struct decoded_instruction* i)
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pmullw((uint16_t*)dest32, result_ptr, 4, 0);
+        pmullw((uint16_t*)dest32, (uint16_t*)result_ptr, 4, 0);
         break;
     case PMULLW_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pmullw((uint16_t*)dest32, result_ptr, 8, 0);
+        pmullw((uint16_t*)dest32, (uint16_t*)result_ptr, 8, 0);
         break;
     case MOVQ_XEqXGq:
         CHECK_SSE;
@@ -1945,12 +1945,12 @@ int execute_0FD8_DF(struct decoded_instruction* i)
     case PSUBUSW_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        psubusw((uint16_t*)dest32, result_ptr, 4);
+        psubusw((uint16_t*)dest32, (uint16_t*)result_ptr, 4);
         break;
     case PSUBUSW_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        psubusw((uint16_t*)dest32, result_ptr, 8);
+        psubusw((uint16_t*)dest32, (uint16_t*)result_ptr, 8);
         break;
     case PMINUB_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
@@ -1989,12 +1989,12 @@ int execute_0FD8_DF(struct decoded_instruction* i)
     case PADDUSW_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        paddusw((uint16_t*)dest32, result_ptr, 4);
+        paddusw((uint16_t*)dest32, (uint16_t*)result_ptr, 4);
         break;
     case PADDUSW_XGoXEo:
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        paddusw((uint16_t*)dest32, result_ptr, 8);
+        paddusw((uint16_t*)dest32, (uint16_t*)result_ptr, 8);
         break;
     case PMAXUB_MGqMEq:
         EX(get_mmx_read_ptr(flags, i, 2));
@@ -2103,37 +2103,37 @@ int execute_0FF8_FE(struct decoded_instruction* i)
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest = get_mmx_reg_dest(I_REG(flags));
-        psubw(dest, result_ptr, 4);
+        psubw(dest, (uint16_t*)result_ptr, 4);
         break;
     case PSUBW_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest = get_sse_reg_dest(I_REG(flags));
-        psubw(dest, result_ptr, 8);
+        psubw(dest, (uint16_t*)result_ptr, 8);
         break;
     case PSUBD_MGqMEq:
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest = get_mmx_reg_dest(I_REG(flags));
-        psubd(dest, result_ptr, 2);
+        psubd(dest, (uint32_t*)result_ptr, 2);
         break;
     case PSUBD_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest = get_sse_reg_dest(I_REG(flags));
-        psubd(dest, result_ptr, 4);
+        psubd(dest, (uint32_t*)result_ptr, 4);
         break;
     case PSUBQ_MGqMEq:
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest = get_mmx_reg_dest(I_REG(flags));
-        psubq(dest, result_ptr, 1);
+        psubq(dest, (uint64_t*)result_ptr, 1);
         break;
     case PSUBQ_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest = get_sse_reg_dest(I_REG(flags));
-        psubq(dest, result_ptr, 2);
+        psubq(dest, (uint64_t*)result_ptr, 2);
         break;
     case PADDB_MGqMEq:
         CHECK_MMX;
@@ -2151,25 +2151,25 @@ int execute_0FF8_FE(struct decoded_instruction* i)
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest = get_mmx_reg_dest(I_REG(flags));
-        paddw(dest, result_ptr, 4);
+        paddw(dest, (uint16_t*)result_ptr, 4);
         break;
     case PADDW_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest = get_sse_reg_dest(I_REG(flags));
-        paddw(dest, result_ptr, 8);
+        paddw(dest, (uint16_t*)result_ptr, 8);
         break;
     case PADDD_MGqMEq:
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest = get_mmx_reg_dest(I_REG(flags));
-        paddd(dest, result_ptr, 2);
+        paddd(dest, (uint32_t*)result_ptr, 2);
         break;
     case PADDD_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest = get_sse_reg_dest(I_REG(flags));
-        paddd(dest, result_ptr, 4);
+        paddd(dest, (uint32_t*)result_ptr, 4);
         break;
     }
     return 0;
@@ -2201,15 +2201,15 @@ int execute_0FC2_C6(struct decoded_instruction* i)
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        dest32[0] = dest32[1] = cmppd(*(float64*)(&dest32[0]), *(float64*)(result_ptr), imm);
-        dest32[2] = dest32[3] = cmppd(*(float64*)(&dest32[2]), *(float64*)(result_ptr + 8), imm);
+        dest32[0] = dest32[1] = (uint32_t)cmppd(*(float64*)(&dest32[0]), *(float64*)(result_ptr), imm);
+        dest32[2] = dest32[3] = (uint32_t)cmppd(*(float64*)(&dest32[2]), *(float64*)(result_ptr + 8), imm);
         fp_exception = cpu_sse_handle_exceptions();
         break;
     case CMPSD_XGqXEqIb:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 2, 0));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        dest32[0] = dest32[1] = cmppd(*(float64*)(&dest32[0]), *(float64*)(result_ptr), imm);
+        dest32[0] = dest32[1] = (uint32_t)cmppd(*(float64*)(&dest32[0]), *(float64*)(result_ptr), imm);
         fp_exception = cpu_sse_handle_exceptions();
         break;
     case MOVNTI_EdGd:
@@ -2566,13 +2566,13 @@ int execute_0FE0_E7(struct decoded_instruction* i)
         CHECK_MMX;
         EX(get_mmx_read_ptr(flags, i, 2));
         dest32 = get_mmx_reg_dest(I_REG(flags));
-        pmullw((uint16_t*)dest32, result_ptr, 4, 16);
+        pmullw((uint16_t*)dest32, (uint16_t*)result_ptr, 4, 16);
         break;
     case PMULHW_XGoXEo:
         CHECK_SSE;
         EX(get_sse_read_ptr(flags, i, 4, 1));
         dest32 = get_sse_reg_dest(I_REG(flags));
-        pmullw((uint16_t*)dest32, result_ptr, 8, 16);
+        pmullw((uint16_t*)dest32, (uint16_t*)result_ptr, 8, 16);
         break;
     case CVTPD2DQ_XGoXEo:
         CHECK_SSE;

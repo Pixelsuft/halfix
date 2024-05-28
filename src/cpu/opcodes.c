@@ -2467,7 +2467,7 @@ OPTYPE op_rdtsc(struct decoded_instruction* i)
 {
     if (!(cpu.cr[4] & CR4_TSD) || (cpu.cpl == 0) || !(cpu.cr[0] & CR0_PE)) {
         uint64_t tsc = cpu_get_cycles() - cpu.tsc_fudge;
-        cpu.reg32[EAX] = tsc;
+        cpu.reg32[EAX] = (uint32_t)tsc;
         cpu.reg32[EDX] = tsc >> 32;
 //cpu.reg32[EAX] = cpu.cycles & 0xFFFFFFFF;
 //cpu.reg32[EDX] = cpu.cycles >> 32L & 0xFFFFFFFF;
