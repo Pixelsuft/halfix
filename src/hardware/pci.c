@@ -116,6 +116,7 @@ static uint32_t pci_read(uint32_t addr)
     default:
         PCI_FATAL("Read from unknown register - %x\n", addr);
     }
+    return 0;
 }
 
 // XXX - provide native 16-bit and 32-bit functions instead of just wrapping around the 8-bit versions.

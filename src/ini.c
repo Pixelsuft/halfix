@@ -428,8 +428,10 @@ int parse_cfg(struct pc_settings* pc, char* data)
                         n = mac[j + i] - 'A';
                     else if (mac[j + i] >= 'a' && mac[j + i] <= 'f')
                         n = mac[j + i] - 'a';
-                    else
+                    else {
                         FATAL("INI", "Malformed MAC address\n");
+                        n = 0;
+                    }
                     mac_part = (mac_part << 4) | n;
                 }
                 i += 2;

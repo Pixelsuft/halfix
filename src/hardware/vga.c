@@ -355,7 +355,7 @@ static void vga_change_attr_cache(int i)
 
 #define MASK(n) (uint8_t)(~n)
 
-static const uint32_t vbe_maximums[3] = { 1024, 768, 32 };
+static const uint32_t vbe_maximums[3] = { 3840, 2160, 32 };
 
 #ifndef VGA_LIBRARY
 static
