@@ -22,4 +22,6 @@ vs
 *.iso
 *.flp
 test.conf
+seabios.bin
+seavgabios.bin
 halfix
