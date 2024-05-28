@@ -24,12 +24,19 @@ void afree(void* ptr);
 //#define LOG(component, x, ...) fprintf(stderr, "[" component "] " x, ##__VA_ARGS__)
 //#define LOG(component, x, ...) printf("[" component "] " x, ##__VA_ARGS__)
 // We have the Halfix abort function (which releases the mouse and optionally writes out the event log) and then the real abort function to appease the compiler.
+#if 0
 #define FATAL(component, x, ...)                              \
     do {                                                      \
         fprintf(stderr, "[" component "] " x, ##__VA_ARGS__); \
         ABORT();                                              \
         abort();                                              \
     } while (0)
+#else
+#define FATAL(component, x, ...)                              \
+    do {                                                      \
+        fprintf(stderr, "[" component "] " x, ##__VA_ARGS__); \
+    } while (0)
+#endif
 #define NOP() \
     do {      \
     } while (0)
