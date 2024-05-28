@@ -488,22 +488,58 @@ void display_send_scancode(int key)
 #ifdef _WIN32
 void display_check_dark_mode(void)
 {
-    // TODO: make better
-    HMODULE dwm = LoadLibraryExA("dwmapi.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-    if (!dwm)
+    HMODULE ntdll = LoadLibraryExA("ntdll.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (!ntdll)
         return;
+    HMODULE dwm = LoadLibraryExA("dwmapi.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (!dwm) {
+        FreeLibrary(ntdll);
+        return;
+    }
     HMODULE uxtheme = LoadLibraryExA("uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!uxtheme) {
         FreeLibrary(dwm);
+        FreeLibrary(ntdll);
         return;
     }
+    typedef void (*RtlGetVersionPTR)(void*);
     typedef HRESULT (*DwmSetWindowAttributePTR)(HWND, DWORD, LPCVOID, DWORD);
-    DwmSetWindowAttributePTR DwmSetWindowAttribute = (DwmSetWindowAttributePTR)((size_t)GetProcAddress(dwm, "DwmSetWindowAttribute"));
     typedef bool (WINAPI *ShouldAppsUseDarkModePTR)();
-    ShouldAppsUseDarkModePTR ShouldAppsUseDarkMode = (ShouldAppsUseDarkModePTR)((size_t)GetProcAddress(uxtheme, MAKEINTRESOURCEA(132)));
-    if (!DwmSetWindowAttribute || !ShouldAppsUseDarkMode || !ShouldAppsUseDarkMode()) {
+    RtlGetVersionPTR RtlGetVersion = (RtlGetVersionPTR)((size_t)GetProcAddress(ntdll, "RtlGetVersion"));
+    DwmSetWindowAttributePTR DwmSetWindowAttribute = (DwmSetWindowAttributePTR)((size_t)GetProcAddress(dwm, "DwmSetWindowAttribute"));
+    struct {
+        ULONG dwOSVersionInfoSize;
+        ULONG dwMajorVersion;
+        ULONG dwMinorVersion;
+        ULONG dwBuildNumber;
+        ULONG dwPlatformId;
+        WCHAR szCSDVersion[128];
+        USHORT wServicePackMajor;
+        USHORT wServicePackMinor;
+        USHORT wSuiteMask;
+        UCHAR wProductType;
+        UCHAR wReserved;
+    } ntdll_ver_struct;
+    memset(&ntdll_ver_struct, 0, sizeof(ntdll_ver_struct));
+    ntdll_ver_struct.dwOSVersionInfoSize = sizeof(ntdll_ver_struct);
+    if (!RtlGetVersion || !DwmSetWindowAttribute) {
         FreeLibrary(uxtheme);
         FreeLibrary(dwm);
+        FreeLibrary(ntdll);
+        return;
+    }
+    RtlGetVersion(&ntdll_ver_struct);
+    if (ntdll_ver_struct.dwBuildNumber < 17763) {
+        FreeLibrary(uxtheme);
+        FreeLibrary(dwm);
+        FreeLibrary(ntdll);
+        return;
+    }
+    ShouldAppsUseDarkModePTR ShouldAppsUseDarkMode = (ShouldAppsUseDarkModePTR)((size_t)GetProcAddress(uxtheme, MAKEINTRESOURCEA(132)));
+    if (!ShouldAppsUseDarkMode || !ShouldAppsUseDarkMode()) {
+        FreeLibrary(uxtheme);
+        FreeLibrary(dwm);
+        FreeLibrary(ntdll);
         return;
     }
     SDL_SysWMinfo wm_info;
@@ -517,6 +553,7 @@ void display_check_dark_mode(void)
     }
     FreeLibrary(uxtheme);
     FreeLibrary(dwm);
+    FreeLibrary(ntdll);
 }
 #endif
 
