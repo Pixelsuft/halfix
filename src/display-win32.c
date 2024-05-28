@@ -47,10 +47,10 @@ static void display_set_title(void)
         mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
     SetWindowTextA(hWnd, buffer);
 #else
-    /* char buffer[1000];
-    sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", cwidth, cheight,
-        mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
-    SetWindowTextA(hWnd, buffer); */
+    wchar_t buffer[1000];
+    swprintf(buffer, 900, L"Halfix x86 Emulator - [%dx%d] - %s", cwidth, cheight,
+        mouse_enabled ? L"Press ESC to release mouse" : L"Click to capture mouse");
+    SetWindowTextW(hWnd, buffer);
 #endif
 }
 
