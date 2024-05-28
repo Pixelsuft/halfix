@@ -67,7 +67,7 @@ static uint32_t read32(struct rstream* r)
 static char* readstr(struct rstream* r)
 {
     int length = (int)strlen((void*)&r->buf[r->pos]) + 1;
-    char* dest = malloc(length);
+    char* dest = h_malloc(length);
     memcpy(dest, &r->buf[r->pos], length);
     r->pos += length;
     return dest;
@@ -108,13 +108,13 @@ struct wstream {
 };
 static void wstream_init(struct wstream* w, int initial_size)
 {
-    w->buf = malloc(initial_size);
+    w->buf = h_malloc(initial_size);
     w->pos = 0;
     w->bufsize = initial_size;
 }
 static void wstream_destroy(struct wstream* w)
 {
-    free(w->buf);
+    h_free(w->buf);
 }
 static void wstream_grow(struct wstream* w)
 {
@@ -213,7 +213,7 @@ struct bjson_object* state_get_object(struct bjson_object* o, char* key)
 static char* dupstr(char* v)
 {
     int len = (int)strlen(v) + 1;
-    char* res = malloc(len + 1);
+    char* res = h_malloc(len + 1);
     memcpy(res, v, len);
     return res;
 }
@@ -252,14 +252,14 @@ void state_add_object(struct bjson_object* o, char* key, struct bjson_object* va
 // Creates a BJSON object and initializes it.
 struct bjson_object* state_create_bjson_object(int keyvalues)
 {
-    struct bjson_object* obj = malloc(sizeof(struct bjson_object));
+    struct bjson_object* obj = h_malloc(sizeof(struct bjson_object));
     obj->length = keyvalues;
-    obj->keys = calloc(keyvalues, sizeof(struct bjson_key_value));
+    obj->keys = h_calloc(keyvalues, sizeof(struct bjson_key_value));
     return obj;
 }
 void state_init_bjson_mem(struct bjson_data* arr, int length)
 {
-    arr->data = malloc(length);
+    arr->data = h_malloc(length);
     arr->length = length;
 }
 
@@ -309,7 +309,7 @@ void state_string(struct bjson_object* cur, char* name, char** val)
         }
         if (!ok) // Either we hit an unexpected \00 or we didn't hit one at all!
             STATE_FATAL("Invalid string literal");
-        char* dest = malloc(length);
+        char* dest = h_malloc(length);
         memcpy(dest, arr->data, length);
         *val = dest;
     } else {
@@ -382,13 +382,13 @@ static void bjson_destroy_object(struct bjson_object* obj)
 {
     for (unsigned int i = 0; i < obj->length; i++) {
         struct bjson_key_value* keyvalue = &obj->keys[i];
-        free(keyvalue->key);
+        h_free(keyvalue->key);
         if (keyvalue->datatype == TYPE_OBJECT)
             bjson_destroy_object(keyvalue->ptr_value);
         // DATA pointers point to the file itself.
     }
-    free(obj->keys);
-    free(obj);
+    h_free(obj->keys);
+    h_free(obj);
 }
 
 static char* global_file_base;
@@ -430,11 +430,11 @@ static char* normalize(char* a)
     int len = (int)strlen(a);
     char* res;
     if (a[len - 1] == PATHSEP) {
-        res = malloc(len);
+        res = h_malloc(len);
         memcpy(res, a, len);
         res[len - 1] = 0;
     } else {
-        res = malloc(len + 1);
+        res = h_malloc(len + 1);
         memcpy(res, a, len + 1);
     }
     return res;
@@ -452,7 +452,7 @@ void state_read_from_file(char* fn)
         STATE_FATAL("Cannot open file %s\n", fn);
     int size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
-    void* buf = malloc(size);
+    void* buf = h_malloc(size);
     if (read(fd, buf, size) != size)
         STATE_FATAL("Cannot read from file %s\n", fn);
     close(fd);
@@ -470,8 +470,8 @@ void state_read_from_file(char* fn)
     for (int i = 0; i < state_handler_count; i++)
         state_handlers[i]();
     bjson_destroy_object(global_obj);
-    free(global_file_base);
-    free(buf);
+    h_free(global_file_base);
+    h_free(buf);
 }
 
 void state_store_to_file(char* fn)
@@ -499,7 +499,7 @@ void state_store_to_file(char* fn)
     close(fd);
     wstream_destroy(&w);
     bjson_destroy_object(global_obj);
-    free(global_file_base);
+    h_free(global_file_base);
 }
 
 #ifdef EMSCRIPTEN
@@ -528,7 +528,7 @@ void state_get_buffer(void)
     wstream_destroy(&w);
     //ABORT();
     bjson_destroy_object(global_obj);
-    free(global_file_base);
+    h_free(global_file_base);
 }
 #endif
 

@@ -61,7 +61,7 @@ enum {
 static inline char* slice_string(char* y, int start, int end)
 {
     int length = end - start;
-    char* result = malloc(length + 1);
+    char* result = h_malloc(length + 1);
     memcpy(result, y + start, length);
     result[length] = 0;
     return result;
@@ -72,7 +72,7 @@ static struct ini_section* ini_parse(char* x)
     int state = STATE_DEFAULT,
         length = (int)strlen(x),
         i = 0, strstart = 0, strend = 0, include_whitespace = 0;
-    struct ini_section *result = calloc(1, sizeof(struct ini_section)), *head = result;
+    struct ini_section *result = h_calloc(1, sizeof(struct ini_section)), *head = result;
     struct ini_field* current_field = NULL;
     while (i < length) {
         int c = x[i++];
@@ -97,7 +97,7 @@ static struct ini_section* ini_parse(char* x)
         case STATE_SECTION:
             if (c == ']') {
                 // Add an element to our linked list.
-                struct ini_section* sect = calloc(1, sizeof(struct ini_section));
+                struct ini_section* sect = h_calloc(1, sizeof(struct ini_section));
                 sect->name = slice_string(x, strstart, i - 1);
                 head->next = sect;
                 head = sect;
@@ -107,7 +107,7 @@ static struct ini_section* ini_parse(char* x)
         case STATE_KEY:
             // keystart[\s]=[\s+]
             if (c == '=') {
-                struct ini_field *field = calloc(1, sizeof(struct ini_field)), *temp;
+                struct ini_field *field = h_calloc(1, sizeof(struct ini_field)), *temp;
                 field->name = slice_string(x, strstart, strend);
                 temp = head->fields;
                 head->fields = field;
@@ -245,19 +245,19 @@ static void free_ini(struct ini_section* sect)
 {
     while (sect) {
         // Free the name
-        free(sect->name);
+        h_free(sect->name);
         // Free the fields
         struct ini_field* f = sect->fields;
         while (f) {
-            free(f->name);
-            free(f->data);
+            h_free(f->name);
+            h_free(f->data);
             struct ini_field* f_next = f->next;
-            free(f);
+            h_free(f);
             f = f_next;
         }
         // Now move to the next one
         struct ini_section* next = sect->next;
-        free(sect);
+        h_free(sect);
         sect = next;
     }
 }
@@ -342,7 +342,7 @@ static char* dupstr(char* src)
     if (!src)
         return NULL;
     int len = (int)strlen(src);
-    char* res = malloc(len + 1);
+    char* res = h_malloc(len + 1);
     strcpy(res, src);
     return res;
 }

@@ -80,8 +80,8 @@ void display_set_resolution(int width, int height)
 
 #ifndef SDL2_LOCK_IMPL
     if (surface_pixels)
-        free(surface_pixels);
-    surface_pixels = malloc(width * height * 4);
+        h_free(surface_pixels);
+    surface_pixels = h_malloc(width * height * 4);
 #endif
     if (texture) {
 #ifdef SDL2_LOCK_IMPL
@@ -589,7 +589,7 @@ void display_quit(void) {
         SDL_UnlockTexture(texture);
 #else
         if (surface_pixels)
-            free(surface_pixels);
+            h_free(surface_pixels);
 #endif
         SDL_DestroyTexture(texture);
     }

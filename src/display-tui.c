@@ -474,8 +474,8 @@ static int create_subwindow(int chrwidth, int chrheight, int x, int y)
         if (!sw->visible) {
             int chrsize = chrwidth * chrheight;
 
-            sw->textbuf = malloc(chrsize << 1);
-            sw->pixbuf = malloc(chrsize * (CHAR_WIDTH * CHAR_HEIGHT) * SCREEN_BYTPP);
+            sw->textbuf = h_malloc(chrsize << 1);
+            sw->pixbuf = h_malloc(chrsize * (CHAR_WIDTH * CHAR_HEIGHT) * SCREEN_BYTPP);
 
             for (int j = 0; j < chrsize; j++) {
                 ((uint16_t*)sw->textbuf)[j] = 0x0720; // gray on black, space
@@ -514,7 +514,7 @@ static int create_subwindow2(int chrwidth, int chrheight, char* textbuf, int x, 
             int chrsize = chrwidth * chrheight;
 
             sw->textbuf = (uint8_t*)textbuf;
-            sw->pixbuf = malloc(chrsize * (CHAR_WIDTH * CHAR_HEIGHT) * SCREEN_BYTPP);
+            sw->pixbuf = h_malloc(chrsize * (CHAR_WIDTH * CHAR_HEIGHT) * SCREEN_BYTPP);
 
             sw->ch = chrheight;
             sw->cw = chrwidth;
@@ -544,9 +544,9 @@ static void destroy_subwindow(int id)
 {
     struct subwindow* sw = &subwindows[id];
     if (sw->visible) {
-        free(sw->pixbuf);
+        h_free(sw->pixbuf);
         if (!(sw->flags & FLAG_NOFREE))
-            free(sw->textbuf);
+            h_free(sw->textbuf);
         sw->visible = 0;
         if (num_subwindows == (id + 1))
             num_subwindows--;
@@ -628,15 +628,15 @@ static void realloc_bar_sizes(int width)
     uint32_t new_menubar_width = width / CHAR_WIDTH;
     if (menubar_width != new_menubar_width) {
         if (menubar_textbuffer)
-            menubar_textbuffer = realloc(menubar_textbuffer, new_menubar_width << 1);
+            menubar_textbuffer = h_realloc(menubar_textbuffer, new_menubar_width << 1);
         else
-            menubar_textbuffer = malloc(new_menubar_width << 1);
+            menubar_textbuffer = h_malloc(new_menubar_width << 1);
 
         // Menubar width
         if (statusbar_textbuffer)
-            statusbar_textbuffer = realloc(statusbar_textbuffer, new_menubar_width << 1);
+            statusbar_textbuffer = h_realloc(statusbar_textbuffer, new_menubar_width << 1);
         else
-            statusbar_textbuffer = malloc(new_menubar_width << 1);
+            statusbar_textbuffer = h_malloc(new_menubar_width << 1);
     }
     menubar_width = new_menubar_width;
     menubar_overflow = width % CHAR_WIDTH;
@@ -783,11 +783,11 @@ static void render_menubar_info(int id)
 
 static struct menubar_listing* init_menubar_listing(int sz)
 {
-    struct menubar_listing* mbl = malloc(sizeof(struct menubar_listing));
+    struct menubar_listing* mbl = h_malloc(sizeof(struct menubar_listing));
     mbl->nent = sz;
-    mbl->entries = calloc(sizeof(char*), sz);
-    mbl->offsets = calloc(sizeof(int), sz);
-    mbl->cbs = calloc(sizeof(menu_click_cb), sz);
+    mbl->entries = h_calloc(sizeof(char*), sz);
+    mbl->offsets = h_calloc(sizeof(int), sz);
+    mbl->cbs = h_calloc(sizeof(menu_click_cb), sz);
     mbl->max_height = mbl->max_width = 0;
     mbl->textbuf = NULL;
     return mbl;
@@ -818,13 +818,13 @@ static void finalize_menubar(struct menubar_listing* mbl)
     int height = mbl->max_height + 2;
 
     if (mbl->textbuf)
-        free(mbl->textbuf);
+        h_free(mbl->textbuf);
 
     // Create a fake subwindow so that we can fool draw_window_border into thinking this is an actual window
     struct subwindow sw;
     sw.cw = width;
     sw.ch = height;
-    uint8_t* textbuf = sw.textbuf = calloc(width * height, 2);
+    uint8_t* textbuf = sw.textbuf = h_calloc(width * height, 2);
     mbl->textbuf = (char*)textbuf;
     draw_window_border(&sw, 0 | NO_PIXBUF_UPDATE, 0x07);
 

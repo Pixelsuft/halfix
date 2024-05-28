@@ -176,7 +176,7 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
             perror("open: ");
             DRIVE_FATAL("Could not open file %s\n", fn);
         }
-        data = malloc(this->block_size);
+        data = h_malloc(this->block_size);
         size = lseek(fd, 0, SEEK_END);
         lseek(fd, 0, SEEK_SET);
         if (read(fd, data, size) != (ssize_t)size)
@@ -186,10 +186,10 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
     }
 
     // Read the block into a chunk of temporary memory, and decompress
-    data = malloc(this->block_size);
+    data = h_malloc(this->block_size);
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
-    readbuf = malloc(size);
+    readbuf = h_malloc(size);
     if (read(fd, readbuf, size) != (ssize_t)size)
         DRIVE_FATAL("Could not read file %s\n", fn);
 
@@ -212,7 +212,7 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
         inflateEnd(&inflate_stream);
         DRIVE_FATAL("Unable to inflate %s\n", temp);
     }
-    free(readbuf);
+    h_free(readbuf);
     close(fd);
     return data;
 #endif
@@ -596,8 +596,8 @@ static void drive_internal_state(void* this_ptr, char* pn)
         state_field(obj, 4, "path_count", &this->path_count);
         // Destroy all paths and load in our new paths
         for (int i = 0; i < old_path_counts; i++)
-            free(this->paths[i]);
-        this->paths = realloc(this->paths, this->path_count * sizeof(char*));
+            h_free(this->paths[i]);
+        this->paths = h_realloc(this->paths, this->path_count * sizeof(char*));
         int paths0 = 0;
         for (unsigned int i = 0; i < this->path_count; i++) {
             sprintf(temp, "path%d", i);
@@ -610,7 +610,7 @@ static void drive_internal_state(void* this_ptr, char* pn)
         state_field(obj, this->block_count * 4, "block_array", block_infos);
         for (unsigned int i = 0; i < this->block_count; i++) {
             if (this->blocks[i].data)
-                free(this->blocks[i].data);
+                h_free(this->blocks[i].data);
             this->blocks[i].data = NULL;
             this->blocks[i].modified = 0;
             this->blocks[i].pathindex = block_infos[i];
@@ -666,14 +666,14 @@ static
     int
     drive_internal_init(struct drive_info* info, char* filename, void* info_dat, int drvid)
 {
-    struct drive_internal_info* drv = malloc(sizeof(struct drive_internal_info));
+    struct drive_internal_info* drv = h_malloc(sizeof(struct drive_internal_info));
 
     int len = (int)strlen(filename);
-    void* pathbase = malloc(len + 1);
+    void* pathbase = h_malloc(len + 1);
     strcpy(pathbase, filename);
 
     drv->path_count = 1;
-    drv->paths = malloc(sizeof(char*));
+    drv->paths = h_malloc(sizeof(char*));
     drv->paths[0] = pathbase;
 #ifdef EMSCRIPTEN
     drv->drive_id = drvid;
@@ -686,7 +686,7 @@ static
     drv->block_size = internal->block_size;
     drv->size = internal->size;
     drv->block_count = (internal->block_size + internal->size - 1) / internal->block_size;
-    drv->blocks = calloc(drv->block_count, sizeof(struct block_info));
+    drv->blocks = h_calloc(drv->block_count, sizeof(struct block_info));
 
     info->data = drv;
     info->read = drive_internal_read;
@@ -746,13 +746,13 @@ int drive_init(struct drive_info* info, char* filename)
         return -1;
     int size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
-    void* data = malloc(size);
+    void* data = h_malloc(size);
     if (read(fd, data, size) != size)
         return -1;
     close(fd);
 
     drive_internal_init(info, filename, data, -1);
-    free(data);
+    h_free(data);
     return 0;
 }
 #endif
@@ -828,7 +828,7 @@ static int drive_simple_fetch_cache(struct simple_driver* info, void* buffer, dr
 
 static int drive_simple_add_cache(struct simple_driver* info, drv_offset_t offset)
 {
-    void* dest = info->blocks[offset / info->block_size] = malloc(info->block_size);
+    void* dest = info->blocks[offset / info->block_size] = h_malloc(info->block_size);
     lseek(info->fd, (long)(offset & (drv_offset_t) ~(info->block_size - 1)), SEEK_SET); // Seek to the beginning of the current block
     if ((uint32_t)read(info->fd, dest, (unsigned int)info->block_size) != info->block_size)
         DRIVE_FATAL("Unable to read %d bytes from image file\n", (int)info->block_size);
@@ -921,13 +921,13 @@ int drive_simple_init(struct drive_info* info, char* filename)
         return -1;
     lseek(fd, 0, SEEK_SET);
 
-    struct simple_driver* sync_info = malloc(sizeof(struct simple_driver));
+    struct simple_driver* sync_info = h_malloc(sizeof(struct simple_driver));
     info->data = sync_info;
     sync_info->fd = fd;
     sync_info->image_size = size;
     sync_info->block_size = BLOCK_SIZE;
     sync_info->block_array_size = (uint32_t)(((drv_offset_t)size + sync_info->block_size - 1) / sync_info->block_size);
-    sync_info->blocks = calloc(sync_info->block_array_size, sizeof(uint8_t*));
+    sync_info->blocks = h_calloc(sync_info->block_array_size, sizeof(uint8_t*));
 
     sync_info->raw_file_access = info->modify_backing_file;
 
@@ -949,9 +949,9 @@ void drive_destroy_simple(struct drive_info* info)
 {
     struct simple_driver* simple_info = info->data;
     for (unsigned int i = 0; i < simple_info->block_array_size; i++)
-        free(simple_info->blocks[i]);
-    free(simple_info->blocks);
-    free(simple_info);
+        h_free(simple_info->blocks[i]);
+    h_free(simple_info->blocks);
+    h_free(simple_info);
 }
 
 #ifndef EMSCRIPTEN

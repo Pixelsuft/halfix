@@ -117,7 +117,7 @@ parse_config:
         return -1;
     }
     fseek(f, 0, SEEK_END);
-    buf = malloc((filesz = ftell(f)) + 1);
+    buf = h_malloc((filesz = ftell(f)) + 1);
     fseek(f, 0, SEEK_SET);
     if (fread(buf, filesz, 1, f) != 1) {
         perror("fread");
@@ -130,7 +130,7 @@ parse_config:
     fclose(f);
 
     int result = parse_cfg(&pc, buf);
-    free(buf);
+    h_free(buf);
     if (result < 0)
         return -1;
 

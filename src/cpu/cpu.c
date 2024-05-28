@@ -24,12 +24,12 @@ void cpu_set_a20(int a20_enabled)
 
 int cpu_init_mem(int size)
 {
-    cpu.mem = calloc(1, size);
+    cpu.mem = h_calloc(1, size);
     memset((uint8_t *)cpu.mem + 0xC0000, -1, 0x40000);
     cpu.memory_size = size;
 
     cpu.smc_has_code_length = (size + 4095) >> 12;
-    cpu.smc_has_code = calloc(4, cpu.smc_has_code_length);
+    cpu.smc_has_code = h_calloc(4, cpu.smc_has_code_length);
 
 // It's possible that instrumentation callbacks will need a physical pointer to RAM
 #ifdef INSTRUMENT

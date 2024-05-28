@@ -77,8 +77,8 @@ void display_set_resolution(int width, int height)
 #else
 
     if (surface_pixels)
-        free(surface_pixels);
-    surface_pixels = malloc(width * height * 4);
+        h_free(surface_pixels);
+    surface_pixels = h_malloc(width * height * 4);
 
     if (surface)
         SDL_FreeSurface(surface);

@@ -61,6 +61,11 @@ typedef uint64_t itick_t;
 itick_t get_now(void);
 extern uint32_t ticks_per_second;
 
+void* h_malloc(size_t size);
+void* h_calloc(size_t elem_count, size_t elem_size);
+void* h_realloc(void* ptr, size_t new_size);
+void h_free(void* ptr);
+
 // Functions that mess around with timing
 void add_now(itick_t a);
 

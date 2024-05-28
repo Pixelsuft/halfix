@@ -313,9 +313,9 @@ static void vga_update_size(void)
     vga.total_width = width;
 
     if (vga.vbe_scanlines_modified)
-        vga.vbe_scanlines_modified = realloc(vga.vbe_scanlines_modified, vga.total_height);
+        vga.vbe_scanlines_modified = h_realloc(vga.vbe_scanlines_modified, vga.total_height);
     else
-        vga.vbe_scanlines_modified = malloc(vga.total_height);
+        vga.vbe_scanlines_modified = h_malloc(vga.total_height);
     memset(vga.vbe_scanlines_modified, 1, vga.total_height);
 
     vga.scanlines_to_update = height >> 1;
@@ -1578,7 +1578,7 @@ static void vga_pci_init(struct loaded_file* vgabios)
     io_register_mmio_read(vga.vgabios_addr = 0xFEB00000, 0x20000, vga_rom_readb, NULL, NULL);
     io_register_mmio_write(vga.vgabios_addr, 0x20000, vga_rom_writeb, NULL, NULL);
 
-    vga.rom = calloc(1, 65536);
+    vga.rom = h_calloc(1, 65536);
     memcpy(vga.rom, vgabios->data, vgabios->length & 65535);
     vga.rom_size = vgabios->length;
 

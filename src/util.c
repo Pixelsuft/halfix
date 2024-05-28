@@ -5,6 +5,9 @@
 #include "display.h"
 #include "state.h"
 #include <stdlib.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 //#define REALTIME_TIMING
 
@@ -14,23 +17,76 @@
 
 #define QMALLOC_SIZE 1 << 20
 
+// #define PREFER_SDL2
+// #define PREFER_STD
+
 static void* qmalloc_data;
 static int qmalloc_usage, qmalloc_size;
 
 static void** qmalloc_slabs = NULL;
 static int qmalloc_slabs_size = 0;
+
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+static HANDLE h_heap = NULL;
+#define HEAP_FLAGS HEAP_GENERATE_EXCEPTIONS | HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY
+#endif
+
+void* h_malloc(size_t size) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    if (h_heap == NULL) {
+        // TODO: maybe use own heap?
+        h_heap = GetProcessHeap();
+    }
+    return HeapAlloc(h_heap, HEAP_FLAGS, size);
+#elif defined(SDL2) && !defined(PREFER_STD)
+    return SDL_malloc(size);
+#else
+    return malloc(size);
+#endif
+}
+
+void* h_calloc(size_t elem_count, size_t elem_size) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return h_malloc(elem_count * elem_size);
+#elif defined(SDL2) && !defined(PREFER_STD)
+    return SDL_calloc(elem_count, elem_size);
+#else
+    return calloc(elem_count, elem_size);
+#endif
+}
+
+void* h_realloc(void* ptr, size_t new_size) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return HeapReAlloc(h_heap, HEAP_FLAGS, ptr, new_size);
+#elif defined(SDL2) && !defined(PREFER_STD)
+    return SDL_realloc(ptr, new_size);
+#else
+    return realloc(ptr, new_size);
+#endif
+}
+
+void h_free(void* ptr) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    HeapFree(h_heap, HEAP_FLAGS, ptr);
+#elif defined(SDL2) && !defined(PREFER_STD)
+    SDL_free(ptr);
+#else
+    free(ptr);
+#endif
+}
+
 static void qmalloc_slabs_resize(void)
 {
-    qmalloc_slabs = realloc(qmalloc_slabs, qmalloc_slabs_size * sizeof(void*));
+    qmalloc_slabs = h_realloc(qmalloc_slabs, qmalloc_slabs_size * sizeof(void*));
 }
 void qmalloc_init(void)
 {
     if (qmalloc_slabs == NULL) {
         qmalloc_slabs_size = 1;
-        qmalloc_slabs = malloc(8);
+        qmalloc_slabs = h_malloc(8);
         qmalloc_slabs_resize();
     }
-    qmalloc_data = malloc(QMALLOC_SIZE);
+    qmalloc_data = h_malloc(QMALLOC_SIZE);
     qmalloc_usage = 0;
     qmalloc_size = QMALLOC_SIZE;
     qmalloc_slabs[qmalloc_slabs_size - 1] = qmalloc_data;
@@ -57,9 +113,9 @@ void* qmalloc(int size, int align)
 void qfree(void)
 {
     for (int i = 0; i < qmalloc_slabs_size; i++) {
-        free(qmalloc_slabs[i]);
+        h_free(qmalloc_slabs[i]);
     }
-    free(qmalloc_slabs);
+    h_free(qmalloc_slabs);
     qmalloc_slabs = NULL;
     qmalloc_init();
 }
@@ -72,7 +128,7 @@ struct aalloc_info {
 void* aalloc(int size, int align)
 {
     int adjusted = align - 1;
-    void *actual = calloc(1, sizeof(void *) + size + adjusted);
+    void *actual = h_calloc(1, sizeof(void *) + size + adjusted);
     struct aalloc_info *ai = (struct aalloc_info*)((uint8_t *)((void*)((uintptr_t)((uint8_t *)actual + sizeof(void*) + adjusted) & ~adjusted)) - sizeof(void *));
     ai->actual_ptr = actual;
     return ((uint8_t *)ai) + sizeof(void *);
@@ -80,7 +136,7 @@ void* aalloc(int size, int align)
 void afree(void* ptr)
 {
     struct aalloc_info* a = (struct aalloc_info*)((uint8_t *)ptr - 1);
-    free(a->actual_ptr);
+    h_free(a->actual_ptr);
 }
 
 // Timing functions

@@ -161,7 +161,7 @@ void* pci_create_device(uint32_t bus, uint32_t device, uint32_t function, pci_co
     pci.configuration_modification[device << 3 | function] = cb;
     PCI_LOG("Registering device at bus=0 device=%d function=%d\n", device, function);
 
-    return pci.configuration_address_spaces[device << 3 | function] = calloc(1, 256);
+    return pci.configuration_address_spaces[device << 3 | function] = h_calloc(1, 256);
 }
 
 void pci_copy_default_configuration(void* confptr, void* area, int size)
