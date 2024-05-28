@@ -70,7 +70,7 @@ static inline char* slice_string(char* y, int start, int end)
 static struct ini_section* ini_parse(char* x)
 {
     int state = STATE_DEFAULT,
-        length = strlen(x),
+        length = (int)strlen(x),
         i = 0, strstart = 0, strend = 0, include_whitespace = 0;
     struct ini_section *result = calloc(1, sizeof(struct ini_section)), *head = result;
     struct ini_field* current_field = NULL;
@@ -239,7 +239,7 @@ static int get_field_long(struct ini_section* sect, char* name, int def)
             break;
         res = res * 10 + str[i] - '0';
     }
-    return res;
+    return (int)res;
 }
 static void free_ini(struct ini_section* sect)
 {
@@ -341,7 +341,7 @@ static char* dupstr(char* src)
 {
     if (!src)
         return NULL;
-    int len = strlen(src);
+    int len = (int)strlen(src);
     char* res = malloc(len + 1);
     strcpy(res, src);
     return res;

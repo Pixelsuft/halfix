@@ -5666,7 +5666,7 @@ float32 float32_muladd(float32 a, float32 b, float32 c, int flags, float_status_
             zExp--;
         }
         zSig64 = shift64RightJamming(zSig64, 32);
-        return roundAndPackFloat32(zSign, zExp, zSig64, status);
+        return roundAndPackFloat32(zSign, zExp, (uint32_t)zSig64, status);
     } else {
         /* Subtraction */
         if (expDiff > 0) {
@@ -5698,7 +5698,7 @@ float32 float32_muladd(float32 a, float32 b, float32 c, int flags, float_status_
         zSig64 <<= shiftcount;
         zExp -= shiftcount;
         zSig64 = shift64RightJamming(zSig64, 32);
-        return roundAndPackFloat32(zSign, zExp, zSig64, status);
+        return roundAndPackFloat32(zSign, zExp, (uint32_t)zSig64, status);
     }
 }
  

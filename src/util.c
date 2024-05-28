@@ -73,13 +73,13 @@ void* aalloc(int size, int align)
 {
     int adjusted = align - 1;
     void *actual = calloc(1, sizeof(void *) + size + adjusted);
-    struct aalloc_info *ai = (uint8_t *)((void*)((uintptr_t)((uint8_t *)actual + sizeof(void*) + adjusted) & ~adjusted)) - sizeof(void *);
+    struct aalloc_info *ai = (struct aalloc_info*)((uint8_t *)((void*)((uintptr_t)((uint8_t *)actual + sizeof(void*) + adjusted) & ~adjusted)) - sizeof(void *));
     ai->actual_ptr = actual;
     return ((uint8_t *)ai) + sizeof(void *);
 }
 void afree(void* ptr)
 {
-    struct aalloc_info* a = (uint8_t *)ptr - 1;
+    struct aalloc_info* a = (struct aalloc_info*)((uint8_t *)ptr - 1);
     free(a->actual_ptr);
 }
 

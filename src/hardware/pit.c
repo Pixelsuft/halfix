@@ -162,7 +162,7 @@ Same thing as #4, really.
 static int pit_get_out(struct pit_channel* pit)
 {
     // Get cycles elapsed since we reloaded the count register
-    uint32_t elapsed = pit_itick_to_counter(get_now() - pit->last_load_time);
+    uint32_t elapsed = (uint32_t)pit_itick_to_counter(get_now() - pit->last_load_time);
     if(pit->count == 0) return 0;
     uint32_t current_counter = elapsed % pit->count; // The current value of the counter
     switch (pit->mode) {
@@ -200,7 +200,7 @@ static void pit_set_count(struct pit_channel* this, int v)
 {
     this->last_irq_time = this->last_load_time = get_now(); //pit_get_time();
     this->count = (!v) << 16 | v; // 0x10000 if v is 0
-    this->period = pit_counter_to_itick(this->count);
+    this->period = (uint32_t)pit_counter_to_itick(this->count);
     this->timer_running = 1;
     this->pit_last_count = pit_get_count(this); // should this be 0?
 }
@@ -317,11 +317,11 @@ static uint32_t pit_readb(uint32_t a)
         case 1: // lobyte
         case 2: // hibyte
             whats_latched_temp = 0;
-            retv = chan->counter_latch; // We already did the shifting before we reached this point
+            retv = (uint8_t)chan->counter_latch; // We already did the shifting before we reached this point
             break;
         case 3:
             whats_latched_temp = (2 << 2) | COUNTER_LATCHED; // turn it into "hibyte", although "lobyte" could work just as well
-            retv = chan->counter_latch;
+            retv = (uint8_t)chan->counter_latch;
             chan->counter_latch >>= 8; // get hibyte
             break;
         }
@@ -388,7 +388,7 @@ int pit_next(itick_t now)
             }
         }
         pit.chan[0].pit_last_count = count;
-        return pit_counter_to_itick(refill_count - count);
+        return (int)pit_counter_to_itick(refill_count - count);
     }
     return -1;
 }

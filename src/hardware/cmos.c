@@ -330,7 +330,7 @@ int cmos_clock(itick_t now)
 int cmos_next(itick_t now)
 {
     cmos_clock(now);
-    return cmos.last_called + cmos.period - now;
+    return (int)(cmos.last_called + cmos.period - now);
 }
 
 void cmos_set(uint8_t where, uint8_t data)

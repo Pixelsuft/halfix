@@ -66,7 +66,7 @@ static uint32_t read32(struct rstream* r)
 }
 static char* readstr(struct rstream* r)
 {
-    int length = strlen((void*)&r->buf[r->pos]) + 1;
+    int length = (int)strlen((void*)&r->buf[r->pos]) + 1;
     char* dest = malloc(length);
     memcpy(dest, &r->buf[r->pos], length);
     r->pos += length;
@@ -147,7 +147,7 @@ static void write32(struct wstream* w, uint32_t a)
 }
 static void writestr(struct wstream* w, char* str)
 {
-    int len = strlen(str) + 1;
+    int len = (int)strlen(str) + 1;
     if ((w->pos + len) >= w->bufsize)
         wstream_grow(w);
     memcpy(&w->buf[w->pos], str, len);
@@ -212,7 +212,7 @@ struct bjson_object* state_get_object(struct bjson_object* o, char* key)
 
 static char* dupstr(char* v)
 {
-    int len = strlen(v) + 1;
+    int len = (int)strlen(v) + 1;
     char* res = malloc(len + 1);
     memcpy(res, v, len);
     return res;
@@ -314,7 +314,7 @@ void state_string(struct bjson_object* cur, char* name, char** val)
         *val = dest;
     } else {
         char* src = *val;
-        int length = strlen(src) + 1;
+        int length = (int)strlen(src) + 1;
 
         struct bjson_data arr;
         state_init_bjson_mem(&arr, length);
@@ -427,7 +427,7 @@ void state_file(int size, char* name, void* ptr)
 }
 static char* normalize(char* a)
 {
-    int len = strlen(a);
+    int len = (int)strlen(a);
     char* res;
     if (a[len - 1] == PATHSEP) {
         res = malloc(len);

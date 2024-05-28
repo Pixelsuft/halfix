@@ -254,10 +254,10 @@ static int drive_internal_read_remote(struct drive_internal_info* this, struct b
 // This function loads blocks from the cache. Returns 0 if all blocks were read from the cache.
 static int drive_internal_read_check(struct drive_internal_info* this, void* buffer, uint32_t length, drv_offset_t position, int no_xhr)
 {
-    uint32_t readEnd = position + length,
+    uint32_t readEnd = (uint32_t)position + length,
              blocksToRead = ((((readEnd - 1) & ~BLOCK_MASK) - (position & ~BLOCK_MASK)) >> BLOCK_SHIFT) + 1;
 
-    uint32_t currentFilePosition = position;
+    uint32_t currentFilePosition = (uint32_t)position;
 
     int retval = 0;
 
@@ -306,7 +306,7 @@ static void drive_internal_read_cb(void* this_ptr, int status)
         return;
     struct drive_internal_info* this = this_ptr;
     // Make sure everything is loaded
-    if (drive_internal_read_check(this, this->argument_buffer, this->argument_length, this->argument_position, 1))
+    if (drive_internal_read_check(this, this->argument_buffer, (uint32_t)this->argument_length, this->argument_position, 1))
         DRIVE_FATAL("We haven't loaded everything..?\n");
     this->callback(this->ide_callback_arg1, status);
 }
@@ -398,7 +398,7 @@ static int drive_internal_write_check(struct drive_internal_info* this, void* bu
     drv_offset_t writeEnd = position + length,
                  blocksToWrite = ((((writeEnd - 1) & ~BLOCK_MASK) - (position & ~BLOCK_MASK)) >> BLOCK_SHIFT) + 1;
 
-    uint32_t currentFilePosition = position;
+    uint32_t currentFilePosition = (uint32_t)position;
 
     int retval = 0;
 
@@ -444,7 +444,7 @@ static void drive_internal_write_cb(void* this_ptr, int status)
     if (!transfer_in_progress)
         return;
     struct drive_internal_info* this = this_ptr;
-    if (drive_internal_write_check(this, this->argument_buffer, this->argument_length, this->argument_position, 1))
+    if (drive_internal_write_check(this, this->argument_buffer, (uint32_t)this->argument_length, this->argument_position, 1))
         DRIVE_FATAL("We haven't loaded everything..?\n");
     this->callback(this->ide_callback_arg1, status);
 }
@@ -522,7 +522,7 @@ static int drive_internal_prefetch_check(struct drive_internal_info* this, uint3
     drv_offset_t readEnd = position + length,
                  blocksToRead = ((((readEnd - 1) & ~BLOCK_MASK) - (position & ~BLOCK_MASK)) >> BLOCK_SHIFT) + 1;
 
-    uint32_t currentFilePosition = position;
+    uint32_t currentFilePosition = (uint32_t)position;
 
     int retval = 0;
     for (unsigned int i = 0; i < blocksToRead; i++) {
@@ -668,7 +668,7 @@ static
 {
     struct drive_internal_info* drv = malloc(sizeof(struct drive_internal_info));
 
-    int len = strlen(filename);
+    int len = (int)strlen(filename);
     void* pathbase = malloc(len + 1);
     strcpy(pathbase, filename);
 
@@ -736,7 +736,7 @@ function join_path(a, b) {
 int drive_init(struct drive_info* info, char* filename)
 {
     char buf[1024];
-    int filelen = strlen(filename);
+    int filelen = (int)strlen(filename);
     if (filelen > 1000)
         return -1;
     join_path(buf, filelen, filename, "info.dat");
@@ -812,12 +812,12 @@ static int drive_simple_fetch_cache(struct simple_driver* info, void* buffer, dr
 {
     if (offset & 511)
         DRIVE_FATAL("Offset not aligned to 512 byte boundary");
-    uint32_t blockid = offset / info->block_size;
+    uint32_t blockid = (uint32_t)(offset / info->block_size);
 
     // Check if block cache is open
     if (info->blocks[blockid]) {
         // Get the offset inside the block, get the physical position of the block, and copy 512 bytes into the destination buffer
-        uint32_t block_offset = offset % info->block_size;
+        uint32_t block_offset = (uint32_t)(offset % info->block_size);
         void* ptr = info->blocks[blockid] + block_offset;
         memcpy(buffer, ptr, 512); // Copy all the bytes from offset to the end of the file
         return 1;
@@ -829,15 +829,15 @@ static int drive_simple_fetch_cache(struct simple_driver* info, void* buffer, dr
 static int drive_simple_add_cache(struct simple_driver* info, drv_offset_t offset)
 {
     void* dest = info->blocks[offset / info->block_size] = malloc(info->block_size);
-    lseek(info->fd, offset & (drv_offset_t) ~(info->block_size - 1), SEEK_SET); // Seek to the beginning of the current block
-    if ((uint32_t)read(info->fd, dest, info->block_size) != info->block_size)
+    lseek(info->fd, (long)(offset & (drv_offset_t) ~(info->block_size - 1)), SEEK_SET); // Seek to the beginning of the current block
+    if ((uint32_t)read(info->fd, dest, (unsigned int)info->block_size) != info->block_size)
         DRIVE_FATAL("Unable to read %d bytes from image file\n", (int)info->block_size);
     return 0;
 }
 
 static inline int drive_simple_write_cache(struct simple_driver* info, void* buffer, drv_offset_t offset)
 {
-    uint32_t block_offset = offset % info->block_size;
+    uint32_t block_offset = (uint32_t)(offset % info->block_size);
     void* ptr = info->blocks[offset / info->block_size] + block_offset;
     memcpy(ptr, buffer, 512); // Copy all the bytes from offset to the end of the file
     return 0;
@@ -864,7 +864,7 @@ static int drive_simple_write(void* this, void* cb_ptr, void* buffer, uint32_t s
             drive_simple_write_cache(info, buffer, offset);
         } else {
             UNUSED(drive_simple_add_cache);
-            lseek(info->fd, offset, SEEK_SET);
+            lseek(info->fd, (long)offset, SEEK_SET);
             if (write(info->fd, buffer, 512) != 512)
                 DRIVE_FATAL("Unable to write 512 bytes to image file\n");
         }
@@ -892,7 +892,7 @@ static int drive_simple_read(void* this, void* cb_ptr, void* buffer, uint32_t si
     drv_offset_t end = size + offset;
     while (offset != end) {
         if (!drive_simple_fetch_cache(info, buffer, offset)) {
-            lseek(info->fd, offset, SEEK_SET);
+            lseek(info->fd, (long)offset, SEEK_SET);
             if (read(info->fd, buffer, 512) != 512)
                 DRIVE_FATAL("Unable to read 512 bytes from image file\n");
         }
@@ -926,7 +926,7 @@ int drive_simple_init(struct drive_info* info, char* filename)
     sync_info->fd = fd;
     sync_info->image_size = size;
     sync_info->block_size = BLOCK_SIZE;
-    sync_info->block_array_size = (size + sync_info->block_size - 1) / sync_info->block_size;
+    sync_info->block_array_size = (uint32_t)(((drv_offset_t)size + sync_info->block_size - 1) / sync_info->block_size);
     sync_info->blocks = calloc(sizeof(uint8_t*), sync_info->block_array_size);
 
     sync_info->raw_file_access = info->modify_backing_file;
@@ -937,7 +937,7 @@ int drive_simple_init(struct drive_info* info, char* filename)
     info->prefetch = drive_simple_prefetch;
 
     // Now determine drive geometry
-    info->sectors = size / 512;
+    info->sectors = (uint32_t)(size / 512);
     info->sectors_per_cylinder = 63;
     info->heads = 16;
     info->cylinders_per_head = info->sectors / (info->sectors_per_cylinder * info->heads);

@@ -3529,7 +3529,7 @@ int cpu_decode(struct trace_info* info, struct decoded_instruction* i)
                     // End the trace here
                     i->handler = op_trace_end;
                     instructions_translated++;
-                    int length = (uintptr_t)rawp - (uintptr_t)rawp_base;
+                    int length = (int)((uintptr_t)rawp - (uintptr_t)rawp_base);
                     if(instructions_mask != 0){ 
                     info->phys = cpu.phys_eip;
                     info->state_hash = cpu.state_hash;
@@ -3575,7 +3575,7 @@ int cpu_decode(struct trace_info* info, struct decoded_instruction* i)
             CPU_FATAL("Opcode %02x is buggy\n", opcode);
 #endif
         instructions_translated++;
-        i->flags = (i->flags & ~15) | ((uintptr_t)rawp - (uintptr_t)prev_rawp);
+        i->flags = (uint32_t)((i->flags & ~15) | ((uintptr_t)rawp - (uintptr_t)prev_rawp));
         ++i;
 
         if (end_of_trace || instructions_translated >= (MAX_TRACE_SIZE-1)) {
@@ -3584,7 +3584,7 @@ int cpu_decode(struct trace_info* info, struct decoded_instruction* i)
                 i->handler = op_trace_end;
                 instructions_translated++;
             }
-            int length = (uintptr_t)rawp - (uintptr_t)rawp_base;
+            int length = (int)((uintptr_t)rawp - (uintptr_t)rawp_base);
             if (instructions_mask != 0) { // Don't commit page split traces
                 info->phys = cpu.phys_eip;
                 info->state_hash = cpu.state_hash;

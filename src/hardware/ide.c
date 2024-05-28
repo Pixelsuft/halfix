@@ -351,7 +351,7 @@ static uint32_t ide_get_sector_count(struct ide_controller* ctrl, int lba48)
     if (lba48)
         return (!ctrl->sector_count) << 16 | ctrl->sector_count;
     else {
-        uint8_t real_sector_count = ctrl->sector_count;
+        uint8_t real_sector_count = (uint8_t)ctrl->sector_count;
         return (!real_sector_count) << 8 | real_sector_count;
     }
 }
@@ -393,8 +393,8 @@ static void ide_set_sector_offset(struct ide_controller* ctrl, int lba48, uint64
     switch (lba48 << 1 | ctrl->lba) {
     case 0: { // CHS
         uint32_t heads_spt = TRANSLATED(ctrl, heads) * TRANSLATED(ctrl, sectors_per_track);
-        uint32_t c = position / heads_spt;
-        uint32_t t = position % heads_spt;
+        uint32_t c = (uint32_t)position / heads_spt;
+        uint32_t t = (uint32_t)position % heads_spt;
         uint32_t h = t / TRANSLATED(ctrl, sectors_per_track);
         uint32_t s = t % TRANSLATED(ctrl, sectors_per_track);
 
@@ -444,7 +444,7 @@ static void ide_pio_store_word(struct ide_controller* ctrl, int offset, uint16_t
 static void ide_pio_store_word_be(struct ide_controller* ctrl, int offset, uint16_t value)
 {
     ctrl->pio_buffer[offset] = value >> 8;
-    ctrl->pio_buffer[offset + 1] = value;
+    ctrl->pio_buffer[offset + 1] = (uint8_t)value;
 }
 static void ide_pio_store_dword_be(struct ide_controller* ctrl, int offset, uint32_t value)
 {
@@ -646,7 +646,7 @@ static void ide_atapi_run_command(struct ide_controller* ctrl)
         ide_pio_store_byte(ctrl, 2, ctrl->sense_key);
         ide_pio_store_byte(ctrl, 7, 10);
         ide_pio_store_byte(ctrl, 12, ctrl->asc >> 8); // ASC
-        ide_pio_store_byte(ctrl, 13, ctrl->asc); // ASCQ
+        ide_pio_store_byte(ctrl, 13, (uint8_t)ctrl->asc); // ASCQ
         if (ctrl->sense_key == 6)
             ctrl->sense_key = 0;
         ide_atapi_start_transfer(ctrl, command[4] > 18 ? 18 : command[4]);

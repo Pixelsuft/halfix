@@ -1476,7 +1476,7 @@ int fpu_mem_op(struct decoded_instruction* i, uint32_t virtaddr, uint32_t seg)
             else
                 res = floatx80_to_int64_round_to_zero(fpu_get_st(0), &fpu.status);
             if (!fpu_check_exceptions2(0)) {
-                cpu_write32(linaddr, res, cpu.tlb_shift_write);
+                cpu_write32(linaddr, (uint32_t)res, cpu.tlb_shift_write);
                 cpu_write32(linaddr + 4, res >> 32, cpu.tlb_shift_write);
             }
             break;

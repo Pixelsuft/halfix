@@ -47,7 +47,7 @@ uint16_t bsf16(uint16_t src, uint16_t old){
 #ifdef _MSC_VER
         unsigned long index;
         _BitScanForward(&index, src & 0xFFFF);
-        return index;
+        return (uint16_t)index;
 #else
         return __builtin_ctz(src & 0xFFFF);
 #endif
@@ -78,7 +78,7 @@ uint16_t bsr16(uint16_t src, uint16_t old){
 #ifdef _MSC_VER
         unsigned long index;
         _BitScanReverse(&index, src & 0xFFFF);
-        return (31 - index) ^ 31;
+        return (uint16_t)((31 - index) ^ 31);
 #else
         return __builtin_clz(src & 0xFFFF) ^ 31;
 #endif

@@ -104,7 +104,7 @@ int cpu_run(int cycles)
     //  - A device requested a fast return
     //  - We have run "cycles" operations.
     // In the case of the former, cpu.hlt_counter will contain the number of cycles still in cpu.cycles_to_run
-    int cycles_run = cpu_get_cycles() - begin;
+    int cycles_run = (int)(cpu_get_cycles() - begin);
     cpu.cycle_offset = 0;
     return cycles_run;
 }

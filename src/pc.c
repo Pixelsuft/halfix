@@ -337,7 +337,7 @@ int pc_init(struct pc_settings* pc)
         return 0;
     }
     int v = cpu_add_rom(0x100000 - pc->bios.length, pc->bios.length, pc->bios.data);
-    v |= cpu_add_rom(-pc->bios.length, pc->bios.length, pc->bios.data);
+    v |= cpu_add_rom(-(int)pc->bios.length, pc->bios.length, pc->bios.data);
     if (!pc->pci_vga_enabled)
         v |= cpu_add_rom(0xC0000, pc->vgabios.length, pc->vgabios.data);
     if (v == -1) {
