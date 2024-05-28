@@ -1,5 +1,5 @@
 // Simple display driver
-#if 1
+#if defined(_WIN32)
 
 #include "display.h"
 #include "devices.h"
@@ -11,9 +11,15 @@
 
 #include "util.h"
 
+// #define DISPLAY_WIN32_USE_ANSI
+
 static HINSTANCE hInst;
 static HWND hWnd;
+#ifdef DISPLAY_WIN32_USE_ANSI
 static WNDCLASSA wc;
+#else
+static WNDCLASSW wc;
+#endif
 static HDC dc_dest, dc_src; // Drawing contexts
 static void* pixels;
 static int cheight, cwidth, mouse_enabled;
@@ -35,10 +41,17 @@ enum {
 
 static void display_set_title(void)
 {
+#ifdef DISPLAY_WIN32_USE_ANSI
     char buffer[1000];
     sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", cwidth, cheight,
         mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
-    SetWindowText(hWnd, buffer);
+    SetWindowTextA(hWnd, buffer);
+#else
+    char buffer[1000];
+    sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", cwidth, cheight,
+        mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
+    SetWindowTextA(hWnd, buffer);
+#endif
 }
 
 static void display_capture_mouse(int yes)
@@ -248,9 +261,9 @@ static int win32_to_scancode(WPARAM w)
         return 0xE04D;
     case VK_UP:
         return 0xE048;
-    default:
+    /* default:
         printf("Unexpected Win32 virtual key code received -- aborting\n");
-        abort();
+        abort(); */
     }
     return 0;
 }
@@ -371,10 +384,11 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
             display_quit();
             exit(0);
         case MENU_SAVE_STATE: {
-            OPENFILENAME ofn;
-            ZeroMemory(&ofn, sizeof(OPENFILENAME));
+            // this currently doesn't support unicode
+            OPENFILENAMEA ofn;
+            ZeroMemory(&ofn, sizeof(OPENFILENAMEA));
 
-            ofn.lStructSize = sizeof(OPENFILENAME);
+            ofn.lStructSize = sizeof(OPENFILENAMEA);
             ofn.hwndOwner = hWnd;
             ofn.lpstrFilter = "All files (*.)\0*.*\0\0";
             filename[0] = 0;
@@ -385,7 +399,7 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
             ofn.lpstrTitle = "Save state to...";
             ofn.lpstrInitialDir = ".";
 
-            if (GetSaveFileName(&ofn)) {
+            if (GetSaveFileNameA(&ofn)) {
                 state_store_to_file(filename);
                 // printf("SELECTED\n");
             } else {
@@ -410,20 +424,32 @@ void display_init(void)
 {
     // Hopefully, this file will always be compiled into an executable:
     // https://stackoverflow.com/questions/21718027/getmodulehandlenull-vs-hinstance
-    hInst = GetModuleHandle(NULL);
+#ifdef DISPLAY_WIN32_USE_ANSI
+    hInst = GetModuleHandleA(NULL);
     wc.lpszClassName = "Halfix";
     wc.lpszMenuName = "HalfixMenu";
+    wc.hCursor = LoadCursorA(0, MAKEINTRESOURCEA(32512));
+#else
+    hInst = GetModuleHandleW(NULL);
+    wc.lpszClassName = L"Halfix";
+    wc.lpszMenuName = L"HalfixMenu";
+    wc.hCursor = LoadCursorW(0, MAKEINTRESOURCEW(32512));
+#endif
     wc.hInstance = hInst;
     wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
     wc.lpfnWndProc = display_callback;
-    wc.hCursor = LoadCursor(0, IDC_ARROW);
 
+#ifdef DISPLAY_WIN32_USE_ANSI
     RegisterClassA(&wc);
+#else
+    RegisterClassW(&wc);
+#endif
 
     HMENU bar = CreateMenu(),
           file = CreateMenu(),
           hotkeys = CreateMenu();
 
+#ifdef DISPLAY_WIN32_USE_ANSI
     AppendMenuA(file, MF_STRING, MENU_EXIT, "&Exit");
     AppendMenuA(file, MF_STRING, MENU_SAVE_STATE, "&Save State");
 
@@ -434,10 +460,28 @@ void display_init(void)
 
     AppendMenuA(bar, MF_POPUP, (UINT_PTR)file, "&File");
     AppendMenuA(bar, MF_POPUP, (UINT_PTR)hotkeys, "&Hotkeys");
+#else
+    AppendMenuW(file, MF_STRING, MENU_EXIT, L"&Exit");
+    AppendMenuW(file, MF_STRING, MENU_SAVE_STATE, L"&Save State");
 
+    AppendMenuW(hotkeys, MF_STRING, MENU_SEND_CTRL_ALT_DELETE, L"&Ctrl + Alt + Delete");
+    AppendMenuW(hotkeys, MF_STRING, MENU_SEND_SHIFT_F10, L"&Shift + F10");
+    AppendMenuW(hotkeys, MF_STRING, MENU_SEND_ALT_F4, L"&Alt + F4");
+    AppendMenuW(hotkeys, MF_STRING, MENU_SEND_ALT_TAB, L"Alt + &Tab");
+
+    AppendMenuW(bar, MF_POPUP, (UINT_PTR)file, L"&File");
+    AppendMenuW(bar, MF_POPUP, (UINT_PTR)hotkeys, L"&Hotkeys");
+#endif
+
+#ifdef DISPLAY_WIN32_USE_ANSI
     hWnd = CreateWindowA(
         wc.lpszClassName,
         "Halfix",
+#else
+    hWnd = CreateWindowW(
+        wc.lpszClassName,
+        L"Halfix",
+#endif
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
         // Create it at some random spot
         100,
@@ -496,7 +540,8 @@ void display_update(int scanline_start, int scanlines)
         // Copy from top corner of rectangle
         0, scanline_start,
         // Just copy -- don't do anything fancy.
-        SRCCOPY);
+        SRCCOPY
+    );
     ReleaseDC(hWnd, hdc);
     UNUSED(scanline_start | scanlines);
 }

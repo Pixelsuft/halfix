@@ -23,7 +23,7 @@ typedef SSIZE_T ssize_t;
 #else
 #include <unistd.h>
 #endif
-#ifndef ENABLE_ZLIB
+#ifdef ENABLE_ZLIB
 #include <zlib.h>
 #endif
 #else
@@ -158,6 +158,8 @@ static int drive_read_block_internal(struct drive_internal_info* this, struct bl
 static void* drive_read_file(struct drive_internal_info* this, char* fn)
 {
 #ifndef ENABLE_ZLIB
+    UNUSED(this);
+    UNUSED(fn);
     return NULL; // TODO: hack
 #else
     char temp[1024 + 8];
