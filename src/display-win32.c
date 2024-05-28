@@ -121,7 +121,7 @@ static int win32_to_scancode(WPARAM w)
     case VK_F10:
     case VK_F11:
     case VK_F12:
-        return w - VK_F1 + 0x3B;
+        return (int)w - VK_F1 + 0x3B;
     case VK_NUMPAD0:
         return 0x52;
     case VK_NUMPAD1:
@@ -160,7 +160,7 @@ static int win32_to_scancode(WPARAM w)
     case 0x37:
     case 0x38:
     case 0x39: // 1-9
-        return w + 2 - 0x31;
+        return (int)w + 2 - 0x31;
     case 0x30: // 0
         return 0x0B;
 // lazy - copy-pasted from display.c with a few hackish macros
@@ -477,11 +477,6 @@ void display_init(void)
     hWnd = CreateWindowA(
         wc.lpszClassName,
         "Halfix",
-#else
-    hWnd = CreateWindowW(
-        wc.lpszClassName,
-        L"Halfix",
-#endif
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
         // Create it at some random spot
         100,
@@ -498,6 +493,27 @@ void display_init(void)
         // void
         NULL
     );
+#else
+    hWnd = CreateWindowW(
+        wc.lpszClassName,
+        L"Halfix",
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        // Create it at some random spot
+        100,
+        100,
+        // Make it 640x480
+        640,
+        480,
+        // No parent window
+        NULL,
+        // Menu
+        bar,
+        // HINSTANCE
+        hInst,
+        // void
+        NULL
+    );
+#endif
 
     dc_dest = GetDC(hWnd);
     display_inited = 1;
