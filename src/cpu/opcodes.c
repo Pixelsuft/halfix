@@ -81,7 +81,7 @@
         func(I_OP(flags), (void*)&cpu.read_result, ##__VA_ARGS__);                 \
         cpu_access_write##sz(linaddr, cpu.read_result, tlb_shift >> shift, shift); \
     } else {                                                                       \
-        ptr = cpu.tlb[linaddr >> 12] + linaddr;                                    \
+        ptr = (uint##sz##_t*)(cpu.tlb[linaddr >> 12] + linaddr);                                    \
         func(I_OP(flags), ptr, ##__VA_ARGS__);                                     \
     }                                                                              \
     NEXT(flags)
@@ -97,7 +97,7 @@
         func((void*)&cpu.read_result, ##__VA_ARGS__);                              \
         cpu_access_write##sz(linaddr, cpu.read_result, tlb_shift >> shift, shift); \
     } else {                                                                       \
-        ptr = cpu.tlb[linaddr >> 12] + linaddr;                                    \
+        ptr = (uint##sz##_t*)(cpu.tlb[linaddr >> 12] + linaddr);                                    \
         func(ptr, ##__VA_ARGS__);                                                  \
     }                                                                              \
     NEXT(flags)
@@ -113,7 +113,7 @@
         func((void*)&cpu.read_result, ##__VA_ARGS__);                              \
         cpu_access_write##sz(linaddr, cpu.read_result, tlb_shift >> shift, shift); \
     } else {                                                                       \
-        ptr = cpu.tlb[linaddr >> 12] + linaddr;                                    \
+        ptr = (uint##sz##_t*)(cpu.tlb[linaddr >> 12] + linaddr);                                    \
         func(ptr, ##__VA_ARGS__);                                                  \
     }                                                                              \
     NEXT(flags)
@@ -2002,7 +2002,7 @@ OPTYPE op_xchg_r16e16(struct decoded_instruction* i)
         UNUSED2(cpu_access_write16(linaddr, R16(I_REG(flags)), tlb_info, cpu.tlb_shift_write));
         R16(I_REG(flags)) = cpu.read_result;
     } else {
-        ptr = cpu.tlb[linaddr >> 12] + linaddr;
+        ptr = (uint16_t*)(cpu.tlb[linaddr >> 12] + linaddr);
         uint16_t tmp = *ptr;
         *ptr = R16(I_REG(flags));
         R16(I_REG(flags)) = tmp;
@@ -2021,7 +2021,7 @@ OPTYPE op_xchg_r32e32(struct decoded_instruction* i)
         UNUSED2(cpu_access_write32(linaddr, R32(I_REG(flags)), tlb_info, cpu.tlb_shift_write));
         R32(I_REG(flags)) = cpu.read_result;
     } else {
-        ptr = cpu.tlb[linaddr >> 12] + linaddr;
+        ptr = (uint32_t*)(cpu.tlb[linaddr >> 12] + linaddr);
         uint32_t tmp = *ptr;
         *ptr = R32(I_REG(flags));
         R32(I_REG(flags)) = tmp;
