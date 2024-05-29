@@ -11,6 +11,9 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 #ifdef _MSC_VER
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
@@ -398,12 +401,12 @@ void state_file(int size, char* name, void* ptr)
     sprintf(temp, "%s" PATHSEP_STR "%s", global_file_base, name);
     if (is_reading) {
 #ifndef EMSCRIPTEN
-        int fd = open(temp, O_RDONLY | O_BINARY);
-        if (fd == -1)
+        FILE* fh = fopen(temp, "rb");
+        if (!fh)
             STATE_FATAL("Unable to open file %s\n", temp);
-        if (read(fd, ptr, size) != size)
+        if (fread(ptr, 1, size, fh) != size)
             STATE_FATAL("Could not read\n");
-        close(fd);
+        fclose(fh);
 #else
         EM_ASM_({
             window["loadFile"]($0, $1, $2);
@@ -411,12 +414,12 @@ void state_file(int size, char* name, void* ptr)
 #endif
     } else {
 #ifndef EMSCRIPTEN
-        int fd = open(temp, O_WRONLY | O_CREAT | O_BINARY | O_TRUNC, 0666);
-        if (fd == -1)
+        FILE* fh = fopen(temp, "wb"); // TODO: is this right?
+        if (!fh)
             STATE_FATAL("Unable to create file %s\n", temp);
-        if (write(fd, ptr, size) != size)
+        if (fwrite(ptr, 1, size, fh) != size)
             STATE_FATAL("Could not write\n");
-        close(fd);
+        fclose(fh);
 #else
         EM_ASM_({
             window["saveFile"]($0, $1, $2);
@@ -447,15 +450,15 @@ void state_read_from_file(char* fn)
     sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
 
 #ifndef EMSCRIPTEN
-    int fd = open(path, O_RDONLY | O_BINARY);
-    if (fd == -1)
+    FILE* fh = fopen(path, "rb");
+    if (!fh)
         STATE_FATAL("Cannot open file %s\n", fn);
-    int size = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
+    int size = fseek(fh, 0, SEEK_END);
+    fseek(fh, 0, SEEK_SET);
     void* buf = h_malloc(size);
-    if (read(fd, buf, size) != size)
+    if (fread(buf, 1, size, fh) != size)
         STATE_FATAL("Cannot read from file %s\n", fn);
-    close(fd);
+    fclose(fh);
 #else
     void* buf = (void*)(EM_ASM_INT({
         return window["loadFile2"]($0, $1, $2);
@@ -491,12 +494,12 @@ void state_store_to_file(char* fn)
 
     sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
 
-    int fd = open(path, O_WRONLY | O_CREAT | O_BINARY, 0666);
-    if (fd == -1)
+    FILE* fh = fopen(path, "wb"); // TODO: right?
+    if (!fh)
         STATE_FATAL("Cannot open file %s\n", fn);
-    if (write(fd, w.buf, w.pos) != (ssize_t)w.pos) // Clang complains that w.pos and write have different signs.
+    if (fwrite(w.buf, 1, w.pos, fh) != (ssize_t)w.pos) // Clang complains that w.pos and write have different signs.
         STATE_FATAL("Cannot write to file %s\n", fn);
-    close(fd);
+    fclose(fh);
     wstream_destroy(&w);
     bjson_destroy_object(global_obj);
     h_free(global_file_base);
@@ -541,13 +544,16 @@ void state_mkdir(char* path)
 {
 #ifndef EMSCRIPTEN
 #ifdef _WIN32
-    if (mkdir(path) == -1) {
+    // TODO: Unicode
+    if (!CreateDirectoryA(path, NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
+        STATE_FATAL("Unable to make new directory %s\n", path);
+    }
 #else
     if (mkdir(path, 0777) == -1) {
-#endif
         if (errno != EEXIST)
             STATE_FATAL("Unable to make new directory %s\n", path);
     }
+#endif
 #else
     UNUSED(path);
 #endif

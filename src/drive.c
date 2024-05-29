@@ -163,34 +163,34 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
     return NULL; // TODO: hack
 #else
     char temp[1024 + 8];
-    int fd;
     unsigned int size;
     void *readbuf, *data;
 
     sprintf(temp, "%s.gz", fn);
-    fd = open(temp, O_RDONLY | O_BINARY);
-    if (fd < 0) {
+    FILE* fh;
+    fh = fopen(temp, "rb");
+    if (!fh) {
         // Try reading from non-gzipped file instead
-        fd = open(fn, O_RDONLY | O_BINARY);
-        if (fd < 0) {
+        fh = fopen(fn, "rb");
+        if (!fh) {
             perror("open: ");
             DRIVE_FATAL("Could not open file %s\n", fn);
         }
-        data = h_malloc(this->block_size);
-        size = lseek(fd, 0, SEEK_END);
-        lseek(fd, 0, SEEK_SET);
-        if (read(fd, data, size) != (ssize_t)size)
+        data = halloc(this->block_size);
+        size = fseek(fh, 0, SEEK_END);
+        fseek(fh, 0, SEEK_SET);
+        if (fread(data, 1, size, fh) != (ssize_t)size)
             DRIVE_FATAL("Could not read file %s\n", fn);
-        close(fd);
+        fclose(fh);
         return data;
     }
 
     // Read the block into a chunk of temporary memory, and decompress
-    data = h_malloc(this->block_size);
-    size = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
-    readbuf = h_malloc(size);
-    if (read(fd, readbuf, size) != (ssize_t)size)
+    data = halloc(this->block_size);
+    size = fseek(fh, 0, SEEK_END);
+    fseek(fh, 0, SEEK_SET);
+    readbuf = halloc(size);
+    if (fread(readbuf, 1, size, fh) != (ssize_t)size)
         DRIVE_FATAL("Could not read file %s\n", fn);
 
     z_stream inflate_stream = { 0 };
@@ -213,7 +213,7 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
         DRIVE_FATAL("Unable to inflate %s\n", temp);
     }
     h_free(readbuf);
-    close(fd);
+    fclose(fh);
     return data;
 #endif
 }
@@ -741,17 +741,15 @@ int drive_init(struct drive_info* info, char* filename)
     if (filelen > 1000)
         return -1;
     join_path(buf, filelen, filename, "info.dat");
-
-    int fd = open(buf, O_RDONLY | O_BINARY);
-    if (fd == -1)
+    FILE* fh = fopen(buf, "rb");
+    if (!fh)
         return -1;
-    int size = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
+    int size = fseek(fh, 0, SEEK_END);
+    fseek(fh, 0, SEEK_SET);
     void* data = h_malloc(size);
-    if (read(fd, data, size) != size)
+    if (fread(data, 1, size, fh) != (size_t)size)
         return -1;
-    close(fd);
-
+    fclose(fh);
     drive_internal_init(info, filename, data, -1);
     h_free(data);
     return 0;
@@ -767,8 +765,7 @@ void drive_state(struct drive_info* info, char* filename)
 // Simple driver
 
 struct simple_driver {
-    int fd; // File descriptor of image file
-
+    FILE* fh;
     // Size of image file (in bytes) and size of each block (in bytes)
     drv_offset_t image_size, block_size;
 
@@ -830,8 +827,8 @@ static int drive_simple_fetch_cache(struct simple_driver* info, void* buffer, dr
 static int drive_simple_add_cache(struct simple_driver* info, drv_offset_t offset)
 {
     void* dest = info->blocks[offset / info->block_size] = h_malloc(info->block_size);
-    lseek(info->fd, (long)(offset & (drv_offset_t) ~(info->block_size - 1)), SEEK_SET); // Seek to the beginning of the current block
-    if ((uint32_t)read(info->fd, dest, (unsigned int)info->block_size) != info->block_size)
+    fseek(info->fh, (long)(offset & (drv_offset_t) ~(info->block_size - 1)), SEEK_SET);
+    if ((uint32_t)fread(dest, 1, info->block_size, info->fh) != info->block_size)
         DRIVE_FATAL("Unable to read %d bytes from image file\n", (int)info->block_size);
     return 0;
 }
@@ -865,8 +862,8 @@ static int drive_simple_write(void* this, void* cb_ptr, void* buffer, uint32_t s
             drive_simple_write_cache(info, buffer, offset);
         } else {
             UNUSED(drive_simple_add_cache);
-            lseek(info->fd, (long)offset, SEEK_SET);
-            if (write(info->fd, buffer, 512) != 512)
+            fseek(info->fh, (long)offset, SEEK_SET);
+            if (fwrite(buffer, 1, 512, info->fh) != 512)
                 DRIVE_FATAL("Unable to write 512 bytes to image file\n");
         }
 #ifdef _MSC_VER
@@ -893,8 +890,8 @@ static int drive_simple_read(void* this, void* cb_ptr, void* buffer, uint32_t si
     drv_offset_t end = size + offset;
     while (offset != end) {
         if (!drive_simple_fetch_cache(info, buffer, offset)) {
-            lseek(info->fd, (long)offset, SEEK_SET);
-            if (read(info->fd, buffer, 512) != 512)
+            fseek(info->fh, (long)offset, SEEK_SET);
+            if (fread(buffer, 1, 512, info->fh) != 512)
                 DRIVE_FATAL("Unable to read 512 bytes from image file\n");
         }
 #ifdef _MSC_VER
@@ -909,25 +906,29 @@ static int drive_simple_read(void* this, void* cb_ptr, void* buffer, uint32_t si
 
 int drive_simple_init(struct drive_info* info, char* filename)
 {
-    int fd;
-    if (!info->modify_backing_file)
-        fd = open(filename, O_RDONLY | O_BINARY);
-    else
-        fd = open(filename, O_RDWR | O_BINARY);
-    if (fd < 0)
+    FILE* fh = fopen(filename, info->modify_backing_file ? "rb+" : "rb");
+    if (!fh)
         return -1;
-
-    uint64_t size = lseek(fd, 0, SEEK_END);
+// TODO: correct?
+#if defined(GET_SIZE_64) || 1
+    struct stat f_stat;
+    stat(filename, &f_stat);
+    uint64_t size = (uint64_t)f_stat.st_size;
     if (size == (uint64_t)-1)
         return -1;
-    lseek(fd, 0, SEEK_SET);
+#else
+    uint64_t size = (uint64_t)fseek(fh, 0, SEEK_END);
+    if (size == (uint64_t)-1)
+        return -1;
+    fseek(fh, 0, SEEK_SET);
+#endif
 
     struct simple_driver* sync_info = h_malloc(sizeof(struct simple_driver));
     info->data = sync_info;
-    sync_info->fd = fd;
-    sync_info->image_size = size;
-    sync_info->block_size = BLOCK_SIZE;
-    sync_info->block_array_size = (uint32_t)(((drv_offset_t)size + sync_info->block_size - 1) / sync_info->block_size);
+    sync_info->fh = fh;
+    sync_info->image_size = (drv_offset_t)size;
+    sync_info->block_size = (drv_offset_t)BLOCK_SIZE;
+    sync_info->block_array_size = (uint32_t)((sync_info->image_size + sync_info->block_size - 1) / sync_info->block_size);
     sync_info->blocks = h_calloc(sync_info->block_array_size, sizeof(uint8_t*));
     memset(sync_info->blocks, 0, sync_info->block_array_size * sizeof(uint8_t*));
 
@@ -961,24 +962,21 @@ void drive_destroy_simple(struct drive_info* info)
 int drive_autodetect_type(char* path)
 {
     struct stat statbuf;
-
     // Check for URL
     if (strstr(path, "http://") != NULL || strstr(path, "https://") != NULL)
         return 2;
-    
-    int fd = open(path, O_RDONLY);
-    if (fd < 0)
+    FILE* fh = fopen(path, "r");
+    if (!fh)
         return -1;
-    if(fstat(fd, &statbuf)){
-        close(fd);
+    if(stat(path, &statbuf)){
+        fclose(fh);
         return -1;
     }
-    close(fd);
+    fclose(fh);
     if(S_ISDIR(statbuf.st_mode))
         return 0; // Chunked file 
     else
         return 1; // Raw image file 
-    
 }
 #endif
 #endif
