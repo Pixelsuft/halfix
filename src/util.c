@@ -111,6 +111,30 @@ size_t h_fwrite(const void* buf, size_t elem_size, size_t elem_count, void* file
 #endif
 }
 
+int64_t h_ftell(void* file) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_RWtell(file);
+#else
+    return (int64_t)ftell(file);
+#endif
+}
+
+int h_fseek(void* file, int64_t offset, int origin) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
+    if (origin == SEEK_CUR)
+        origin = RW_SEEK_CUR;
+    else if (origin == SEEK_END)
+        origin = RW_SEEK_END;
+    else
+        origin = RW_SEEK_SET;
+    return SDL_RWseek(file, offset, origin);
+#else
+    return fseek(file, (long)offset, origin);
+#endif
+}
+
 static void qmalloc_slabs_resize(void)
 {
     qmalloc_slabs = h_realloc(qmalloc_slabs, qmalloc_slabs_size * sizeof(void*));
