@@ -17,7 +17,7 @@
 
 #define QMALLOC_SIZE 1 << 20
 
-// #define PREFER_SDL2
+#define PREFER_SDL2
 // #define PREFER_STD
 
 static void* qmalloc_data;
@@ -38,7 +38,7 @@ void* h_malloc(size_t size) {
         h_heap = GetProcessHeap();
     }
     return HeapAlloc(h_heap, HEAP_FLAGS, size);
-#elif defined(SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_malloc(size);
 #else
     return malloc(size);
@@ -48,7 +48,7 @@ void* h_malloc(size_t size) {
 void* h_calloc(size_t elem_count, size_t elem_size) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
     return h_malloc(elem_count * elem_size);
-#elif defined(SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_calloc(elem_count, elem_size);
 #else
     return calloc(elem_count, elem_size);
@@ -58,7 +58,7 @@ void* h_calloc(size_t elem_count, size_t elem_size) {
 void* h_realloc(void* ptr, size_t new_size) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
     return HeapReAlloc(h_heap, HEAP_FLAGS, ptr, new_size);
-#elif defined(SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_realloc(ptr, new_size);
 #else
     return realloc(ptr, new_size);
@@ -68,10 +68,46 @@ void* h_realloc(void* ptr, size_t new_size) {
 void h_free(void* ptr) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
     HeapFree(h_heap, HEAP_FLAGS, ptr);
-#elif defined(SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     SDL_free(ptr);
 #else
     free(ptr);
+#endif
+}
+
+void* h_fopen(const char* fp, const char* mode) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_RWFromFile(fp, mode);
+#else
+    return fopen(fp, mode);
+#endif
+}
+
+int h_fclose(void* file) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_RWclose(file);
+#else
+    return fclose(file);
+#endif
+}
+
+size_t h_fread(void* buf, size_t elem_size, size_t elem_count, void* file) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_RWread(file, buf, elem_size, elem_count);
+#else
+    return fread(buf, elem_size, elem_count, file);
+#endif
+}
+
+size_t h_fwrite(const void* buf, size_t elem_size, size_t elem_count, void* file) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_RWwrite(file, buf, elem_size, elem_count);
+#else
+    return fread(buf, elem_size, elem_count, file);
 #endif
 }
 

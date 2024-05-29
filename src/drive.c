@@ -167,7 +167,7 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
     void *readbuf, *data;
 
     sprintf(temp, "%s.gz", fn);
-    FILE* fh;
+    void* fh;
     fh = fopen(temp, "rb");
     if (!fh) {
         // Try reading from non-gzipped file instead
@@ -741,7 +741,7 @@ int drive_init(struct drive_info* info, char* filename)
     if (filelen > 1000)
         return -1;
     join_path(buf, filelen, filename, "info.dat");
-    FILE* fh = fopen(buf, "rb");
+    void* fh = fopen(buf, "rb");
     if (!fh)
         return -1;
     int size = fseek(fh, 0, SEEK_END);
@@ -765,7 +765,7 @@ void drive_state(struct drive_info* info, char* filename)
 // Simple driver
 
 struct simple_driver {
-    FILE* fh;
+    void* fh;
     // Size of image file (in bytes) and size of each block (in bytes)
     drv_offset_t image_size, block_size;
 
@@ -906,9 +906,10 @@ static int drive_simple_read(void* this, void* cb_ptr, void* buffer, uint32_t si
 
 int drive_simple_init(struct drive_info* info, char* filename)
 {
-    FILE* fh = fopen(filename, info->modify_backing_file ? "rb+" : "rb");
+    void* fh = fopen(filename, info->modify_backing_file ? "rb+" : "rb");
     if (!fh)
         return -1;
+    // TODO: replace with better ftell
     struct stat f_stat;
     stat(filename, &f_stat);
     uint64_t size = (uint64_t)f_stat.st_size;
@@ -957,7 +958,7 @@ int drive_autodetect_type(char* path)
     // Check for URL
     if (strstr(path, "http://") != NULL || strstr(path, "https://") != NULL)
         return 2;
-    FILE* fh = fopen(path, "r");
+    void* fh = fopen(path, "r");
     if (!fh)
         return -1;
     if(stat(path, &statbuf)){

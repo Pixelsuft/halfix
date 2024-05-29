@@ -401,7 +401,7 @@ void state_file(int size, char* name, void* ptr)
     sprintf(temp, "%s" PATHSEP_STR "%s", global_file_base, name);
     if (is_reading) {
 #ifndef EMSCRIPTEN
-        FILE* fh = fopen(temp, "rb");
+        void* fh = fopen(temp, "rb");
         if (!fh)
             STATE_FATAL("Unable to open file %s\n", temp);
         if (fread(ptr, 1, size, fh) != size)
@@ -414,7 +414,7 @@ void state_file(int size, char* name, void* ptr)
 #endif
     } else {
 #ifndef EMSCRIPTEN
-        FILE* fh = fopen(temp, "wb"); // TODO: is this right?
+        void* fh = fopen(temp, "wb"); // TODO: is this right?
         if (!fh)
             STATE_FATAL("Unable to create file %s\n", temp);
         if (fwrite(ptr, 1, size, fh) != size)
@@ -450,7 +450,7 @@ void state_read_from_file(char* fn)
     sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
 
 #ifndef EMSCRIPTEN
-    FILE* fh = fopen(path, "rb");
+    void* fh = fopen(path, "rb");
     if (!fh)
         STATE_FATAL("Cannot open file %s\n", fn);
     int size = fseek(fh, 0, SEEK_END);
@@ -494,7 +494,7 @@ void state_store_to_file(char* fn)
 
     sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
 
-    FILE* fh = fopen(path, "wb"); // TODO: right?
+    void* fh = fopen(path, "wb"); // TODO: right?
     if (!fh)
         STATE_FATAL("Cannot open file %s\n", fn);
     if (fwrite(w.buf, 1, w.pos, fh) != (ssize_t)w.pos) // Clang complains that w.pos and write have different signs.
