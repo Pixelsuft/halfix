@@ -168,29 +168,29 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
 
     sprintf(temp, "%s.gz", fn);
     void* fh;
-    fh = fopen(temp, "rb");
+    fh = h_fopen(temp, "rb");
     if (!fh) {
         // Try reading from non-gzipped file instead
-        fh = fopen(fn, "rb");
+        fh = h_fopen(fn, "rb");
         if (!fh) {
             perror("open: ");
             DRIVE_FATAL("Could not open file %s\n", fn);
         }
         data = halloc(this->block_size);
-        size = fseek(fh, 0, SEEK_END);
-        fseek(fh, 0, SEEK_SET);
-        if (fread(data, 1, size, fh) != (ssize_t)size)
+        size = h_fseek(fh, 0, SEEK_END);
+        h_fseek(fh, 0, SEEK_SET);
+        if (h_fread(data, 1, size, fh) != (ssize_t)size)
             DRIVE_FATAL("Could not read file %s\n", fn);
-        fclose(fh);
+        h_fclose(fh);
         return data;
     }
 
     // Read the block into a chunk of temporary memory, and decompress
     data = halloc(this->block_size);
-    size = fseek(fh, 0, SEEK_END);
-    fseek(fh, 0, SEEK_SET);
+    size = h_fseek(fh, 0, SEEK_END);
+    h_fseek(fh, 0, SEEK_SET);
     readbuf = halloc(size);
-    if (fread(readbuf, 1, size, fh) != (ssize_t)size)
+    if (h_fread(readbuf, 1, size, fh) != (ssize_t)size)
         DRIVE_FATAL("Could not read file %s\n", fn);
 
     z_stream inflate_stream = { 0 };
@@ -213,7 +213,7 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
         DRIVE_FATAL("Unable to inflate %s\n", temp);
     }
     h_free(readbuf);
-    fclose(fh);
+    h_fclose(fh);
     return data;
 #endif
 }
@@ -741,15 +741,15 @@ int drive_init(struct drive_info* info, char* filename)
     if (filelen > 1000)
         return -1;
     join_path(buf, filelen, filename, "info.dat");
-    void* fh = fopen(buf, "rb");
+    void* fh = h_fopen(buf, "rb");
     if (!fh)
         return -1;
-    int size = fseek(fh, 0, SEEK_END);
-    fseek(fh, 0, SEEK_SET);
+    int size = h_fseek(fh, 0, SEEK_END);
+    h_fseek(fh, 0, SEEK_SET);
     void* data = h_malloc(size);
-    if (fread(data, 1, size, fh) != (size_t)size)
+    if (h_fread(data, 1, size, fh) != (size_t)size)
         return -1;
-    fclose(fh);
+    h_fclose(fh);
     drive_internal_init(info, filename, data, -1);
     h_free(data);
     return 0;
@@ -827,8 +827,8 @@ static int drive_simple_fetch_cache(struct simple_driver* info, void* buffer, dr
 static int drive_simple_add_cache(struct simple_driver* info, drv_offset_t offset)
 {
     void* dest = info->blocks[offset / info->block_size] = h_malloc(info->block_size);
-    fseek(info->fh, (long)(offset & (drv_offset_t) ~(info->block_size - 1)), SEEK_SET);
-    if ((uint32_t)fread(dest, 1, info->block_size, info->fh) != info->block_size)
+    h_fseek(info->fh, (long)(offset & (drv_offset_t) ~(info->block_size - 1)), SEEK_SET);
+    if ((uint32_t)h_fread(dest, 1, info->block_size, info->fh) != info->block_size)
         DRIVE_FATAL("Unable to read %d bytes from image file\n", (int)info->block_size);
     return 0;
 }
@@ -862,8 +862,8 @@ static int drive_simple_write(void* this, void* cb_ptr, void* buffer, uint32_t s
             drive_simple_write_cache(info, buffer, offset);
         } else {
             UNUSED(drive_simple_add_cache);
-            fseek(info->fh, (long)offset, SEEK_SET);
-            if (fwrite(buffer, 1, 512, info->fh) != 512)
+            h_fseek(info->fh, (long)offset, SEEK_SET);
+            if (h_fwrite(buffer, 1, 512, info->fh) != 512)
                 DRIVE_FATAL("Unable to write 512 bytes to image file\n");
         }
 #ifdef _MSC_VER
@@ -890,8 +890,8 @@ static int drive_simple_read(void* this, void* cb_ptr, void* buffer, uint32_t si
     drv_offset_t end = size + offset;
     while (offset != end) {
         if (!drive_simple_fetch_cache(info, buffer, offset)) {
-            fseek(info->fh, (long)offset, SEEK_SET);
-            if (fread(buffer, 1, 512, info->fh) != 512)
+            h_fseek(info->fh, (long)offset, SEEK_SET);
+            if (h_fread(buffer, 1, 512, info->fh) != 512)
                 DRIVE_FATAL("Unable to read 512 bytes from image file\n");
         }
 #ifdef _MSC_VER
@@ -906,10 +906,10 @@ static int drive_simple_read(void* this, void* cb_ptr, void* buffer, uint32_t si
 
 int drive_simple_init(struct drive_info* info, char* filename)
 {
-    void* fh = fopen(filename, info->modify_backing_file ? "rb+" : "rb");
+    void* fh = h_fopen(filename, info->modify_backing_file ? "rb+" : "rb");
     if (!fh)
         return -1;
-    // TODO: replace with better ftell
+    // TODO: replace with better h_ftell
     struct stat f_stat;
     stat(filename, &f_stat);
     uint64_t size = (uint64_t)f_stat.st_size;
@@ -958,14 +958,14 @@ int drive_autodetect_type(char* path)
     // Check for URL
     if (strstr(path, "http://") != NULL || strstr(path, "https://") != NULL)
         return 2;
-    void* fh = fopen(path, "r");
+    void* fh = h_fopen(path, "r");
     if (!fh)
         return -1;
     if(stat(path, &statbuf)){
-        fclose(fh);
+        h_fclose(fh);
         return -1;
     }
-    fclose(fh);
+    h_fclose(fh);
     if(S_ISDIR(statbuf.st_mode))
         return 0; // Chunked file 
     else

@@ -401,12 +401,12 @@ void state_file(int size, char* name, void* ptr)
     sprintf(temp, "%s" PATHSEP_STR "%s", global_file_base, name);
     if (is_reading) {
 #ifndef EMSCRIPTEN
-        void* fh = fopen(temp, "rb");
+        void* fh = h_fopen(temp, "rb");
         if (!fh)
             STATE_FATAL("Unable to open file %s\n", temp);
-        if (fread(ptr, 1, size, fh) != size)
+        if (h_fread(ptr, 1, size, fh) != (size_t)size)
             STATE_FATAL("Could not read\n");
-        fclose(fh);
+        h_fclose(fh);
 #else
         EM_ASM_({
             window["loadFile"]($0, $1, $2);
@@ -414,12 +414,12 @@ void state_file(int size, char* name, void* ptr)
 #endif
     } else {
 #ifndef EMSCRIPTEN
-        void* fh = fopen(temp, "wb"); // TODO: is this right?
+        void* fh = h_fopen(temp, "wb"); // TODO: is this right?
         if (!fh)
             STATE_FATAL("Unable to create file %s\n", temp);
-        if (fwrite(ptr, 1, size, fh) != size)
+        if (h_fwrite(ptr, 1, size, fh) != (size_t)size)
             STATE_FATAL("Could not write\n");
-        fclose(fh);
+        h_fclose(fh);
 #else
         EM_ASM_({
             window["saveFile"]($0, $1, $2);
@@ -450,15 +450,15 @@ void state_read_from_file(char* fn)
     sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
 
 #ifndef EMSCRIPTEN
-    void* fh = fopen(path, "rb");
+    void* fh = h_fopen(path, "rb");
     if (!fh)
         STATE_FATAL("Cannot open file %s\n", fn);
-    int size = fseek(fh, 0, SEEK_END);
-    fseek(fh, 0, SEEK_SET);
+    int size = h_fseek(fh, 0, SEEK_END);
+    h_fseek(fh, 0, SEEK_SET);
     void* buf = h_malloc(size);
-    if (fread(buf, 1, size, fh) != size)
+    if (h_fread(buf, 1, size, fh) != (size_t)size)
         STATE_FATAL("Cannot read from file %s\n", fn);
-    fclose(fh);
+    h_fclose(fh);
 #else
     void* buf = (void*)(EM_ASM_INT({
         return window["loadFile2"]($0, $1, $2);
@@ -494,12 +494,12 @@ void state_store_to_file(char* fn)
 
     sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
 
-    void* fh = fopen(path, "wb"); // TODO: right?
+    void* fh = h_fopen(path, "wb"); // TODO: right?
     if (!fh)
         STATE_FATAL("Cannot open file %s\n", fn);
-    if (fwrite(w.buf, 1, w.pos, fh) != (ssize_t)w.pos) // Clang complains that w.pos and write have different signs.
+    if (h_fwrite(w.buf, 1, w.pos, fh) != (ssize_t)w.pos) // Clang complains that w.pos and write have different signs.
         STATE_FATAL("Cannot write to file %s\n", fn);
-    fclose(fh);
+    h_fclose(fh);
     wstream_destroy(&w);
     bjson_destroy_object(global_obj);
     h_free(global_file_base);
