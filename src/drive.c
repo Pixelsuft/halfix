@@ -187,7 +187,7 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
 
     // Read the block into a chunk of temporary memory, and decompress
     data = halloc(this->block_size);
-    size = h_fseek(fh, 0, SEEK_END);
+    size = (unsigned int)h_fseek(fh, 0, SEEK_END);
     h_fseek(fh, 0, SEEK_SET);
     readbuf = halloc(size);
     if (h_fread(readbuf, 1, size, fh) != (ssize_t)size)
@@ -909,12 +909,19 @@ int drive_simple_init(struct drive_info* info, char* filename)
     void* fh = h_fopen(filename, info->modify_backing_file ? "rb+" : "rb");
     if (!fh)
         return -1;
-    // TODO: replace with better h_ftell
+#if 0
     struct stat f_stat;
     stat(filename, &f_stat);
     uint64_t size = (uint64_t)f_stat.st_size;
     if (size == (uint64_t)-1)
         return -1;
+#else
+    h_fseek(fh, 0, SEEK_END);
+    int64_t size_s = h_ftell(fh);
+    if (size_s <= 0)
+        return -1;
+    size_t size = (size_t)size_s;
+#endif
 
     struct simple_driver* sync_info = h_malloc(sizeof(struct simple_driver));
     info->data = sync_info;
