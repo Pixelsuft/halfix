@@ -96,7 +96,8 @@ void display_set_resolution(int width, int height)
 #ifdef SDL2_LOCK_IMPL
     SDL_LockTexture(texture, NULL, &surface_pixels, &pitch);
 #endif
-    SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
+    // TODO: Should I use this?
+    // SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
     w = width;
     h = height;
     if (scale_x == 1.0f && scale_y == 1.0f)
