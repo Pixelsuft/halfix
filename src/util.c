@@ -18,7 +18,7 @@
 #define QMALLOC_SIZE 1 << 20
 
 #define PREFER_SDL2
-// #define PREFER_STD
+#define PREFER_STD
 
 static void* qmalloc_data;
 static int qmalloc_usage, qmalloc_size;
@@ -107,7 +107,7 @@ size_t h_fwrite(const void* buf, size_t elem_size, size_t elem_count, void* file
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWwrite(file, buf, elem_size, elem_count);
 #else
-    return fread(buf, elem_size, elem_count, file);
+    return fread((void*)buf, elem_size, elem_count, file);
 #endif
 }
 
