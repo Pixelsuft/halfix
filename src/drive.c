@@ -909,19 +909,11 @@ int drive_simple_init(struct drive_info* info, char* filename)
     FILE* fh = fopen(filename, info->modify_backing_file ? "rb+" : "rb");
     if (!fh)
         return -1;
-// TODO: correct?
-#if defined(GET_SIZE_64) || 1
     struct stat f_stat;
     stat(filename, &f_stat);
     uint64_t size = (uint64_t)f_stat.st_size;
     if (size == (uint64_t)-1)
         return -1;
-#else
-    uint64_t size = (uint64_t)fseek(fh, 0, SEEK_END);
-    if (size == (uint64_t)-1)
-        return -1;
-    fseek(fh, 0, SEEK_SET);
-#endif
 
     struct simple_driver* sync_info = h_malloc(sizeof(struct simple_driver));
     info->data = sync_info;
