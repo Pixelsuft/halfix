@@ -295,6 +295,13 @@ static const struct ini_enum virtio_types[] = {
     { "p9fs", VIRTIO_9P },
     { NULL, 0 }
 };
+static const struct ini_enum cpu_types[] = {
+    { "486", CPU_TYPE_486 },
+    { "pentium4", CPU_TYPE_PENTIUM_4 },
+    { "n270", CPU_TYPE_ATOM_N270 },
+    { "coreduo", CPU_TYPE_CORE_DUO },
+    { NULL, 0 }
+};
 
 static int parse_disk(struct drive_info* drv, struct ini_section* s, int id)
 {
@@ -501,6 +508,7 @@ int parse_cfg(struct pc_settings* pc, char* data)
         pc->cpu.cpuid_limit_winnt = 0;
     } else {
         pc->cpu.cpuid_limit_winnt = get_field_int(cpu, "cpuid_limit_winnt", 0);
+        pc->cpu.type = get_field_enum(cpu, "type", cpu_types, CPU_TYPE_ATOM_N270);
     }
 
     UNUSED(get_section);

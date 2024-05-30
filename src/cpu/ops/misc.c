@@ -20,7 +20,6 @@ int cpu_set_cpuid(struct cpu_config* x)
 
 void cpuid(void)
 {
-    cpu_type = CPU_TYPE_ATOM_N270;
     //CPU_LOG("CPUID called with EAX=%08x\n", cpu.reg32[EAX]);
     switch (cpu.reg32[EAX]) {
     // TODO: Allow this instruction to be customized
@@ -220,17 +219,15 @@ void cpuid(void)
     case 0x80000004: {
         if (cpu_type == CPU_TYPE_486)
             break;
-        static const char* brand_string =
-#ifdef P4_SUPPORT
-            "              Intel(R) Pentium(R) 4 CPU 1.80GHz"
-#elif defined(CORE_DUO_SUPPORT)
-            "Intel(R) Core(TM) Duo CPU      T2400  @ 1.83GHz"
-#elif defined(ATOM_N270_SUPPORT)
-            "         Intel(R) Atom(TM) CPU N270   @ 1.60GHz"
-#else
-            "Halfix Virtual CPU                             "
-#endif
-            ;
+        static const char* brand_string;
+        if (cpu_type == CPU_TYPE_PENTIUM_4)
+            brand_string = "              Intel(R) Pentium(R) 4 CPU 1.80GHz";
+        else if (cpu_type == CPU_TYPE_CORE_DUO)
+             brand_string = "Intel(R) Core(TM) Duo CPU      T2400  @ 1.83GHz";
+        else if (cpu_type == CPU_TYPE_ATOM_N270)
+             brand_string = "         Intel(R) Atom(TM) CPU N270   @ 1.60GHz";
+        else
+             brand_string = "Halfix Virtual CPU                             ";
         static const int reg_ids[] = { EAX, EBX, ECX, EDX }; // Note: not in ordinary A/C/D/B order
         int offset = (cpu.reg32[EAX] - 0x80000002) << 4;
         for (int i = 0; i < 16; i++) {
