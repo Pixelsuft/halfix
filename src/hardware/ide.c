@@ -1139,7 +1139,7 @@ static void ide_pio_write_callback(struct ide_controller* ctrl)
         uint64_t sector_offset = ide_get_sector_offset(ctrl, ctrl->lba48);
         IDE_LOG("Writing %d sectors at %llx\n", ctrl->sectors_read, (unsigned long long)sector_offset);
 #ifndef EMSCRIPTEN
-        printf("Writing %d sectors at %d\n", ctrl->sectors_read, (uint32_t)sector_offset);
+        // printf("Writing %d sectors at %d\n", ctrl->sectors_read, (uint32_t)sector_offset);
 #endif
 
         int res = drive_write(SELECTED(ctrl, info), ctrl, ctrl->pio_buffer, ctrl->sectors_read * 512, sector_offset * (uint64_t)512, drive_write_callback);
