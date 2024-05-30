@@ -17,8 +17,9 @@
 
 #define QMALLOC_SIZE 1 << 20
 
-#define PREFER_SDL2
+// #define PREFER_SDL2
 // #define PREFER_STD
+#define FILES_WIN32_USE_ANSI
 
 static void* qmalloc_data;
 static int qmalloc_usage, qmalloc_size;
@@ -77,6 +78,19 @@ void h_free(void* ptr) {
 
 void* h_fopen(const char* fp, const char* mode) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    int can_write = mode[0] == 'r' && mode[1] == 'b' && mode[2] == '+'; // Hack
+#ifdef FILES_WIN32_USE_ANSI
+    HANDLE res = CreateFileA(
+        fp, GENERIC_READ | (can_write ? GENERIC_WRITE : 0), FILE_SHARE_READ, NULL,
+        OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
+    );
+#else
+    // TODO
+#endif
+    if (res == INVALID_HANDLE_VALUE) {
+        return NULL;
+    }
+    return res;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWFromFile(fp, mode);
 #else
@@ -86,6 +100,7 @@ void* h_fopen(const char* fp, const char* mode) {
 
 int h_fclose(void* file) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return CloseHandle(file) != 0;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWclose(file);
 #else
@@ -95,6 +110,11 @@ int h_fclose(void* file) {
 
 size_t h_fread(void* buf, size_t elem_size, size_t elem_count, void* file) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    DWORD bytes_read = 0;
+    if (ReadFile(file, buf, (DWORD)(elem_size * elem_count), &bytes_read, NULL) == FALSE) {
+        return 0;
+    }
+    return (size_t)bytes_read;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWread(file, buf, elem_size, elem_count);
 #else
@@ -113,6 +133,14 @@ size_t h_fwrite(const void* buf, size_t elem_size, size_t elem_count, void* file
 
 int64_t h_ftell(void* file) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    // seek(file, 0, OMG_FILE_SEEK_CUR);
+    LARGE_INTEGER res_buf;
+    LARGE_INTEGER inp_val;
+    inp_val.QuadPart = (LONGLONG)0;
+    if (!SetFilePointerEx(file, inp_val, &res_buf, FILE_CURRENT)) {
+        return -2;
+    }
+    return (int64_t)res_buf.QuadPart;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWtell(file);
 #else
@@ -122,6 +150,12 @@ int64_t h_ftell(void* file) {
 
 int64_t h_fsize(void* file) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    DWORD size_high = 0;
+    DWORD size_low = GetFileSize(file, &size_high);
+    if ((size_low == INVALID_FILE_SIZE) && (size_high == 0) && (GetLastError() != NO_ERROR)) {
+        return -2;
+    }
+    return ((int64_t)size_high << 32) | (int64_t)size_low;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWsize(file);
 #else
@@ -137,6 +171,15 @@ int64_t h_fsize(void* file) {
 
 int h_fseek(void* file, int64_t offset, int origin) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    LARGE_INTEGER res_buf;
+    LARGE_INTEGER inp_val;
+    inp_val.QuadPart = (LONGLONG)offset;
+    if (!SetFilePointerEx(file, inp_val, &res_buf, (
+        (origin == SEEK_END) ? FILE_END : ((origin == SEEK_CUR) ? FILE_CURRENT : FILE_BEGIN)
+    ))) {
+        return -2;
+    }
+    return 0;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     if (origin == SEEK_CUR)
         origin = RW_SEEK_CUR;

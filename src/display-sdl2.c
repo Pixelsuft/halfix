@@ -449,7 +449,7 @@ void display_handle_events(void)
         }
         case SDL_MOUSEWHEEL: {
             if (mouse_enabled)
-                kbd_send_mouse_move(0, 0, event.wheel.x, event.wheel.y);
+                kbd_send_mouse_move(0, 0, event.wheel.x, -event.wheel.y);
             break;
         }
         case SDL_KEYUP: {
