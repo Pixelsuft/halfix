@@ -651,12 +651,14 @@ void display_handle_events(void)
     }
 #endif
 }
+
 void display_release_mouse(void)
 {
 }
+
 void display_sleep(int ms)
 {
-    UNUSED(ms);
+    Sleep((DWORD)ms);
 }
 
 #if 0

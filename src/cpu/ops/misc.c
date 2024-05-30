@@ -7,38 +7,30 @@
 
 #define EXCEPTION_HANDLER return 1
 
-// If every define below is commented, then it'll pretend to be a generic Pentium-compatible CPU.
-// Uncomment this to make the CPU pretend it's a 486 (necessary for NT 3.51 install)
-//#define I486_SUPPORT 
-// Uncomment this to make the CPU pretend it's a Pentium 4
-//#define P4_SUPPORT
-// Uncomment this to make the CPU pretend it's a Core Duo
-// Required for Windows 8
-#define CORE_DUO_SUPPORT
-// Uncomment this to make the CPU pretend it's an Intel Atom N270
-//#define ATOM_N270_SUPPORT
 static int winnt_limit_cpuid;
+static int cpu_type;
 
 // Sets CPUID information. Currently unimplemented
 int cpu_set_cpuid(struct cpu_config* x)
 {
     winnt_limit_cpuid = x->cpuid_limit_winnt;
+    cpu_type = x->type;
     return 0;
 }
 
 void cpuid(void)
 {
+    cpu_type = CPU_TYPE_ATOM_N270;
     //CPU_LOG("CPUID called with EAX=%08x\n", cpu.reg32[EAX]);
     switch (cpu.reg32[EAX]) {
     // TODO: Allow this instruction to be customized
     case 0:
-#if defined(CORE_DUO_SUPPORT) || defined(ATOM_N270_SUPPORT)
-        cpu.reg32[EAX] = 10;
-#elif defined (I486_SUPPORT)
-        cpu.reg32[EAX] = 1;
-#else
-        cpu.reg32[EAX] = 2; // Windows NT doesn't like big CPU levels!
-#endif
+        if (cpu_type == CPU_TYPE_CORE_DUO || cpu_type == CPU_TYPE_ATOM_N270)
+            cpu.reg32[EAX] = 10;
+        else if (cpu_type == CPU_TYPE_486)
+            cpu.reg32[EAX] = 1;
+        else
+            cpu.reg32[EAX] = 2; // Windows NT doesn't like big CPU levels!
         cpu.reg32[ECX] = 0x6c65746e;
         cpu.reg32[EDX] = 0x49656e69;
         cpu.reg32[EBX] = 0x756e6547; // GenuineIntel
@@ -47,98 +39,107 @@ void cpuid(void)
             cpu.reg32[EAX] = 2;
         break;
     case 1:
-#ifdef P4_SUPPORT
-        cpu.reg32[EAX] = 0x00000f12;
-        cpu.reg32[ECX] = 0;
-        cpu.reg32[EDX] = 0x1febfbff | cpu_apic_connected() << 9;
-        cpu.reg32[EBX] = 0x00010800;
-#elif defined(CORE_DUO_SUPPORT)
-        cpu.reg32[EAX] = 0x000006EC;
-        cpu.reg32[ECX] = 0xC189;
-        cpu.reg32[EDX] = 0x9febf9ff | cpu_apic_connected() << 9;
-        cpu.reg32[EBX] = 0x00010800;
-#elif defined(ATOM_N270_SUPPORT)
-        cpu.reg32[EAX] = 0x000106C2;
-        cpu.reg32[ECX] = 0x40C39D;
-        cpu.reg32[EDX] = 0xBFEBF9FF | cpu_apic_connected() << 9;
-        cpu.reg32[EBX] = 0x00010800;
-#elif defined (I486_SUPPORT)
-        cpu.reg32[EAX] = 0x402;
-        cpu.reg32[ECX] = 0;
-        cpu.reg32[EDX] = 1; // FPU
-        cpu.reg32[EBX] = 0;
-#else
-        cpu.reg32[EAX] = 0x000006a0;
-        cpu.reg32[ECX] = 0;
-        cpu.reg32[EDX] = 0x1842c1bf | cpu_apic_connected() << 9;
-        cpu.reg32[EBX] = 0x00010000;
-#endif
+        if (cpu_type == CPU_TYPE_PENTIUM_4) {
+            cpu.reg32[EAX] = 0x00000f12;
+            cpu.reg32[ECX] = 0;
+            cpu.reg32[EDX] = 0x1febfbff | cpu_apic_connected() << 9;
+            cpu.reg32[EBX] = 0x00010800;
+        }
+        else if (cpu_type == CPU_TYPE_CORE_DUO) {
+            cpu.reg32[EAX] = 0x000006EC;
+            cpu.reg32[ECX] = 0xC189;
+            cpu.reg32[EDX] = 0x9febf9ff | cpu_apic_connected() << 9;
+            cpu.reg32[EBX] = 0x00010800;
+        }
+        else if (cpu_type == CPU_TYPE_ATOM_N270) {
+            cpu.reg32[EAX] = 0x000106C2;
+            cpu.reg32[ECX] = 0x40C39D;
+            cpu.reg32[EDX] = 0xBFEBF9FF | cpu_apic_connected() << 9;
+            cpu.reg32[EBX] = 0x00010800;
+        }
+        else if (cpu_type == CPU_TYPE_486) {
+            cpu.reg32[EAX] = 0x402;
+            cpu.reg32[ECX] = 0;
+            cpu.reg32[EDX] = 1; // FPU
+            cpu.reg32[EBX] = 0;
+        }
+        else {
+            cpu.reg32[EAX] = 0x000006a0;
+            cpu.reg32[ECX] = 0;
+            cpu.reg32[EDX] = 0x1842c1bf | cpu_apic_connected() << 9;
+            cpu.reg32[EBX] = 0x00010000;
+        }
         break;
-#ifndef I486_SUPPORT
     case 2:
-#ifdef P4_SUPPORT
-        cpu.reg32[EAX] = 0x665b5001;
-        cpu.reg32[ECX] = 0;
-        cpu.reg32[EDX] = 0x007a7040;
-        cpu.reg32[EBX] = 0;
-#elif defined(CORE_DUO_SUPPORT)
-        cpu.reg32[EAX] = 0x02b3b001;
-        cpu.reg32[ECX] = 0;
-        cpu.reg32[EDX] = 0x2c04307d;
-        cpu.reg32[EBX] = 0xF0;
-#elif defined(ATOM_N270_SUPPORT)
-        cpu.reg32[EAX] = 0x4fba5901;
-        cpu.reg32[ECX] = 0;
-        cpu.reg32[EDX] = 0;
-        cpu.reg32[EBX] = 0x0e3080c0;
-#else
-        cpu.reg32[EAX] = 0x00410601;
-        cpu.reg32[ECX] = 0;
-        cpu.reg32[EDX] = 0;
-        cpu.reg32[EBX] = 0;
-#endif
+        if (cpu_type == CPU_TYPE_PENTIUM_4) {
+            cpu.reg32[EAX] = 0x665b5001;
+            cpu.reg32[ECX] = 0;
+            cpu.reg32[EDX] = 0x007a7040;
+            cpu.reg32[EBX] = 0;
+        }
+        else if (cpu_type == CPU_TYPE_CORE_DUO) {
+            cpu.reg32[EAX] = 0x02b3b001;
+            cpu.reg32[ECX] = 0;
+            cpu.reg32[EDX] = 0x2c04307d;
+            cpu.reg32[EBX] = 0xF0;
+        }
+        else if (cpu_type == CPU_TYPE_ATOM_N270) {
+            cpu.reg32[EAX] = 0x4fba5901;
+            cpu.reg32[ECX] = 0;
+            cpu.reg32[EDX] = 0;
+            cpu.reg32[EBX] = 0x0e3080c0;
+        }
+        else if (cpu_type != CPU_TYPE_486) {
+            cpu.reg32[EAX] = 0x00410601;
+            cpu.reg32[ECX] = 0;
+            cpu.reg32[EDX] = 0;
+            cpu.reg32[EBX] = 0;
+        }
         break;
-#if defined(CORE_DUO_SUPPORT) || defined(ATOM_N270_SUPPORT)
     case 4:
+        if (cpu_type == CPU_TYPE_CORE_DUO || cpu_type == CPU_TYPE_ATOM_N270)
         switch (cpu.reg32[ECX]) {
         case 0:
-#if defined (CORE_DUO_SUPPORT)
-            cpu.reg32[EAX] = 0x04000121;
-            cpu.reg32[EBX] = 0x01C0003F;
-            cpu.reg32[ECX] = 0x0000003F;
-            cpu.reg32[EDX] = 0x00000001;
-#else // ATOM_N270_SUPPORT
-            cpu.reg32[EAX] = 0x00004121;
-            cpu.reg32[EBX] = 0x0140003f;
-            cpu.reg32[ECX] = 0x0000003F;
-            cpu.reg32[EDX] = 0x00000001;
-#endif
+            if (cpu_type == CPU_TYPE_CORE_DUO) {
+                cpu.reg32[EAX] = 0x04000121;
+                cpu.reg32[EBX] = 0x01C0003F;
+                cpu.reg32[ECX] = 0x0000003F;
+                cpu.reg32[EDX] = 0x00000001;
+            }
+            else {
+                cpu.reg32[EAX] = 0x00004121;
+                cpu.reg32[EBX] = 0x0140003f;
+                cpu.reg32[ECX] = 0x0000003F;
+                cpu.reg32[EDX] = 0x00000001;
+            }
             break;
         case 1:
-#if defined (CORE_DUO_SUPPORT)
-            cpu.reg32[EAX] = 0x04000122;
-            cpu.reg32[EBX] = 0x01C0003F;
-            cpu.reg32[ECX] = 0x0000003F;
-            cpu.reg32[EDX] = 0x00000001;
-#else // ATOM_N270_SUPPORT
-            cpu.reg32[EAX] = 0x00004122;
-            cpu.reg32[EBX] = 0x01C0003f;
-            cpu.reg32[ECX] = 0x0000003F;
-            cpu.reg32[EDX] = 0x00000001;
-#endif
+            if (cpu_type == CPU_TYPE_CORE_DUO) {
+                cpu.reg32[EAX] = 0x04000122;
+                cpu.reg32[EBX] = 0x01C0003F;
+                cpu.reg32[ECX] = 0x0000003F;
+                cpu.reg32[EDX] = 0x00000001;
+            }
+            else {
+                cpu.reg32[EAX] = 0x00004122;
+                cpu.reg32[EBX] = 0x01C0003f;
+                cpu.reg32[ECX] = 0x0000003F;
+                cpu.reg32[EDX] = 0x00000001;
+            }
             break;
         case 2:
-#if defined (CORE_DUO_SUPPORT)
-            cpu.reg32[EAX] = 0x04004143;
-            cpu.reg32[EBX] = 0x01C0003F;
-            cpu.reg32[ECX] = 0x00000FFF;
-            cpu.reg32[EDX] = 0x00000001;
-#else // ATOM_N270_SUPPORT
-            cpu.reg32[EAX] = 0x00004143;
-            cpu.reg32[EBX] = 0x01C0003F;
-            cpu.reg32[ECX] = 0x000003FF;
-            cpu.reg32[EDX] = 0x00000001;
-#endif
+            if (cpu_type == CPU_TYPE_CORE_DUO) {
+                cpu.reg32[EAX] = 0x04004143;
+                cpu.reg32[EBX] = 0x01C0003F;
+                cpu.reg32[ECX] = 0x00000FFF;
+                cpu.reg32[EDX] = 0x00000001;
+            }
+            else {
+                cpu.reg32[EAX] = 0x00004143;
+                cpu.reg32[EBX] = 0x01C0003F;
+                cpu.reg32[ECX] = 0x000003FF;
+                cpu.reg32[EDX] = 0x00000001;
+            }
             break;
         default:
             cpu.reg32[EAX] = 0;
@@ -149,68 +150,76 @@ void cpuid(void)
         }
         break;
     case 5: 
-#ifdef CORE_DUO_SUPPORT
-        cpu.reg32[EAX] = 0x00000040;
-        cpu.reg32[ECX] = 0x00000003;
-        cpu.reg32[EDX] = 0x00022220;
-        cpu.reg32[EBX] = 0x00000040;
-#else
-        cpu.reg32[EAX] = 0x00000040;
-        cpu.reg32[ECX] = 0x00000003;
-        cpu.reg32[EDX] = 0x00020220;
-        cpu.reg32[EBX] = 0x00000040;
-#endif
+        if (cpu_type == CPU_TYPE_CORE_DUO) {
+            cpu.reg32[EAX] = 0x00000040;
+            cpu.reg32[ECX] = 0x00000003;
+            cpu.reg32[EDX] = 0x00022220;
+            cpu.reg32[EBX] = 0x00000040;
+        }
+        else if (cpu_type == CPU_TYPE_ATOM_N270) {
+            cpu.reg32[EAX] = 0x00000040;
+            cpu.reg32[ECX] = 0x00000003;
+            cpu.reg32[EDX] = 0x00020220;
+            cpu.reg32[EBX] = 0x00000040;
+        }
         break;
     case 6:
-        cpu.reg32[EAX] = 1;
-        cpu.reg32[ECX] = 1;
-        cpu.reg32[EDX] = 0;
-        cpu.reg32[EBX] = 2;
+        if (cpu_type == CPU_TYPE_CORE_DUO || cpu_type == CPU_TYPE_ATOM_N270) {
+            cpu.reg32[EAX] = 1;
+            cpu.reg32[ECX] = 1;
+            cpu.reg32[EDX] = 0;
+            cpu.reg32[EBX] = 2;
+        }
         break;
-#ifdef ATOM_N270_SUPPORT
     case 0x40000000:
     case 0x40000001:
-#endif
     case 10:
-#ifdef CORE_DUO_SUPPORT
-        cpu.reg32[EAX] = 0x07280201;
-        cpu.reg32[EBX] = 0x00000000;
-        cpu.reg32[ECX] = 0x00000000;
-        cpu.reg32[EDX] = 0x00000000;
-#else
-        cpu.reg32[EAX] = 0x07280203;
-        cpu.reg32[EBX] = 0x00000000;
-        cpu.reg32[ECX] = 0x00000000;
-        cpu.reg32[EDX] = 0x00002501;
-#endif
+        if (cpu.reg32[EAX] > 10 && (cpu_type != CPU_TYPE_ATOM_N270))
+            break;
+        if (cpu_type == CPU_TYPE_CORE_DUO) {
+            cpu.reg32[EAX] = 0x07280201;
+            cpu.reg32[EBX] = 0x00000000;
+            cpu.reg32[ECX] = 0x00000000;
+            cpu.reg32[EDX] = 0x00000000;
+        }
+        else if (cpu_type == CPU_TYPE_ATOM_N270) {
+            cpu.reg32[EAX] = 0x07280203;
+            cpu.reg32[EBX] = 0x00000000;
+            cpu.reg32[ECX] = 0x00000000;
+            cpu.reg32[EDX] = 0x00002501;
+        }
         break;
-#endif // defined(CORE_DUO_SUPPORT) || defined(ATOM_N270_SUPPORT)
     case 0x80000000:
-#ifdef P4_SUPPORT
-        cpu.reg32[EAX] = 0x80000004;
-        cpu.reg32[ECX] = cpu.reg32[EDX] = cpu.reg32[EBX] = 0;
-#else
-        cpu.reg32[EAX] = 0x80000008;
-        cpu.reg32[ECX] = cpu.reg32[EDX] = cpu.reg32[EBX] = 0;
-#endif
+        if (cpu_type == CPU_TYPE_PENTIUM_4) {
+            cpu.reg32[EAX] = 0x80000004;
+            cpu.reg32[ECX] = cpu.reg32[EDX] = cpu.reg32[EBX] = 0;
+        }
+        else if (cpu_type != CPU_TYPE_486) {
+            cpu.reg32[EAX] = 0x80000008;
+            cpu.reg32[ECX] = cpu.reg32[EDX] = cpu.reg32[EBX] = 0;
+        }
         break;
     case 0x80000001:
-#ifdef CORE_DUO_SUPPORT
-        cpu.reg32[EDX] = 0x00100000;
-        cpu.reg32[EBX] = 0;
-        cpu.reg32[ECX] = cpu.reg32[EAX] = 0;
-#elif defined(ATOM_N270_SUPPORT)
-        cpu.reg32[EAX] = 0;
-        cpu.reg32[ECX] = 1;
-        cpu.reg32[EDX] = cpu.reg32[EBX] = 0;
-#else
-        cpu.reg32[EBX] = 0;
-        cpu.reg32[ECX] = cpu.reg32[EDX] = cpu.reg32[EAX] = 0;
-#endif
+        if (cpu_type == CPU_TYPE_CORE_DUO) {
+            cpu.reg32[EDX] = 0x00100000;
+            cpu.reg32[EBX] = 0;
+            cpu.reg32[ECX] = cpu.reg32[EAX] = 0;
+        }
+        else if (cpu_type == CPU_TYPE_ATOM_N270) {
+            cpu.reg32[EAX] = 0;
+            cpu.reg32[ECX] = 1;
+            cpu.reg32[EDX] = cpu.reg32[EBX] = 0;
+        }
+        else if (cpu_type != CPU_TYPE_486) {
+            cpu.reg32[EBX] = 0;
+            cpu.reg32[ECX] = cpu.reg32[EDX] = cpu.reg32[EAX] = 0;
+        }
         break;
     case 0x80000002:
     case 0x80000003:
     case 0x80000004: {
+        if (cpu_type == CPU_TYPE_486)
+            break;
         static const char* brand_string =
 #ifdef P4_SUPPORT
             "              Intel(R) Pentium(R) 4 CPU 1.80GHz"
@@ -232,36 +241,39 @@ void cpuid(void)
         break;
     }
     case 0x80000005: // TLB/cache information
-#ifndef CORE_DUO_SUPPORT
-        cpu.reg32[EAX] = 0x01ff01ff;
-        cpu.reg32[ECX] = 0x40020140;
-        cpu.reg32[EBX] = 0x01ff01ff;
-        cpu.reg32[EDX] = 0x40020140;
-#else
-        cpu.reg32[EAX] = 0;
-        cpu.reg32[ECX] = 0;
-        cpu.reg32[EBX] = 0;
-        cpu.reg32[EDX] = 0;
-#endif
+        if (cpu_type == CPU_TYPE_CORE_DUO) {
+            cpu.reg32[EAX] = 0x01ff01ff;
+            cpu.reg32[ECX] = 0x40020140;
+            cpu.reg32[EBX] = 0x01ff01ff;
+            cpu.reg32[EDX] = 0x40020140;
+        }
+        else if (cpu_type != CPU_TYPE_486) {
+            cpu.reg32[EAX] = 0;
+            cpu.reg32[ECX] = 0;
+            cpu.reg32[EBX] = 0;
+            cpu.reg32[EDX] = 0;
+        }
         break;
     case 0x80000006: // TLB/cache information
-#ifndef CORE_DUO_SUPPORT
-        cpu.reg32[EAX] = 0;
-        cpu.reg32[ECX] = 0x02008140;
-        cpu.reg32[EBX] = 0x42004200;
-        cpu.reg32[EDX] = 0;
-#else
-        cpu.reg32[EAX] = 0;
-        cpu.reg32[ECX] = 0x08006040;
-        cpu.reg32[EBX] = 0;
-        cpu.reg32[EDX] = 0;
-#endif
+        if (cpu_type == CPU_TYPE_CORE_DUO) {
+            cpu.reg32[EAX] = 0;
+            cpu.reg32[ECX] = 0x02008140;
+            cpu.reg32[EBX] = 0x42004200;
+            cpu.reg32[EDX] = 0;
+        }
+        else if (cpu_type != CPU_TYPE_486) {
+            cpu.reg32[EAX] = 0;
+            cpu.reg32[ECX] = 0x08006040;
+            cpu.reg32[EBX] = 0;
+            cpu.reg32[EDX] = 0;
+        }
         break;
     case 0x80000008:
+        if (cpu_type == CPU_TYPE_486)
+            break;
         cpu.reg32[EAX] = 0x2028; // TODO: 0x2024 for 36-bit address space?
         cpu.reg32[ECX] = cpu.reg32[EDX] = cpu.reg32[EBX] = 0;
         break;
-#endif /* ndef I486_SUPPORT */
     default:
         CPU_DEBUG("Unknown CPUID level: 0x%08x\n", cpu.reg32[EAX]);
         goto __annoying_gcc_workaround;

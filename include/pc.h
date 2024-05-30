@@ -15,15 +15,6 @@ enum {
     DRIVE_TYPE_DISK,
     DRIVE_TYPE_CDROM
 };
-
-enum {
-    CPU_TYPE_486,
-    CPU_TYPE_PENTIUM,
-    CPU_TYPE_PENTIUM_PRO,
-    CPU_TYPE_PENTIUM_4,
-    CPU_TYPE_CORE_DUO
-};
-
 enum {
     VIRTIO_9P
 };
@@ -53,8 +44,6 @@ struct virtio_cfg {
 struct pc_settings {
     uint32_t memory_size, vga_memory_size;
     struct loaded_file bios, vgabios;
-
-    unsigned int cpu_type;
 
     int
         // Setting pci_enabled to zero will disable direct memory disk accesses. Otherwise, the system will function identically to that of one without PCI support.

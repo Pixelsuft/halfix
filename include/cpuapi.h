@@ -11,6 +11,14 @@ enum
     FEATURE_EAX_80000000,
     FEATURE_SIZE_MAX
 };
+
+enum {
+    CPU_TYPE_486 = 1,
+    CPU_TYPE_PENTIUM_4 = 2,
+    CPU_TYPE_CORE_DUO = 3,
+    CPU_TYPE_ATOM_N270 = 4
+};
+
 struct cpuid_level_info
 {
     int eax;
@@ -25,6 +33,7 @@ struct cpu_config
 {
     char *vendor_name;
     int level;
+    int type;
 
     int cpuid_limit_winnt;
 

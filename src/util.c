@@ -85,13 +85,13 @@ void* h_fopen(const char* fp, const char* mode) {
         OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
     );
 #else
-    int count = MultiByteToWideChar(CP_UTF8, 0, fp, strlen(fp), NULL, 0);
+    int count = MultiByteToWideChar(CP_UTF8, 0, fp, (int)strlen(fp), NULL, 0);
     if (count <= 0)
         return NULL;
     wchar_t* fp_buf = h_malloc((size_t)(count + 1) * sizeof(wchar_t));
     if (fp_buf == NULL)
         return NULL;
-    int encode_res = MultiByteToWideChar(CP_UTF8, 0, fp, strlen(fp), fp_buf, count);
+    int encode_res = MultiByteToWideChar(CP_UTF8, 0, fp, (int)strlen(fp), fp_buf, count);
     if (encode_res <= 0) {
         h_free(fp_buf);
         return NULL;
