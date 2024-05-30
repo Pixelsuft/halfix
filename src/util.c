@@ -18,7 +18,7 @@
 #define QMALLOC_SIZE 1 << 20
 
 #define PREFER_SDL2
-#define PREFER_STD
+// #define PREFER_STD
 
 static void* qmalloc_data;
 static int qmalloc_usage, qmalloc_size;
@@ -117,6 +117,21 @@ int64_t h_ftell(void* file) {
     return SDL_RWtell(file);
 #else
     return (int64_t)ftell(file);
+#endif
+}
+
+int64_t h_fsize(void* file) {
+#if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+#elif defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_RWsize(file);
+#else
+    long cur_pos = ftell(file);
+    if (cur_pos < 0)
+        return -1;
+    fseek(file, 0, SEEK_END);
+    int64_t res = (int64_t)ftell(file);
+    fseek(file, cur_pos, SEEK_SET);
+    return res;
 #endif
 }
 
