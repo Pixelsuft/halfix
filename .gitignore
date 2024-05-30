@@ -28,4 +28,6 @@ vs
 test*.conf
 seabios.bin
 seavgabios.bin
+et4000.bin
+86c764x1.bin
 halfix
