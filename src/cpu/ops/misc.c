@@ -14,9 +14,9 @@
 //#define P4_SUPPORT
 // Uncomment this to make the CPU pretend it's a Core Duo
 // Required for Windows 8
-//#define CORE_DUO_SUPPORT
+#define CORE_DUO_SUPPORT
 // Uncomment this to make the CPU pretend it's an Intel Atom N270
-#define ATOM_N270_SUPPORT
+//#define ATOM_N270_SUPPORT
 static int winnt_limit_cpuid;
 
 // Sets CPUID information. Currently unimplemented
