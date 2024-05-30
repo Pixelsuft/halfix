@@ -22,7 +22,7 @@ typedef uint32_t drv_offset_t;
 #define DRIVE_LOG(x, ...) LOG("DRIVE", x, ##__VA_ARGS__)
 #define DRIVE_FATAL(x, ...)                \
     do {                                   \
-        fprintf(stderr, x, ##__VA_ARGS__); \
+        h_fprintf(stderr, x, ##__VA_ARGS__); \
         abort();                           \
     } while (0)
 

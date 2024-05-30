@@ -114,11 +114,11 @@ struct
 static void kbd_queue_state(struct bjson_object* obj, struct kbd_queue* y, int z)
 {
     char buffer[100];
-    sprintf(buffer, "kbd.queues[%d].data", z);
+    h_sprintf(buffer, "kbd.queues[%d].data", z);
     state_field(obj, 256, buffer, y->data);
-    sprintf(buffer, "kbd.queues[%d].read_pos", z);
+    h_sprintf(buffer, "kbd.queues[%d].read_pos", z);
     state_field(obj, 2, buffer, &y->read_pos);
-    sprintf(buffer, "kbd.queues[%d].write_pos", z);
+    h_sprintf(buffer, "kbd.queues[%d].write_pos", z);
     state_field(obj, 2, buffer, &y->write_pos);
 }
 static void kbd_state(void)

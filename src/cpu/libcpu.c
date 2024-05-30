@@ -402,7 +402,7 @@ void cpu_init_fpu(void)
 static uint8_t mem[4096];
 static void dummy_write2(uint32_t addr, uint32_t data)
 {
-    printf("Port: %02x Data: %04x\n", addr, data);
+    h_printf("Port: %02x Data: %04x\n", addr, data);
 }
 static void* mem_stuff(uint32_t addr, int write)
 {
@@ -422,7 +422,7 @@ static void test(void)
     cpu_register_mem_refill_handler(mem_stuff);
     cpu_register_io_write_cb(dummy_write2, 8);
     cpu_run(2);
-    printf("EAX: %08x\n", regs[0]);
+    h_printf("EAX: %08x\n", regs[0]);
 }
 
 EXPORT

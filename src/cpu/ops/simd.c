@@ -276,7 +276,7 @@ static void punpckh(void* dst, void* src, int size, int copysize)
 }
 static inline uint16_t pack_i32_to_i16(uint32_t x)
 {
-    //printf("i32 -> i16: %08x\n", x);
+    //h_printf("i32 -> i16: %08x\n", x);
     if (x >= 0x80000000) {
         if (x >= 0xFFFF8000)
             x &= 0xFFFF;
@@ -352,7 +352,7 @@ static void psubsw(uint16_t* dest, uint16_t* src, int wordcount)
 {
     for (int i = 0; i < wordcount; i++) {
         uint16_t x = dest[i], y = src[i], res = x - y;
-        //printf("%x - %x = %x\n", x, y, res);
+        //h_printf("%x - %x = %x\n", x, y, res);
         x = (x >> 15) + 0x7FFF;
         if ((int16_t)((x ^ y) & (x ^ res)) < 0)
             res = x;
@@ -412,7 +412,7 @@ static void pshuf(void* dest, void* src, int imm, int shift)
     for (int i = 0; i < 4; i++) {
         int index = imm & 3, index4 = index << shift;
         if (shift == 2) { // Doubleword size
-            //printf("index: %d resid=%d %02x%02x%02x%02x\n", index, id, src8[index4 + 0], src8[index4 + 1], src8[index4 + 2], src8[index4 + 3]);
+            //h_printf("index: %d resid=%d %02x%02x%02x%02x\n", index, id, src8[index4 + 0], src8[index4 + 1], src8[index4 + 2], src8[index4 + 3]);
             res[id + 0] = src8[index4 + 0];
             res[id + 1] = src8[index4 + 1];
             res[id + 2] = src8[index4 + 2];

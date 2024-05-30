@@ -533,11 +533,11 @@ static int decode_invalid(struct decoded_instruction* i)
     UNUSED(i);
     rawp--;
     for (int i = 0; i < 16; i++)
-        printf("%02x ", rawp[i - 16]);
-    printf("\n");
+        h_printf("%02x ", rawp[i - 16]);
+    h_printf("\n");
     for (int i = 0; i < 16; i++)
-        printf("%02x ", rawp[i]);
-    printf("\n");
+        h_printf("%02x ", rawp[i]);
+    h_printf("\n");
     CPU_LOG("Unknown opcode: %02x\n", rawp[0]);
     i->handler = op_ud_exception;
     i->flags = 0;
@@ -548,11 +548,11 @@ static int decode_invalid0F(struct decoded_instruction* i)
     UNUSED(i);
     rawp--;
     for (int i = 0; i < 16; i++)
-        printf("%02x ", rawp[i - 16]);
-    printf("\n");
+        h_printf("%02x ", rawp[i - 16]);
+    h_printf("\n");
     for (int i = 0; i < 16; i++)
-        printf("%02x ", rawp[i]);
-    printf("\n");
+        h_printf("%02x ", rawp[i]);
+    h_printf("\n");
     CPU_LOG("Unknown opcode: 0F %02x\n", rawp[0]);
     i->handler = op_ud_exception;
     i->flags = 0;

@@ -35,7 +35,7 @@ void emscripten_flip(void)
 EMSCRIPTEN_KEEPALIVE
 int drive_emscripten_init(struct drive_info* info, void* a, void* b, int c)
 {
-    printf("%p %p\n", a, b);
+    h_printf("%p %p\n", a, b);
     return drive_internal_init(info, a, b, c);
 }
 

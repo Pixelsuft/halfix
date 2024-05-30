@@ -278,7 +278,7 @@ static void ide_state(void)
         for (int j = 0; j < 2; j++) {
             struct drive_info* info = ide[i].info[j];
             if (ide[i].media_inserted[j]) {
-                sprintf(filename, "ide%d-%d", i, j);
+                h_sprintf(filename, "ide%d-%d", i, j);
                 drive_state(info, filename);
             }
         }
@@ -427,7 +427,7 @@ static void ide_set_sector_offset(struct ide_controller* ctrl, int lba48, uint64
 static void ide_check_canary(struct ide_controller* ctrl)
 {
     if (ctrl->canary_above != 0xDEADBEEF || ctrl->canary_below != 0xBEEFDEAD) {
-        fprintf(stderr, "IDE PIO smashing canaries overwritten\n");
+        h_fprintf(stderr, "IDE PIO smashing canaries overwritten\n");
         IDE_FATAL("bad");
     }
 }
@@ -468,9 +468,9 @@ static void ide_pio_store_string(struct ide_controller* ctrl, char* string, int 
     char* buffer = alloca(length + 1); // Account for null-terminator
     // Justify the string.
     if (justify_left) {
-        sprintf(buffer, "%-*s", length, string);
+        h_sprintf(buffer, "%-*s", length, string);
     } else {
-        sprintf(buffer, "%*s", length, string);
+        h_sprintf(buffer, "%*s", length, string);
     }
     for (int i = 0; i < length; i++) {
         ide_pio_store_byte(ctrl, pos + (i ^ swap), buffer[i]);
@@ -577,9 +577,9 @@ static void ide_atapi_read(struct ide_controller* ctrl)
 
     // We have already prefetched this data
     if (res != DRIVE_RESULT_SYNC) {
-        printf(" == Internal IDE inconsistency == ");
-        printf("Fetch offset: %08x [blk%08x.bin]\n", ctrl->atapi_lba * ctrl->atapi_sector_size, (ctrl->atapi_lba * ctrl->atapi_sector_size) / (256 << 10));
-        printf("Fetch bytes: %d\n", ctrl->atapi_sector_size);
+        h_printf(" == Internal IDE inconsistency == ");
+        h_printf("Fetch offset: %08x [blk%08x.bin]\n", ctrl->atapi_lba * ctrl->atapi_sector_size, (ctrl->atapi_lba * ctrl->atapi_sector_size) / (256 << 10));
+        h_printf("Fetch bytes: %d\n", ctrl->atapi_sector_size);
         IDE_FATAL("Error trying to fetch already-fetched ATAPI data\n");
     }
 
@@ -1054,9 +1054,9 @@ static void ide_pio_read_callback(struct ide_controller* ctrl)
 
                 // We have already prefetched this data
                 if (res != DRIVE_RESULT_SYNC) {
-                    fprintf(stderr, " == Internal IDE inconsistency == ");
-                    fprintf(stderr, "Fetch offset: %08x [blk%08x.bin]\n", ctrl->atapi_lba * ctrl->atapi_sector_size, (ctrl->atapi_lba * ctrl->atapi_sector_size) / (256 << 10));
-                    fprintf(stderr, "Fetch bytes: %d\n", ctrl->atapi_sector_size);
+                    h_fprintf(stderr, " == Internal IDE inconsistency == ");
+                    h_fprintf(stderr, "Fetch offset: %08x [blk%08x.bin]\n", ctrl->atapi_lba * ctrl->atapi_sector_size, (ctrl->atapi_lba * ctrl->atapi_sector_size) / (256 << 10));
+                    h_fprintf(stderr, "Fetch bytes: %d\n", ctrl->atapi_sector_size);
                     IDE_FATAL("Error trying to fetch already-fetched ATAPI data\n");
                 }
 
@@ -1139,7 +1139,7 @@ static void ide_pio_write_callback(struct ide_controller* ctrl)
         uint64_t sector_offset = ide_get_sector_offset(ctrl, ctrl->lba48);
         IDE_LOG("Writing %d sectors at %llx\n", ctrl->sectors_read, (unsigned long long)sector_offset);
 #ifndef EMSCRIPTEN
-        // printf("Writing %d sectors at %d\n", ctrl->sectors_read, (uint32_t)sector_offset);
+        // h_printf("Writing %d sectors at %d\n", ctrl->sectors_read, (uint32_t)sector_offset);
 #endif
 
         int res = drive_write(SELECTED(ctrl, info), ctrl, ctrl->pio_buffer, ctrl->sectors_read * 512, sector_offset * (uint64_t)512, drive_write_callback);
@@ -1168,7 +1168,7 @@ static uint32_t ide_pio_readb(uint32_t port)
     if (ctrl->pio_position >= ctrl->pio_length)
         ide_pio_read_callback(ctrl);
 #ifdef PIO_LOG
-    fprintf(test, "m 01f0 = %02x\n", result);
+    h_fprintf(test, "m 01f0 = %02x\n", result);
 #endif
     return result;
 }
@@ -1188,7 +1188,7 @@ static uint32_t ide_pio_readw(uint32_t port)
     if (ctrl->pio_position >= ctrl->pio_length)
         ide_pio_read_callback(ctrl);
 #ifdef PIO_LOG
-    fprintf(test, "m 01f0 = %04x\n", result);
+    h_fprintf(test, "m 01f0 = %04x\n", result);
 #endif
     return result;
 }
@@ -1210,7 +1210,7 @@ static uint32_t ide_pio_readd(uint32_t port)
     if (ctrl->pio_position >= ctrl->pio_length)
         ide_pio_read_callback(ctrl);
 #ifdef PIO_LOG
-    fprintf(test, "m 01f0 = %08x\n", result);
+    h_fprintf(test, "m 01f0 = %08x\n", result);
 #endif
     return result;
 }
@@ -1223,7 +1223,7 @@ static void ide_pio_writeb(uint32_t port, uint32_t data)
     if (ctrl->pio_position >= ctrl->pio_length)
         ide_pio_write_callback(ctrl);
 #ifdef PIO_LOG
-    fprintf(test, "o 01f0 = %02x\n", data);
+    h_fprintf(test, "o 01f0 = %02x\n", data);
 #endif
 }
 // Write a word to the PIO buffer
@@ -1231,7 +1231,7 @@ static void ide_pio_writew(uint32_t port, uint32_t data)
 {
     struct ide_controller* ctrl = &ide[~port >> 7 & 1];
 #ifdef PIO_LOG
-    fprintf(test, "o 01f0 = %04x\n", data);
+    h_fprintf(test, "o 01f0 = %04x\n", data);
 #endif
     if ((ctrl->pio_position | ctrl->pio_length) & 1) {
         ide_pio_writeb(port, data & 0xFF);
@@ -1248,7 +1248,7 @@ static void ide_pio_writed(uint32_t port, uint32_t data)
 {
     struct ide_controller* ctrl = &ide[~port >> 7 & 1];
 #ifdef PIO_LOG
-    fprintf(test, "o 01f0 = %08x\n", data);
+    h_fprintf(test, "o 01f0 = %08x\n", data);
 #endif
     if ((ctrl->pio_position | ctrl->pio_length) & 3) {
         ide_pio_writeb(port, data & 0xFF);
@@ -1633,10 +1633,10 @@ void drive_debug(int64_t x)
     if (res == DRIVE_RESULT_SYNC)
         IDE_LOG("Cannot read\n");
     for (int i = 0; i < 16; i++) {
-        printf("%02x ", buf[offset]);
+        h_printf("%02x ", buf[offset]);
         offset++;
     }
-    printf("\n");
+    h_printf("\n");
 }
 
 static void ide_write_dma_handler(void* this, int status)

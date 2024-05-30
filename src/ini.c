@@ -186,7 +186,7 @@ static int get_field_enum(struct ini_section* sect, char* name, const struct ini
             return vals[i].value;
         i++;
     }
-    printf("Unknown value: %s\n", name);
+    h_printf("Unknown value: %s\n", name);
     return def;
 }
 static int get_field_int(struct ini_section* sect, char* name, int def)
@@ -329,7 +329,7 @@ static int parse_disk(struct drive_info* drv, struct ini_section* s, int id)
     }
 
     if (driver == 0 && wb)
-        printf("WARNING: Disk %d uses async (chunked) driver but writeback is not supported!!\n", id);
+        h_printf("WARNING: Disk %d uses async (chunked) driver but writeback is not supported!!\n", id);
     drv->modify_backing_file = wb;
     if (path && inserted) {
 #ifndef EMSCRIPTEN
@@ -367,12 +367,12 @@ int parse_cfg(struct pc_settings* pc, char* data)
     // Determine BIOS/VGABIOS paths
     char *bios = get_field_string(global, "bios"), *vgabios = get_field_string(global, "vgabios");
     if (!bios || !vgabios) {
-        fprintf(stderr, "No BIOS/VGABIOS!\n");
+        h_fprintf(stderr, "No BIOS/VGABIOS!\n");
         goto fail;
     }
 
     if (load_file(&pc->bios, bios) || load_file(&pc->vgabios, vgabios)) {
-        fprintf(stderr, "Unable to load BIOS/VGABIOS image\n");
+        h_fprintf(stderr, "Unable to load BIOS/VGABIOS image\n");
         goto fail;
     }
 
@@ -398,7 +398,7 @@ int parse_cfg(struct pc_settings* pc, char* data)
     res |= parse_disk(&pc->drives[2], get_section(global, "ata1-master"), 2);
     res |= parse_disk(&pc->drives[3], get_section(global, "ata1-slave"), 3);
     if (res) {
-        fprintf(stderr, "Unable to initialize disk drive images\n");
+        h_fprintf(stderr, "Unable to initialize disk drive images\n");
         goto fail;
     }
 
@@ -406,7 +406,7 @@ int parse_cfg(struct pc_settings* pc, char* data)
     res = parse_disk(&pc->floppy_drives[0], get_section(global, "fda"), 4);
     res |= parse_disk(&pc->floppy_drives[1], get_section(global, "fdb"), 5);
     if (res) {
-        fprintf(stderr, "Unable to initialize floppy drive images\n");
+        h_fprintf(stderr, "Unable to initialize floppy drive images\n");
         goto fail;
     }
 
@@ -428,7 +428,7 @@ int parse_cfg(struct pc_settings* pc, char* data)
                 int mac_part = 0;
                 if (k != 0)
                     if (mac[i++] != ':')
-                        fprintf(stderr, "Malformed MAC address\n");
+                        h_fprintf(stderr, "Malformed MAC address\n");
 
                 for (int j = 0; j < 2; j++) {
                     int n;
@@ -469,7 +469,7 @@ int parse_cfg(struct pc_settings* pc, char* data)
 
     char sid[50];
     for (int i = 0; i < MAX_VIRTIO_DEVICES; i++) {
-        sprintf(sid, "virtio%d", i);
+        h_sprintf(sid, "virtio%d", i);
         struct ini_section* virtio = get_section(global, sid);
         struct virtio_cfg* cfg = &pc->virtio[i];
         cfg->type = -1;
@@ -478,7 +478,7 @@ int parse_cfg(struct pc_settings* pc, char* data)
 
         int x = get_field_enum(virtio, "type", virtio_types, -1);
         if (x == -1) {
-            fprintf(stderr, "Unknown virtio%d type - ignoring\n", i);
+            h_fprintf(stderr, "Unknown virtio%d type - ignoring\n", i);
             continue;
         }
         cfg->type = x;

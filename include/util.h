@@ -22,25 +22,39 @@
 #define MAP_ANONYMOUS 0x20
 #endif
 
+// #define PREFER_SDL2
+// #define PREFER_STD
+// #define FILES_WIN32_USE_ANSI
+
+#if defined(SDL2_BUILD) && !defined(PREFER_STD)
+#define h_printf(...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
+#define h_fprintf(out_file, ...) SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
+#define h_sprintf(buf, ...) SDL_snprintf(buf, 6144, __VA_ARGS__)
+#else
+#define h_printf printf
+#define h_fprintf fprintf
+#define h_sprintf sprintf
+#endif
+
 void* aalloc(int size, int align);
 void afree(void* ptr);
 
 // #define LOGGING_ENABLED
 
-//#define LOG(component, x, ...) fprintf(stderr, "[" component "] " x, ##__VA_ARGS__)
-//#define LOG(component, x, ...) printf("[" component "] " x, ##__VA_ARGS__)
+//#define LOG(component, x, ...) h_fprintf(stderr, "[" component "] " x, ##__VA_ARGS__)
+//#define LOG(component, x, ...) h_printf("[" component "] " x, ##__VA_ARGS__)
 // We have the Halfix abort function (which releases the mouse and optionally writes out the event log) and then the real abort function to appease the compiler.
 #if 0
 #define FATAL(component, x, ...)                              \
     do {                                                      \
-        fprintf(stderr, "[" component "] " x, ##__VA_ARGS__); \
+        h_fprintf(stderr, "[" component "] " x, ##__VA_ARGS__); \
         ABORT();                                              \
         abort();                                              \
     } while (0)
 #else
 #define FATAL(component, x, ...)                              \
     do {                                                      \
-        fprintf(stderr, "[" component "] " x, ##__VA_ARGS__); \
+        h_fprintf(stderr, "[" component "] " x, ##__VA_ARGS__); \
         break;                                                \
     } while (0)
 #endif
@@ -52,7 +66,7 @@ void afree(void* ptr);
 #define debugger util_debug()
 
 #ifdef LOGGING_ENABLED
-#define LOG(component, x, ...) fprintf(stdout, "[" component "] " x, ##__VA_ARGS__)
+#define LOG(component, x, ...) h_fprintf(stdout, "[" component "] " x, ##__VA_ARGS__)
 #else
 #define LOG(component, x, ...) NOP()
 #endif

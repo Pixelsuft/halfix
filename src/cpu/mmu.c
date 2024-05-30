@@ -339,10 +339,10 @@ int cpu_mmu_translate(uint32_t lin, int shift)
 #endif
                 }
 #if 0
-                printf("Lin: %08x\n", lin);
-                printf("PDTPE: %08x PDTPE.addr: %08x\n", pdpte, pdp_addr);
-                printf("PDE: %08x PDE.addr: %08x\n", pde, pde_addr);
-                printf("PTE: %08x PTE.addr: %08x\n", pte, pte_addr);
+                h_printf("Lin: %08x\n", lin);
+                h_printf("PDTPE: %08x PDTPE.addr: %08x\n", pdpte, pdp_addr);
+                h_printf("PDE: %08x PDE.addr: %08x\n", pde, pde_addr);
+                h_printf("PTE: %08x PTE.addr: %08x\n", pte, pte_addr);
 #endif
                 cpu_set_tlb_entry(lin & ~0xFFF, pte & ~0xFFF, NULL, user, write, pte & 0x100, nx);
             }

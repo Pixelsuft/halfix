@@ -332,7 +332,7 @@ void* display_get_pixels(void)
 static void display_set_title(void)
 {
     char buffer[1000];
-    sprintf(buffer, "Halfix x86 Emulator - "
+    h_sprintf(buffer, "Halfix x86 Emulator - "
                     " [%d x %d] - %s",
         w, h,
         mouse_enabled ? "Press ESC to release mouse" : "Right-click to capture mouse");
@@ -886,7 +886,7 @@ void display_update(int scanline_start, int scanlines)
     if ((w == 0) || (h == 0))
         return;
     if ((scanline_start + scanlines) > h) {
-        printf("%d x %d [%d %d]\n", w, h, scanline_start, scanlines);
+        h_printf("%d x %d [%d %d]\n", w, h, scanline_start, scanlines);
         ABORT();
     } else {
         render_windows();
@@ -968,7 +968,7 @@ void display_handle_events(void)
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_QUIT:
-            printf("QUIT\n");
+            h_printf("QUIT\n");
             exit(0);
             break;
         case SDL_KEYDOWN:

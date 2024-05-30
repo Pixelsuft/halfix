@@ -174,7 +174,7 @@ int cpu_access_verify(uint32_t addr, uint32_t end, int shift)
 // For debugging purposes. Call using GDB
 #define EXCEPTION_HANDLER                                       \
     do {                                                        \
-        printf("Unable to read memory at address %08x\n", lin); \
+        h_printf("Unable to read memory at address %08x\n", lin); \
         return 0;                                               \
     } while (0)
 uint8_t read8(uint32_t lin)
@@ -199,16 +199,16 @@ uint32_t read32(uint32_t lin)
 void readmem(uint32_t lin, int bytes)
 {
     for (int i = 0; i < bytes; i++) {
-        printf("%02x ", read8(lin + i));
+        h_printf("%02x ", read8(lin + i));
     }
-    printf("\n");
+    h_printf("\n");
 }
 void readphys(uint32_t lin, int bytes)
 {
     for (int i = 0; i < bytes; i++) {
-        printf("%02x ", cpu.mem8[lin + i]);
+        h_printf("%02x ", cpu.mem8[lin + i]);
     }
-    printf("\n");
+    h_printf("\n");
 }
 
 uint32_t lin2phys(uint32_t addr)
@@ -216,7 +216,7 @@ uint32_t lin2phys(uint32_t addr)
     uint8_t tag = cpu.tlb_tags[addr >> 12];
     if (tag & 2) {
         if (cpu_mmu_translate(addr, TLB_SYSTEM_READ)) {
-            printf("ERROR TRANSLATING ADDRESS %08x\n", addr);
+            h_printf("ERROR TRANSLATING ADDRESS %08x\n", addr);
             return 1;
         }
         tag = cpu.tlb_tags[addr >> 12] >> TLB_SYSTEM_READ;

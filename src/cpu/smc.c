@@ -32,7 +32,7 @@ void cpu_smc_set_code(uint32_t phys)
 
 void cpu_smc_invalidate(uint32_t lin, uint32_t phys)
 {
-    //printf("%08x %08x %08x %08x\n", lin, phys, cpu.smc_has_code_length, cpu.smc_has_code[phys >> 12]);
+    //h_printf("%08x %08x %08x %08x\n", lin, phys, cpu.smc_has_code_length, cpu.smc_has_code[phys >> 12]);
     uint32_t pageid = phys >> 12, page_info, p128, invmask, pagebase = phys & ~0xFFF;
     int start, end, quit = 0;
 

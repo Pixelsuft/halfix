@@ -42,24 +42,24 @@ static const struct option options[] = {
 static void generic_help(const struct option* options)
 {
     int i = 0;
-    printf("Halfix x86 PC Emulator\n");
+    h_printf("Halfix x86 PC Emulator\n");
     for (;;) {
         const struct option* o = options + i++;
         if (!o->name)
             return;
 
         char line[100];
-        int linelength = sprintf(line, " -%s", o->alias);
+        int linelength = h_sprintf(line, " -%s", o->alias);
         if (o->alias)
-            linelength += sprintf(line + linelength, " --%s", o->name);
+            linelength += h_sprintf(line + linelength, " --%s", o->name);
 
         if (o->flags & HASARG)
-            linelength += sprintf(line + linelength, " [arg]");
+            linelength += h_sprintf(line + linelength, " [arg]");
 
         while (linelength < 40)
             line[linelength++] = ' ';
         line[linelength] = 0;
-        printf("%s%s\n", line, o->help);
+        h_printf("%s%s\n", line, o->help);
     }
 }
 
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
                 char* data;
                 if (o->flags & HASARG) {
                     if (!(data = argv[++i])) {
-                        fprintf(stderr, "Expected argument to option %s\n", arg);
+                        h_fprintf(stderr, "Expected argument to option %s\n", arg);
                         return 0;
                     }
                 } else
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 parse_config:
     f = fopen(configfile, "rb");
     if (!f) {
-        fprintf(stderr, "Cannot open configuration file %s\n", configfile);
+        h_fprintf(stderr, "Cannot open configuration file %s\n", configfile);
         return -1;
     }
     fseek(f, 0, SEEK_END);
@@ -121,7 +121,7 @@ parse_config:
     fseek(f, 0, SEEK_SET);
     if (fread(buf, filesz, 1, f) != 1) {
         perror("fread");
-        fprintf(stderr, "Failed to read configuration file\n");
+        h_fprintf(stderr, "Failed to read configuration file\n");
         return -1;
     }
 
@@ -135,15 +135,15 @@ parse_config:
         return -1;
 
     if (pc.memory_size < (1 << 20)) {
-        fprintf(stderr, "Memory size (0x%x) too small\n", pc.memory_size);
+        h_fprintf(stderr, "Memory size (0x%x) too small\n", pc.memory_size);
         return -1;
     }
     if (pc.vga_memory_size < (256 << 10)) {
-        fprintf(stderr, "VGA memory size (0x%x) too small\n", pc.vga_memory_size);
+        h_fprintf(stderr, "VGA memory size (0x%x) too small\n", pc.vga_memory_size);
         return -1;
     }
     if (pc_init(&pc) == -1) {
-        fprintf(stderr, "Unable to initialize PC\n");
+        h_fprintf(stderr, "Unable to initialize PC\n");
         return -1;
     }
 #if 0

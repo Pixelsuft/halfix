@@ -398,7 +398,7 @@ static char* global_file_base;
 void state_file(int size, char* name, void* ptr)
 {
     char temp[1000];
-    sprintf(temp, "%s" PATHSEP_STR "%s", global_file_base, name);
+    h_sprintf(temp, "%s" PATHSEP_STR "%s", global_file_base, name);
     if (is_reading) {
 #ifndef EMSCRIPTEN
         void* fh = h_fopen(temp, "rb");
@@ -447,7 +447,7 @@ void state_read_from_file(char* fn)
 {
     char path[1000];
     global_file_base = normalize(fn);
-    sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
+    h_sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
 
 #ifndef EMSCRIPTEN
     void* fh = h_fopen(path, "rb");
@@ -492,7 +492,7 @@ void state_store_to_file(char* fn)
         state_handlers[i]();
     bjson_serialize(&w, global_obj);
 
-    sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
+    h_sprintf(path, "%s" PATHSEP_STR "state.bin", fn);
 
     void* fh = h_fopen(path, "wb"); // TODO: right?
     if (!fh)
@@ -523,7 +523,7 @@ void state_get_buffer(void)
         state_handlers[i]();
     bjson_serialize(&w, global_obj);
 
-    sprintf(path, "%s/state.bin", fn);
+    h_sprintf(path, "%s/state.bin", fn);
     EM_ASM_({
         window["saveFile"]($0, $1, $2);
     },

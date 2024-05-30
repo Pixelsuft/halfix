@@ -47,7 +47,7 @@ static void display_set_title(void)
 {
     char buffer[1000];
     UNUSED(mhz_rating);
-    sprintf(buffer, "Halfix x86 Emulator - "
+    h_sprintf(buffer, "Halfix x86 Emulator - "
                     " [%d x %d] - %s",
         w, h,
         mouse_enabled ? "Press ESC to release mouse" : "Right-click to capture mouse");
@@ -109,7 +109,7 @@ void display_update(int scanline_start, int scanlines)
     if ((w == 0) || (h == 0))
         return;
     if ((scanline_start + scanlines) > h) {
-        printf("%d x %d [%d %d]\n", w, h, scanline_start, scanlines);
+        h_printf("%d x %d [%d %d]\n", w, h, scanline_start, scanlines);
         ABORT();
     } else {
 //printf("Updating %d scanlines starting from %d\n", scanlines, scanline_start);
@@ -270,7 +270,7 @@ static int sdl_keysym_to_scancode(int sym)
     case SDLK_TAB:
         return 0x0F;
     default:
-        printf("Unknown keysym: %d\n", sym);
+        h_printf("Unknown keysym: %d\n", sym);
         return KEYMOD_INVALID;
         //DISPLAY_FATAL("Unknown keysym %d\n", sym);
     }
@@ -298,7 +298,7 @@ void display_handle_events(void)
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_QUIT:
-            printf("QUIT\n");
+            h_printf("QUIT\n");
             exit(0);
             break;
         case SDL_KEYDOWN: {

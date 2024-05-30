@@ -48,7 +48,7 @@ int cpu_init(void)
     // TODO: KVM_SET_TSS_ADDR
     dev_kvm_fd = open("/dev/kvm", O_RDWR);
     if (dev_kvm_fd < 0) {
-        fprintf(stderr, "Unable to open open KVM: %s\n", strerror(errno));
+        h_fprintf(stderr, "Unable to open open KVM: %s\n", strerror(errno));
         return -1;
     }
 
@@ -57,7 +57,7 @@ int cpu_init(void)
         perror("KVM_GET_API_VERSION");
         goto fail1;
     } else if (api_version != KVM_API_VERSION) {
-        fprintf(stderr, "Wrong KVM API version: %d\n", api_version);
+        h_fprintf(stderr, "Wrong KVM API version: %d\n", api_version);
         goto fail1;
     }
 
@@ -191,25 +191,25 @@ void cpu_debug(void)
     struct kvm_regs regs;
     if (ioctl(vcpu_fd, KVM_GET_REGS, &regs) < 0)
         CPU_FATAL("kvm get regs failed\n");
-    fprintf(stderr, "EAX: %08x ECX: %08x EDX: %08x EBX: %08x\n", R(ax), R(cx), R(dx), R(bx));
-    fprintf(stderr, "ESP: %08x EBP: %08x ESI: %08x EDI: %08x\n", R(ax), R(cx), R(dx), R(bx));
-    fprintf(stderr, "EFLAGS: %08x EIP: %08x\n", R(flags), R(ip));
+    h_fprintf(stderr, "EAX: %08x ECX: %08x EDX: %08x EBX: %08x\n", R(ax), R(cx), R(dx), R(bx));
+    h_fprintf(stderr, "ESP: %08x EBP: %08x ESI: %08x EDI: %08x\n", R(ax), R(cx), R(dx), R(bx));
+    h_fprintf(stderr, "EFLAGS: %08x EIP: %08x\n", R(flags), R(ip));
 
     struct kvm_sregs sregs;
     if (ioctl(vcpu_fd, KVM_GET_SREGS, &sregs) < 0)
         CPU_FATAL("kvm get regs failed\n");
-    fprintf(stderr, "ES.sel=%04x ES.base=%08x, ES.lim=%08x\n", sregs.es.selector, (uint32_t)sregs.es.base, (uint32_t)sregs.es.limit);
-    fprintf(stderr, "CS.sel=%04x CS.base=%08x, CS.lim=%08x\n", sregs.cs.selector, (uint32_t)sregs.cs.base, (uint32_t)sregs.cs.limit);
-    fprintf(stderr, "SS.sel=%04x SS.base=%08x, SS.lim=%08x\n", sregs.ss.selector, (uint32_t)sregs.ss.base, (uint32_t)sregs.ss.limit);
-    fprintf(stderr, "DS.sel=%04x DS.base=%08x, DS.lim=%08x\n", sregs.ds.selector, (uint32_t)sregs.ds.base, (uint32_t)sregs.ds.limit);
-    fprintf(stderr, "FS.sel=%04x FS.base=%08x, FS.lim=%08x\n", sregs.fs.selector, (uint32_t)sregs.fs.base, (uint32_t)sregs.fs.limit);
-    fprintf(stderr, "GS.sel=%04x GS.base=%08x, GS.lim=%08x\n", sregs.gs.selector, (uint32_t)sregs.gs.base, (uint32_t)sregs.gs.limit);
-    fprintf(stderr, "CR0: %08x CR2: %08x CR3: %08x CR4: %08x\n", (uint32_t)sregs.cr0, (uint32_t)sregs.cr2, (uint32_t)sregs.cr3, (uint32_t)sregs.cr4);
+    h_fprintf(stderr, "ES.sel=%04x ES.base=%08x, ES.lim=%08x\n", sregs.es.selector, (uint32_t)sregs.es.base, (uint32_t)sregs.es.limit);
+    h_fprintf(stderr, "CS.sel=%04x CS.base=%08x, CS.lim=%08x\n", sregs.cs.selector, (uint32_t)sregs.cs.base, (uint32_t)sregs.cs.limit);
+    h_fprintf(stderr, "SS.sel=%04x SS.base=%08x, SS.lim=%08x\n", sregs.ss.selector, (uint32_t)sregs.ss.base, (uint32_t)sregs.ss.limit);
+    h_fprintf(stderr, "DS.sel=%04x DS.base=%08x, DS.lim=%08x\n", sregs.ds.selector, (uint32_t)sregs.ds.base, (uint32_t)sregs.ds.limit);
+    h_fprintf(stderr, "FS.sel=%04x FS.base=%08x, FS.lim=%08x\n", sregs.fs.selector, (uint32_t)sregs.fs.base, (uint32_t)sregs.fs.limit);
+    h_fprintf(stderr, "GS.sel=%04x GS.base=%08x, GS.lim=%08x\n", sregs.gs.selector, (uint32_t)sregs.gs.base, (uint32_t)sregs.gs.limit);
+    h_fprintf(stderr, "CR0: %08x CR2: %08x CR3: %08x CR4: %08x\n", (uint32_t)sregs.cr0, (uint32_t)sregs.cr2, (uint32_t)sregs.cr3, (uint32_t)sregs.cr4);
 
-    fprintf(stderr, "GDT.base=%08x GDT.limit=%08x\n", (uint32_t)sregs.gdt.base, (uint32_t)sregs.gdt.limit);
-    fprintf(stderr, "LDT.base=%08x LDT.limit=%08x\n", (uint32_t)sregs.ldt.base, (uint32_t)sregs.ldt.limit);
-    fprintf(stderr, "IDT.base=%08x IDT.limit=%08x\n", (uint32_t)sregs.idt.base, (uint32_t)sregs.idt.limit);
-    fprintf(stderr, "TR.base =%08x TR.limit =%08x\n", (uint32_t)sregs.tr.base, (uint32_t)sregs.tr.limit);
+    h_fprintf(stderr, "GDT.base=%08x GDT.limit=%08x\n", (uint32_t)sregs.gdt.base, (uint32_t)sregs.gdt.limit);
+    h_fprintf(stderr, "LDT.base=%08x LDT.limit=%08x\n", (uint32_t)sregs.ldt.base, (uint32_t)sregs.ldt.limit);
+    h_fprintf(stderr, "IDT.base=%08x IDT.limit=%08x\n", (uint32_t)sregs.idt.base, (uint32_t)sregs.idt.limit);
+    h_fprintf(stderr, "TR.base =%08x TR.limit =%08x\n", (uint32_t)sregs.tr.base, (uint32_t)sregs.tr.limit);
 }
 
 static jmp_buf top;
@@ -338,7 +338,7 @@ int cpu_run(int cycles)
             kvm_run->request_interrupt_window = 0;
             goto top;
         case KVM_EXIT_HLT: // 5
-            printf("HLT CALLED\n");
+            h_printf("HLT CALLED\n");
             exit_reason = EXIT_STATUS_HLT;
             goto done;
         case KVM_EXIT_FAIL_ENTRY:
@@ -346,14 +346,14 @@ int cpu_run(int cycles)
             cpu_debug();
             CPU_FATAL("Failed to enter: %llx\n", kvm_run->fail_entry.hardware_entry_failure_reason);
         default:
-            printf("todo: exit reason %d\n", kvm_run->exit_reason);
+            h_printf("todo: exit reason %d\n", kvm_run->exit_reason);
             abort();
             break;
         }
         goto top;
     }
 done:
-    printf("LOOP EXITING\n");
+    h_printf("LOOP EXITING\n");
     return cycles;
 }
 

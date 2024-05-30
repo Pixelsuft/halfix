@@ -116,10 +116,10 @@ static uint8_t cmos_ram_read(uint8_t addr)
         next_second = cmos.last_second_update+ticks_per_second;
 
         if(now_ticks >= (next_second-cmos.uip_period) && now_ticks < next_second){
-            //printf("Now:              %ld\t\tLast second update: %ld\n", get_now(), cmos.last_second_update);
-            //printf("Ticks per second: %d \t\tUIP period: %ld\n", ticks_per_second, cmos.uip_period);
-            //printf("Combination:      %ld\n", cmos.last_second_update+ticks_per_second-cmos.uip_period);
-            //printf("Next second: %ld\n", cmos.last_second_update+ticks_per_second);
+            //h_printf("Now:              %ld\t\tLast second update: %ld\n", get_now(), cmos.last_second_update);
+            //h_printf("Ticks per second: %d \t\tUIP period: %ld\n", ticks_per_second, cmos.uip_period);
+            //h_printf("Combination:      %ld\n", cmos.last_second_update+ticks_per_second-cmos.uip_period);
+            //h_printf("Next second: %ld\n", cmos.last_second_update+ticks_per_second);
             return cmos.ram[0x0A] | 0x80; // UIP bit is still set.
         }
         

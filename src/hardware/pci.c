@@ -1288,7 +1288,7 @@ static void pci_state(void)
     }
     for (int i = 0; i < 256; i++) {
         char pci_name[50];
-        sprintf(pci_name, "pci.configuration[%d]", i);
+        h_sprintf(pci_name, "pci.configuration[%d]", i);
         if (pci.configuration_address_spaces[i]) {
             state_field(obj, 256, pci_name, pci.configuration_address_spaces[i]);
         }

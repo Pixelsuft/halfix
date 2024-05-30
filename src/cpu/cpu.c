@@ -330,10 +330,10 @@ void cpu_write_mem(uint32_t addr, void* data, uint32_t length)
 
 void cpu_debug(void)
 {
-    printf("EAX: %08x ECX: %08x EDX: %08x EBX: %08x\n", cpu.reg32[EAX], cpu.reg32[ECX], cpu.reg32[EDX], cpu.reg32[EBX]);
-    printf("ESP: %08x EBP: %08x ESI: %08x EDI: %08x\n", cpu.reg32[ESP], cpu.reg32[EBP], cpu.reg32[ESI], cpu.reg32[EDI]);
-    printf("EFLAGS: %08x\n", cpu_get_eflags());
-    printf("CS:EIP: %04x:%08x (lin: %08x) Physical EIP: %08x\n", cpu.seg[CS], VIRT_EIP(), LIN_EIP(), cpu.phys_eip);
-    printf("Translation mode: %d-bit\n", cpu.state_hash ? 16 : 32);
-    printf("Physical RAM base: %p Cycles to run: %d Cycles executed: %d\n", cpu.mem, cpu.cycles_to_run, (uint32_t)cpu_get_cycles());
+    h_printf("EAX: %08x ECX: %08x EDX: %08x EBX: %08x\n", cpu.reg32[EAX], cpu.reg32[ECX], cpu.reg32[EDX], cpu.reg32[EBX]);
+    h_printf("ESP: %08x EBP: %08x ESI: %08x EDI: %08x\n", cpu.reg32[ESP], cpu.reg32[EBP], cpu.reg32[ESI], cpu.reg32[EDI]);
+    h_printf("EFLAGS: %08x\n", cpu_get_eflags());
+    h_printf("CS:EIP: %04x:%08x (lin: %08x) Physical EIP: %08x\n", cpu.seg[CS], VIRT_EIP(), LIN_EIP(), cpu.phys_eip);
+    h_printf("Translation mode: %d-bit\n", cpu.state_hash ? 16 : 32);
+    h_printf("Physical RAM base: %p Cycles to run: %d Cycles executed: %d\n", cpu.mem, cpu.cycles_to_run, (uint32_t)cpu_get_cycles());
 }

@@ -833,7 +833,7 @@ bit   0  If set Color Emulation. Base Address=3Dxh else Mono Emulation. Base
             case 0x11:
                 if (diffxor & 0x80) {
                     uint8_t fill_value = (int8_t)(vga.crt[0x11] ^ 0x80) >> 7;
-                    //printf("%d: %d [%02x]\n", fill_value, vga.crt_index, data);
+                    //h_printf("%d: %d [%02x]\n", fill_value, vga.crt_index, data);
                     for (int i = 0; i < 8; i++)
                         mask[i] = fill_value;
                     mask[7] &= ~0x10;
@@ -1562,7 +1562,7 @@ static int vga_pci_write(uint8_t* ptr, uint8_t addr, uint8_t data)
 }
 static uint32_t vga_rom_readb(uint32_t addr)
 {
-    //printf("%08x --> %08x\n", addr, addr - vga.vgabios_addr + 0xC0000);
+    //h_printf("%08x --> %08x\n", addr, addr - vga.vgabios_addr + 0xC0000);
     return vga.rom[(addr - vga.vgabios_addr) & 0xFFFF];
 }
 static void vga_rom_writeb(uint32_t addr, uint32_t data)

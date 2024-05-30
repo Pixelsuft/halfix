@@ -329,11 +329,11 @@ int pc_init(struct pc_settings* pc)
 
     // Check if BIOS and VGABIOS have sane values
     if (((uintptr_t)pc->bios.data | (uintptr_t)pc->vgabios.data) & 0xFFF) {
-        fprintf(stderr, "BIOS and VGABIOS need to be aligned on a 4k boundary\n");
+        h_fprintf(stderr, "BIOS and VGABIOS need to be aligned on a 4k boundary\n");
         return -1;
     }
     if (!pc->bios.length || !pc->vgabios.length) {
-        fprintf(stderr, "BIOS/VGABIOS length is zero\n");
+        h_fprintf(stderr, "BIOS/VGABIOS length is zero\n");
         return 0;
     }
     int v = cpu_add_rom(0x100000 - pc->bios.length, pc->bios.length, pc->bios.data);
@@ -341,7 +341,7 @@ int pc_init(struct pc_settings* pc)
     if (!pc->pci_vga_enabled)
         v |= cpu_add_rom(0xC0000, pc->vgabios.length, pc->vgabios.data);
     if (v == -1) {
-        fprintf(stderr, "Unable to register ROM areas\n");
+        h_fprintf(stderr, "Unable to register ROM areas\n");
         return -1;
     }
 
@@ -442,7 +442,7 @@ int pc_execute(void)
 //LOG("PC", "Exited from loop (cycles to run: %d, extra: %d)\n", cycles_to_run, devices_need_servicing);
 #if 0
         if ((before + cycles_run) != get_now()) {
-            printf("Before: %ld Ideal: %ld Current: %ld [diff: %ld] total insn should be run: %d dev need serv %d\n", before, cycles_run + before, get_now(), cycles_run + before - get_now(), cycles_run, devices_need_servicing);
+            h_printf("Before: %ld Ideal: %ld Current: %ld [diff: %ld] total insn should be run: %d dev need serv %d\n", before, cycles_run + before, get_now(), cycles_run + before - get_now(), cycles_run, devices_need_servicing);
             //abort();
         }
 #endif

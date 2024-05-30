@@ -74,7 +74,7 @@ static void (*recv_cb)(void* data, int len);
 static void pcap_recv(u_char* param, const struct pcap_pkthdr* header, const u_char* pkt_data)
 {
     UNUSED(param);
-    printf("packet recv: len=%d data=%p\n", header->caplen, pkt_data);
+    h_printf("packet recv: len=%d data=%p\n", header->caplen, pkt_data);
     recv_cb((void*)pkt_data, header->caplen);
 }
 

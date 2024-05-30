@@ -182,9 +182,9 @@ static void fpu_state(void)
     // <<< END AUTOGENERATE "state" >>>
     char name[32];
     for (int i = 0; i < 8; i++) {
-        sprintf(name, "fpu.st[%d].mantissa", i);
+        h_sprintf(name, "fpu.st[%d].mantissa", i);
         state_field(obj, 8, name, &fpu.st[i].fraction);
-        sprintf(name, "fpu.st[%d].exponent", i);
+        h_sprintf(name, "fpu.st[%d].exponent", i);
         state_field(obj, 2, name, &fpu.st[i].exp);
     }
     if (state_is_reading())
@@ -1835,11 +1835,11 @@ double f80_to_double(floatx80* f80)
 }
 void fpu_debug(void)
 {
-    fprintf(stderr, " === FPU Context Dump ===\n");
-    fprintf(stderr, "FPU CS:EIP: %04x:%08x Data Pointer: %04x:%08x\n", fpu.fpu_cs, fpu.fpu_eip, fpu.fpu_data_seg, fpu.fpu_data_ptr);
+    h_fprintf(stderr, " === FPU Context Dump ===\n");
+    h_fprintf(stderr, "FPU CS:EIP: %04x:%08x Data Pointer: %04x:%08x\n", fpu.fpu_cs, fpu.fpu_eip, fpu.fpu_data_seg, fpu.fpu_data_ptr);
     int opcode = fpu.fpu_opcode >> 8 | 0xD8;
-    fprintf(stderr, "Last FPU opcode: %04x [%02x %02x | %02x /%d]\n", fpu.fpu_opcode, opcode, fpu.fpu_opcode & 0xFF, opcode, fpu.fpu_opcode >> 3 & 7);
-    fprintf(stderr, "Status: %04x (top: %d) Control: %04x Tag: %04x\n", fpu.status_word, fpu.ftop, fpu.control_word, fpu.tag_word);
+    h_fprintf(stderr, "Last FPU opcode: %04x [%02x %02x | %02x /%d]\n", fpu.fpu_opcode, opcode, fpu.fpu_opcode & 0xFF, opcode, fpu.fpu_opcode >> 3 & 7);
+    h_fprintf(stderr, "Status: %04x (top: %d) Control: %04x Tag: %04x\n", fpu.status_word, fpu.ftop, fpu.control_word, fpu.tag_word);
     for (int i = 0; i < 8; i++) {
         int real_index = (i + fpu.ftop) & 7;
         floatx80 st = fpu.st[real_index];
@@ -1850,16 +1850,16 @@ void fpu_debug(void)
         floatx80_unpack(&st, exponent, fraction);
 
         uint32_t high = fraction >> 32;
-        fprintf(stderr, "ST%d(%c) [FP%d]: %04x %08x%08x (%.10f)\n", i, "v0se"[fpu_get_tag(i)], real_index, exponent, high, (uint32_t)fraction, f);
+        h_fprintf(stderr, "ST%d(%c) [FP%d]: %04x %08x%08x (%.10f)\n", i, "v0se"[fpu_get_tag(i)], real_index, exponent, high, (uint32_t)fraction, f);
     }
 }
 
-void printFloat80(floatx80* arg)
+void h_printfloat80(floatx80* arg)
 {
     uint16_t exponent;
     uint64_t fraction;
     floatx80_unpack(arg, exponent, fraction);
-    printf("%04x %08x%08x\n", exponent, (uint32_t)(fraction >> 32), (uint32_t)fraction);
+    h_printf("%04x %08x%08x\n", exponent, (uint32_t)(fraction >> 32), (uint32_t)fraction);
 }
 
 void* fpu_get_st_ptr1(void)

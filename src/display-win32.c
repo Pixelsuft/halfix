@@ -43,7 +43,7 @@ static void display_set_title(void)
 {
 #ifdef DISPLAY_WIN32_USE_ANSI
     char buffer[1000];
-    sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", cwidth, cheight,
+    h_sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", cwidth, cheight,
         mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
     SetWindowTextA(hWnd, buffer);
 #else
@@ -262,7 +262,7 @@ static int win32_to_scancode(WPARAM w)
     case VK_UP:
         return 0xE048;
     /* default:
-        printf("Unexpected Win32 virtual key code received -- aborting\n");
+        h_printf("Unexpected Win32 virtual key code received -- aborting\n");
         abort(); */
     }
     return 0;
@@ -339,7 +339,7 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
         if (mouse_enabled) {
             // Windows gives us absolute coordinates, so we have to do the calculations ourselves
             int dx = (int)GET_X_LPARAM(lparam) - windowx, dy = (int)GET_Y_LPARAM(lparam) - windowy;
-            // printf("x/y: %d, %d wx/wy: %d, %d, dx/dy: %d, %d\n", x, y, windowx, windowy, dx, dy);
+            // h_printf("x/y: %d, %d wx/wy: %d, %d, dx/dy: %d, %d\n", x, y, windowx, windowy, dx, dy);
             if (dx || dy) {
                 kbd_send_mouse_move(dx, dy, 0, 0);
                 SetCursorPos(screenx, screeny);
@@ -401,9 +401,9 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
 
             if (GetSaveFileNameA(&ofn)) {
                 state_store_to_file(filename);
-                // printf("SELECTED\n");
+                // h_printf("SELECTED\n");
             } else {
-                // printf("NOT SELECTED\n");
+                // h_printf("NOT SELECTED\n");
             }
             break;
         }
@@ -598,7 +598,7 @@ void display_set_resolution(int width, int height)
     hBmp = CreateDIBSection(hdc, &i, DIB_RGB_COLORS, &pvBits, NULL, 0);
     ReleaseDC(hWnd, hdc);
     if (!hBmp) {
-        // printf("Failed to create DIB section: %p [%dx%d]\n", dc_dest, width, height);
+        // h_printf("Failed to create DIB section: %p [%dx%d]\n", dc_dest, width, height);
         abort();
     }
     pixels = pvBits;
@@ -620,7 +620,7 @@ void display_set_resolution(int width, int height)
     // y-coordinate
     rect.bottom = cheight;
     if (!AdjustWindowRectEx(&rect, GetWindowLong(hWnd, GWL_STYLE), TRUE, 0)) {
-        // printf("Failed to AdjustWindowRect\n");
+        // h_printf("Failed to AdjustWindowRect\n");
         exit(0);
     }
     SetWindowPos(hWnd, (HWND)0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOMOVE | SWP_NOOWNERZORDER);

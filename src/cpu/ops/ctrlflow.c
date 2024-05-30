@@ -836,7 +836,7 @@ int jmpf(uint32_t eip, uint32_t cs, uint32_t eip_after)
 
         dpl = ACCESS_DPL(access);
         type = ACCESS_TYPE(access);
-        //printf("%08x %d %x %08x%08x\n", cpu.phys_eip, cpu.state_hash, type, info.raw[1], info.raw[0]);
+        //h_printf("%08x %d %x %08x%08x\n", cpu.phys_eip, cpu.state_hash, type, info.raw[1], info.raw[0]);
         switch (type) {
         case 0x18:
         case 0x19:
@@ -911,7 +911,7 @@ int jmpf(uint32_t eip, uint32_t cs, uint32_t eip_after)
 
             // Truncate EIP to 16-bits if 16-bit call gate
             gate_eip &= type == CALL_GATE_386 ? -1 : 0xFFFF;
-            //printf("Gate EIP: %08x\n", gate_eip);
+            //h_printf("Gate EIP: %08x\n", gate_eip);
 
             // Jump succeded, load in CS (same privilege) and EIP
             if (cpu_load_csip_protected(gate_cs_offset | cpu.cpl, &gate_info, gate_eip))
@@ -1461,7 +1461,7 @@ int iret(uint32_t tss_eip, int is32)
                     flag_mask |= EFLAGS_IF;
                 if (old_cpl == 0)
                     flag_mask |= EFLAGS_IOPL | EFLAGS_VIF | EFLAGS_VIP;
-                //printf("%d v %d [new flags: %08x current: %08x mask: %08x]\n", cpu.cpl, cpu.seg[CS], eflags, cpu.eflags, flag_mask);
+                //h_printf("%d v %d [new flags: %08x current: %08x mask: %08x]\n", cpu.cpl, cpu.seg[CS], eflags, cpu.eflags, flag_mask);
 
                 if (!is32)
                     flag_mask &= 0xFFFF; // Limit to 16 bits

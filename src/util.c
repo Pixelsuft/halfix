@@ -17,10 +17,6 @@
 
 #define QMALLOC_SIZE 1 << 20
 
-// #define PREFER_SDL2
-// #define PREFER_STD
-// #define FILES_WIN32_USE_ANSI
-
 static void* qmalloc_data;
 static int qmalloc_usage, qmalloc_size;
 
@@ -335,7 +331,7 @@ void util_debug(void)
 #endif
 #endif
 #else
-    printf("Breakpoint reached -- aborting\n");
+    h_printf("Breakpoint reached -- aborting\n");
     abort();
 #endif
 }

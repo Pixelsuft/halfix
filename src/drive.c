@@ -127,7 +127,7 @@ static void join_path(char* dest, int alen, char* a, char* b)
 static void drive_get_path(char* dest, char* pathbase, uint32_t x)
 {
     char temp[16];
-    sprintf(temp, "blk%08x.bin", x);
+    h_sprintf(temp, "blk%08x.bin", x);
     join_path(dest, (int)strlen(pathbase), pathbase, temp);
 }
 
@@ -166,7 +166,7 @@ static void* drive_read_file(struct drive_internal_info* this, char* fn)
     unsigned int size;
     void *readbuf, *data;
 
-    sprintf(temp, "%s.gz", fn);
+    h_sprintf(temp, "%s.gz", fn);
     void* fh;
     fh = h_fopen(temp, "rb");
     if (!fh) {
@@ -278,7 +278,7 @@ static int drive_internal_read_check(struct drive_internal_info* this, void* buf
         blockInformation->data = (void*)1;
 #endif
         len = end - begin;
-        //printf("BlockInformation: %p Data: %p cfp=%d\n", blockInformation, blockInformation->data, currentFilePosition / 512);
+        //h_printf("BlockInformation: %p Data: %p cfp=%d\n", blockInformation, blockInformation->data, currentFilePosition / 512);
         if (blockInformation->data) {
             retval |= drive_read_block_internal(this, blockInformation, buffer, len, currentFilePosition);
         } else {
@@ -417,7 +417,7 @@ static int drive_internal_write_check(struct drive_internal_info* this, void* bu
         }
         blockInformation->modified = 1;
         len = end - begin;
-        //printf("BlockInformation: %p Data: %p cfp=%d\n", blockInformation, blockInformation->data, currentFilePosition / 512);
+        //h_printf("BlockInformation: %p Data: %p cfp=%d\n", blockInformation, blockInformation->data, currentFilePosition / 512);
         if (blockInformation->data)
             retval |= drive_write_block_internal(this, blockInformation, buffer, len, currentFilePosition);
         else {
@@ -600,9 +600,9 @@ static void drive_internal_state(void* this_ptr, char* pn)
         this->paths = h_realloc(this->paths, this->path_count * sizeof(char*));
         int paths0 = 0;
         for (unsigned int i = 0; i < this->path_count; i++) {
-            sprintf(temp, "path%d", i);
+            h_sprintf(temp, "path%d", i);
             state_string(obj, temp, &this->paths[i]);
-            printf("%s\n", this->paths[i]);
+            h_printf("%s\n", this->paths[i]);
             paths0++;
         }
 
@@ -617,13 +617,13 @@ static void drive_internal_state(void* this_ptr, char* pn)
         }
     } else {
         char pathname[1000];
-        sprintf(pathname, "%s/%s", state_get_path_base(), pn);
+        h_sprintf(pathname, "%s/%s", state_get_path_base(), pn);
         state_mkdir(pathname);
 
         uint32_t path_count = this->path_count;
         int existing_add = 1;
         for (unsigned int i = 0; i < this->path_count; i++) {
-            printf("%s %s\n", pathname, this->paths[i]);
+            h_printf("%s %s\n", pathname, this->paths[i]);
             if (!strcmp(pathname, this->paths[i])) {
                 existing_add = 0;
                 break;
@@ -637,19 +637,19 @@ static void drive_internal_state(void* this_ptr, char* pn)
             if (!strcmp(pathname, this->paths[i]))
                 pwdinc = 0; // Stop counting
             pwdindex += pwdinc;
-            sprintf(temp, "path%d", i);
+            h_sprintf(temp, "path%d", i);
             state_string(obj, temp, &this->paths[i]);
         }
         if (pwdinc) {
             // Add new path to list
-            sprintf(temp, "path%d", pwdindex);
+            h_sprintf(temp, "path%d", pwdindex);
             char* foo_bad = pathname; // XXX hack
             state_string(obj, temp, &foo_bad);
         }
 
         for (unsigned int i = 0; i < this->block_count; i++) {
             if (this->blocks[i].modified) {
-                sprintf(pathname, "%s/blk%08x.bin", pn, i);
+                h_sprintf(pathname, "%s/blk%08x.bin", pn, i);
                 state_file(BLOCK_SIZE, pathname, this->blocks[i].data);
                 this->blocks[i].pathindex = pwdindex;
             }

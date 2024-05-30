@@ -886,7 +886,7 @@ void fdc_init(struct pc_settings* pc)
             MAKE_DISK_TYPE(2, 80, 23, 0, 0); // 1840K
             MAKE_DISK_TYPE(2, 80, 36, 5, 0x40); // 2880K
         default:
-            printf("Unknown disk size: %d, defaulting to 1440K\n", drive->sectors);
+            h_printf("Unknown disk size: %d, defaulting to 1440K\n", drive->sectors);
             break;
             MAKE_DISK_TYPE(2, 80, 18, 4, 0x80); // 1440K
         }
