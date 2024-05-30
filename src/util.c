@@ -124,6 +124,11 @@ size_t h_fread(void* buf, size_t elem_size, size_t elem_count, void* file) {
 
 size_t h_fwrite(const void* buf, size_t elem_size, size_t elem_count, void* file) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
+    DWORD bytes_written = 0;
+    if (WriteFile(file, buf, (DWORD)(elem_size * elem_count), &bytes_written, NULL) == FALSE) {
+        return 0;
+    }
+    return (size_t)bytes_written;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWwrite(file, buf, elem_size, elem_count);
 #else
