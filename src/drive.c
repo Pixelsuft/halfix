@@ -909,10 +909,16 @@ int drive_simple_init(struct drive_info* info, char* filename)
     void* fh = h_fopen(filename, info->modify_backing_file ? "rb+" : "rb");
     if (!fh)
         return -1;
-#if 0
+#if 1
+#ifdef _WIN32
+    struct _stat64 f_stat;
+    _stat64(filename, &f_stat);
+    uint64_t size = (uint64_t)f_stat.st_size;
+#else
     struct stat f_stat;
     stat(filename, &f_stat);
     uint64_t size = (uint64_t)f_stat.st_size;
+#endif
     if (size == (uint64_t)-1)
         return -1;
 #else
@@ -921,6 +927,7 @@ int drive_simple_init(struct drive_info* info, char* filename)
     if (size_s <= 0)
         return -1;
     size_t size = (size_t)size_s;
+    h_fseek(fh, 0, SEEK_SET);
 #endif
 
     struct simple_driver* sync_info = h_malloc(sizeof(struct simple_driver));
