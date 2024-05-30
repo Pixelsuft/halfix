@@ -19,7 +19,7 @@
 
 // #define PREFER_SDL2
 // #define PREFER_STD
-#define FILES_WIN32_USE_ANSI
+// #define FILES_WIN32_USE_ANSI
 
 static void* qmalloc_data;
 static int qmalloc_usage, qmalloc_size;
@@ -85,7 +85,23 @@ void* h_fopen(const char* fp, const char* mode) {
         OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
     );
 #else
-    // TODO
+    int count = MultiByteToWideChar(CP_UTF8, 0, fp, strlen(fp), NULL, 0);
+    if (count <= 0)
+        return NULL;
+    wchar_t* fp_buf = h_malloc((size_t)(count + 1) * sizeof(wchar_t));
+    if (fp_buf == NULL)
+        return NULL;
+    int encode_res = MultiByteToWideChar(CP_UTF8, 0, fp, strlen(fp), fp_buf, count);
+    if (encode_res <= 0) {
+        h_free(fp_buf);
+        return NULL;
+    }
+    fp_buf[encode_res] = L'\0';
+    HANDLE res = CreateFileW(
+        fp_buf, GENERIC_READ | (can_write ? GENERIC_WRITE : 0), FILE_SHARE_READ, NULL,
+        OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
+    );
+    h_free(fp_buf);
 #endif
     if (res == INVALID_HANDLE_VALUE) {
         return NULL;
