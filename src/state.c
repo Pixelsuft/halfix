@@ -497,7 +497,7 @@ void state_store_to_file(char* fn)
     void* fh = h_fopen(path, "wb"); // TODO: right?
     if (!fh)
         STATE_FATAL("Cannot open file %s\n", fn);
-    if (h_fwrite(w.buf, 1, w.pos, fh) != (ssize_t)w.pos) // Clang complains that w.pos and write have different signs.
+    if (h_fwrite(w.buf, 1, w.pos, fh) != (size_t)w.pos) // Clang complains that w.pos and write have different signs.
         STATE_FATAL("Cannot write to file %s\n", fn);
     h_fclose(fh);
     wstream_destroy(&w);

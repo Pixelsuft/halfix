@@ -67,8 +67,8 @@ function merge(dst, src) {
 
 var build32 = false;
 var verbose = false;
-var cc = 'gcc',
-    fincc = 'gcc';
+var cc = process.env.CC || 'gcc',
+    fincc = process.env.CC || 'gcc';
 var build_type = 'native';
 
 var optimization = '-O0';
