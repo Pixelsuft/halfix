@@ -51,7 +51,10 @@ static float scale_y = 1.0f;
 static SDL_bool resizable = SDL_FALSE;
 static int fullscreen = 0;
 static int display_inited = 0;
-static int h, w, mouse_enabled = 0, mhz_rating = -1;
+static int w, h, mouse_enabled = 0, mhz_rating = -1;
+static int ren_w, ren_h;
+static int scale_mode = 0;
+static SDL_Rect dst_rect;
 
 static void display_set_title(void)
 {
@@ -66,6 +69,24 @@ void display_update_cycles(int cycles_elapsed, int us)
 {
     mhz_rating = (int)((double)cycles_elapsed / (double)us);
     display_set_title();
+}
+
+void display_update_scale_mode(void)
+{
+    if (scale_mode == 0) {
+        // dst_rect.w = (int)((float)w * scale_x);
+        // dst_rect.h = (int)((float)h * scale_x);
+        dst_rect.w = w;
+        dst_rect.h = h;
+        dst_rect.x = (int)((float)ren_w / 2.0f - (float)dst_rect.w / 2.0f);
+        dst_rect.y = (int)((float)ren_h / 2.0f - (float)dst_rect.h / 2.0f);
+    }
+    else if (scale_mode == 1) {
+
+    }
+    else if (scale_mode == 2) {
+
+    }
 }
 
 // Nasty hack: don't update until screen has been resized (screen is resized during VGABIOS init)
@@ -108,7 +129,11 @@ void display_set_resolution(int width, int height)
         scale_x = (float)sw / (float)w;
         scale_y = (float)sh / (float)h;
     }
+    if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) < 0) {
+        SDL_GetWindowSize(window, &ren_w, &ren_h);
+    }
     display_set_title();
+    display_update_scale_mode();
 }
 
 void display_update(int scanline_start, int scanlines)
@@ -124,7 +149,7 @@ void display_update(int scanline_start, int scanlines)
         //__asm__("int3");
 #ifdef SDL2_LOCK_IMPL
         SDL_UnlockTexture(texture);
-        SDL_RenderCopyF(renderer, texture, NULL, NULL);
+        SDL_RenderCopyF(renderer, texture, NULL, &dst_rect);
         SDL_LockTexture(texture, NULL, &surface_pixels, &pitch);
 #else
         SDL_UpdateTexture(texture, NULL, surface_pixels, 4 * w);
@@ -347,6 +372,21 @@ void display_handle_events(void)
                         display_kbd_send_key(1);
                         break;
                     }
+                    case SDLK_T: {
+                        scale_mode = 0;
+                        display_update_scale_mode();
+                        break;
+                    }
+                    case SDLK_Y: {
+                        scale_mode = 1;
+                        display_update_scale_mode();
+                        break;
+                    }
+                    case SDLK_U: {
+                        scale_mode = 2;
+                        display_update_scale_mode();
+                        break;
+                    }
                     case SDLK_c: {
                         SDL_DisplayMode mode;
                         int index = SDL_GetWindowDisplayIndex(window);
@@ -472,6 +512,10 @@ void display_handle_events(void)
         }
         case SDL_WINDOWEVENT: {
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) < 0) {
+                    ren_w = event.window.data1;
+                    ren_h = event.window.data2;
+                }
                 scale_x = (float)event.window.data1 / (float)w;
                 scale_y = (float)event.window.data2 / (float)h;
             }
