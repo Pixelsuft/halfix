@@ -87,8 +87,8 @@ void display_update_scale_mode(void)
         dst_rect.y = (float)ren_h / 2.0f - (float)dst_rect.h / 2.0f;
     }
     else if (scale_mode == 2) {
-        dst_rect.w = (float)w * scale_y;
-        dst_rect.h = (float)h * scale_x;
+        dst_rect.w = (float)w * scale_x;
+        dst_rect.h = (float)h * scale_y;
         dst_rect.x = dst_rect.y = 0.0f;
     }
 }
@@ -631,7 +631,6 @@ void display_init(void)
 #ifdef _WIN32
     display_check_dark_mode();
 #endif
-    display_update_scale_mode();
     SDL_ShowWindow(window);
     display_inited = 1;
     display_set_title();
