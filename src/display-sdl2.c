@@ -125,10 +125,13 @@ void display_set_resolution(int width, int height)
     // SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
     int sw, sh;
     SDL_GetWindowSize(window, &sw, &sh);
-    int can_do = sw == w && sh == h;
     w = width;
     h = height;
-    if (scale_x == 1.0f && scale_y == 1.0f && can_do) {
+    if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) < 0) {
+        ren_w = (int)sw;
+        ren_h = (int)sh;
+    }
+    if (scale_x == 1.0f && scale_y == 1.0f) {
         SDL_SetWindowSize(window, width, height);
         sw = w;
         sh = h;
@@ -136,10 +139,6 @@ void display_set_resolution(int width, int height)
     else {
         scale_x = (float)sw / (float)w;
         scale_y = (float)sh / (float)h;
-    }
-    if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) < 0) {
-        ren_w = (int)sw;
-        ren_h = (int)sh;
     }
     display_set_title();
     display_update_scale_mode();
