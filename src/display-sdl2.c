@@ -54,7 +54,7 @@ static int display_inited = 0;
 static int w, h, mouse_enabled = 0, mhz_rating = -1;
 static int ren_w, ren_h;
 static int scale_mode = 0;
-static SDL_Rect dst_rect;
+static SDL_FRect dst_rect;
 
 static void display_set_title(void)
 {
@@ -74,18 +74,18 @@ void display_update_cycles(int cycles_elapsed, int us)
 void display_update_scale_mode(void)
 {
     if (scale_mode == 0) {
-        // dst_rect.w = (int)((float)w * scale_x);
-        // dst_rect.h = (int)((float)h * scale_x);
-        dst_rect.w = w;
-        dst_rect.h = h;
-        dst_rect.x = (int)((float)ren_w / 2.0f - (float)dst_rect.w / 2.0f);
-        dst_rect.y = (int)((float)ren_h / 2.0f - (float)dst_rect.h / 2.0f);
+        dst_rect.w = (float)w;
+        dst_rect.h = (float)h;
+        dst_rect.x = (float)ren_w / 2.0f - (float)dst_rect.w / 2.0f;
+        dst_rect.y = (float)ren_h / 2.0f - (float)dst_rect.h / 2.0f;
     }
     else if (scale_mode == 1) {
 
     }
     else if (scale_mode == 2) {
-
+        dst_rect.w = (float)w * scale_y;
+        dst_rect.h = (float)h * scale_x;
+        dst_rect.x = dst_rect.y = 0.0f;
     }
 }
 
@@ -93,10 +93,10 @@ void display_update_scale_mode(void)
 static int resized = 0;
 void display_set_resolution(int width, int height)
 {
-    resized = 1;
     if (!width || !height) {
         return display_set_resolution(640, 480);
     }
+    resized = 1;
     DISPLAY_LOG("Changed resolution to w=%d h=%d\n", width, height);
 
 #ifndef SDL2_LOCK_IMPL
@@ -119,18 +119,23 @@ void display_set_resolution(int width, int height)
 #endif
     // TODO: Should I use this?
     // SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
+    int sw, sh;
+    SDL_GetWindowSize(window, &sw, &sh);
+    int can_do = sw == w && sh == h;
     w = width;
     h = height;
-    if (scale_x == 1.0f && scale_y == 1.0f)
+    if (scale_x == 1.0f && scale_y == 1.0f && can_do) {
         SDL_SetWindowSize(window, width, height);
+        sw = w;
+        sh = h;
+    }
     else {
-        int sw, sh;
-        SDL_GetWindowSize(window, &sw, &sh);
         scale_x = (float)sw / (float)w;
         scale_y = (float)sh / (float)h;
     }
     if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) < 0) {
-        SDL_GetWindowSize(window, &ren_w, &ren_h);
+        ren_w = (int)sw;
+        ren_h = (int)sh;
     }
     display_set_title();
     display_update_scale_mode();
@@ -147,6 +152,8 @@ void display_update(int scanline_start, int scanlines)
         ABORT();
     } else {
         //__asm__("int3");
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
 #ifdef SDL2_LOCK_IMPL
         SDL_UnlockTexture(texture);
         SDL_RenderCopyF(renderer, texture, NULL, &dst_rect);
@@ -372,17 +379,17 @@ void display_handle_events(void)
                         display_kbd_send_key(1);
                         break;
                     }
-                    case SDLK_T: {
+                    case SDLK_t: {
                         scale_mode = 0;
                         display_update_scale_mode();
                         break;
                     }
-                    case SDLK_Y: {
+                    case SDLK_y: {
                         scale_mode = 1;
                         display_update_scale_mode();
                         break;
                     }
-                    case SDLK_U: {
+                    case SDLK_u: {
                         scale_mode = 2;
                         display_update_scale_mode();
                         break;
@@ -518,6 +525,7 @@ void display_handle_events(void)
                 }
                 scale_x = (float)event.window.data1 / (float)w;
                 scale_y = (float)event.window.data2 / (float)h;
+                display_update_scale_mode();
             }
             break;
         }
@@ -620,6 +628,7 @@ void display_init(void)
 #ifdef _WIN32
     display_check_dark_mode();
 #endif
+    display_update_scale_mode();
     SDL_ShowWindow(window);
     display_inited = 1;
     display_set_title();
