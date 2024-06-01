@@ -80,7 +80,11 @@ void display_update_scale_mode(void)
         dst_rect.y = (float)ren_h / 2.0f - (float)dst_rect.h / 2.0f;
     }
     else if (scale_mode == 1) {
-
+        float min_scale = (scale_x > scale_y) ? scale_y : scale_x;
+        dst_rect.w = (float)w * min_scale;
+        dst_rect.h = (float)h * min_scale;
+        dst_rect.x = (float)ren_w / 2.0f - (float)dst_rect.w / 2.0f;
+        dst_rect.y = (float)ren_h / 2.0f - (float)dst_rect.h / 2.0f;
     }
     else if (scale_mode == 2) {
         dst_rect.w = (float)w * scale_y;
