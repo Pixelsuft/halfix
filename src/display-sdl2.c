@@ -473,6 +473,8 @@ void display_handle_events(void)
         }
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP: {
+            if (event.button.which == SDL_TOUCH_MOUSEID)
+                break;
             k = event.type == SDL_MOUSEBUTTONDOWN ? MOUSE_STATUS_PRESSED : MOUSE_STATUS_RELEASED;
             switch (event.button.button) {
             case SDL_BUTTON_LEFT:
@@ -493,11 +495,15 @@ void display_handle_events(void)
             break;
         }
         case SDL_MOUSEMOTION: {
+            if (event.motion.which == SDL_TOUCH_MOUSEID)
+                break;
             if (mouse_enabled)
                 kbd_send_mouse_move(event.motion.xrel, event.motion.yrel, 0, 0);
             break;
         }
         case SDL_MOUSEWHEEL: {
+            if (event.wheel.which == SDL_TOUCH_MOUSEID)
+                break;
             if (mouse_enabled)
                 kbd_send_mouse_move(0, 0, event.wheel.x, -event.wheel.y);
             break;
