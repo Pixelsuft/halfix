@@ -58,11 +58,13 @@ static SDL_FRect dst_rect;
 
 static void display_set_title(void)
 {
-    char buffer[1000];
     UNUSED(mhz_rating);
+#ifndef MOBILE_BUILD
+    char buffer[1000];
     h_sprintf(buffer, "Halfix x86 Emulator - [%dx%d] - %s", w, h,
         mouse_enabled ? "Press ESC to release mouse" : "Click to capture mouse");
     SDL_SetWindowTitle(window, buffer);
+#endif
 }
 
 void display_update_cycles(int cycles_elapsed, int us)
@@ -132,9 +134,11 @@ void display_set_resolution(int width, int height)
         ren_h = (int)sh;
     }
     if (scale_x == 1.0f && scale_y == 1.0f) {
+#ifndef MOBILE_BUILD
         SDL_SetWindowSize(window, width, height);
         sw = w;
         sh = h;
+#endif
     }
     else {
         scale_x = (float)sw / (float)w;
@@ -397,6 +401,7 @@ void display_handle_events(void)
                         display_update_scale_mode();
                         break;
                     }
+#ifndef MOBILE_BUILD
                     case SDLK_c: {
                         SDL_DisplayMode mode;
                         int index = SDL_GetWindowDisplayIndex(window);
@@ -407,6 +412,7 @@ void display_handle_events(void)
                         );
                         break;
                     }
+#endif
                     case SDLK_q: {
                         display_quit();
                         exit(0);
@@ -414,16 +420,20 @@ void display_handle_events(void)
                     }
                     case SDLK_r: {
                         scale_x = scale_y = 1.0f;
+#ifndef MOBILE_BUILD
                         if (!fullscreen)
                             SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
+#endif
                         break;
                     }
                     case SDLK_z: {
                         if (resizable) {
                             scale_x += 0.25f;
                             scale_y += 0.25f;
+#ifndef MOBILE_BUILD
                             if (!fullscreen)
                                 SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
+#endif
                         }
                         break;
                     }
@@ -431,19 +441,25 @@ void display_handle_events(void)
                         if (resizable && scale_x > 0.25f && scale_y > 0.25f) {
                             scale_x -= 0.25f;
                             scale_y -= 0.25f;
+#ifndef MOBILE_BUILD
                             if (!fullscreen)
                                 SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
+#endif
                         }
                         break;
                     }
                     case SDLK_s: {
                         resizable = !resizable;
+#ifndef MOBILE_BUILD
                         SDL_SetWindowResizable(window, resizable);
+#endif
                         if (!resizable) {
                             scale_x = scale_y = 1.0f;
                         }
+#ifndef MOBILE_BUILD
                         if (!fullscreen)
                             SDL_SetWindowSize(window, w, h);
+#endif
                         break;
                     }
                     case SDLK_d:
@@ -459,12 +475,14 @@ void display_handle_events(void)
                             scale_x = (float)sw / (float)w;
                             scale_y = (float)sh / (float)h;
                         }
+#ifndef MOBILE_BUILD
                         else {
                             SDL_SetWindowSize(window, w, h);
                             if (!resizable) {
                                 scale_x = scale_y = 1.0f;
                             }
                         }
+#endif
                         break;
                     }
                 }
@@ -527,6 +545,7 @@ void display_handle_events(void)
             break;
         }
         case SDL_WINDOWEVENT: {
+#ifndef MOBILE_BUILD
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) < 0) {
                     ren_w = event.window.data1;
@@ -536,6 +555,7 @@ void display_handle_events(void)
                 scale_y = (float)event.window.data2 / (float)h;
                 display_update_scale_mode();
             }
+#endif
             break;
         }
         }
@@ -627,7 +647,12 @@ void display_init(void)
         "halfix",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         640, 480,
-        SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN
+        SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN |
+#ifdef MOBILE_BUILD
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
+#else
+    0
+#endif
     );
     if (window == NULL)
         DISPLAY_FATAL("Unable to create window");
