@@ -648,7 +648,7 @@ void display_init(void)
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         640, 480,
         SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN |
-#if defined(MOBILE_BUILD)
+#ifdef MOBILE_BUILD
         SDL_WINDOW_RESIZABLE |
 #else
         0 |
@@ -666,6 +666,11 @@ void display_init(void)
         DISPLAY_FATAL("Unable to create renderer");
 #ifdef _WIN32
     display_check_dark_mode();
+#endif
+#ifdef MOBILE_BUILD
+    resizable = 1;
+#else
+    resizable = 0;
 #endif
     SDL_ShowWindow(window);
     display_inited = 1;
