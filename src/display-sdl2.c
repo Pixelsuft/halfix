@@ -163,7 +163,13 @@ void display_update(int scanline_start, int scanlines)
         SDL_RenderClear(renderer);
 #ifdef SDL2_LOCK_IMPL
         SDL_UnlockTexture(texture);
-        SDL_RenderCopyF(renderer, texture, NULL, &dst_rect);
+        SDL_Rect real_dst_rect = {
+            (int)dst_rect.x,
+            (int)dst_rect.y,
+            (int)dst_rect.w,
+            (int)dst_rect.h
+        };
+        SDL_RenderCopy(renderer, texture, NULL, &real_dst_rect);
         SDL_LockTexture(texture, NULL, &surface_pixels, &pitch);
 #else
         SDL_UpdateTexture(texture, NULL, surface_pixels, 4 * w);
