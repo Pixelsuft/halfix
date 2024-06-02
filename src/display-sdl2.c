@@ -545,7 +545,6 @@ void display_handle_events(void)
             break;
         }
         case SDL_WINDOWEVENT: {
-#ifndef MOBILE_BUILD
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) < 0) {
                     ren_w = event.window.data1;
@@ -555,7 +554,6 @@ void display_handle_events(void)
                 scale_y = (float)event.window.data2 / (float)h;
                 display_update_scale_mode();
             }
-#endif
             break;
         }
         }
