@@ -141,8 +141,8 @@ void display_set_resolution(int width, int height)
 #endif
     }
     else {
-        scale_x = (float)sw / (float)w;
-        scale_y = (float)sh / (float)h;
+        scale_x = (float)ren_w / (float)w;
+        scale_y = (float)ren_h / (float)h;
     }
     display_set_title();
     display_update_scale_mode();
@@ -550,8 +550,8 @@ void display_handle_events(void)
                     ren_w = event.window.data1;
                     ren_h = event.window.data2;
                 }
-                scale_x = (float)event.window.data1 / (float)w;
-                scale_y = (float)event.window.data2 / (float)h;
+                scale_x = (float)ren_w / (float)w;
+                scale_y = (float)ren_h / (float)h;
                 display_update_scale_mode();
             }
             break;
