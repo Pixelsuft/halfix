@@ -229,6 +229,8 @@ if (build_type === 'emscripten') {
 if (build_type === 'native' || build_type === 'mobile') {
     flags.push('-DSDL2_BUILD');
     flags.push('-DSDL2_INC_DIR');
+    if (build_type === 'mobile')
+        flags.push('-DMOBILE_WIP');
 }
 
 // https://github.com/emscripten-core/emscripten/issues/5659

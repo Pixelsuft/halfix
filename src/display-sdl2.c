@@ -648,10 +648,15 @@ void display_init(void)
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         640, 480,
         SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN |
-#ifdef MOBILE_BUILD
-        SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
+#if defined(MOBILE_BUILD)
+        SDL_WINDOW_RESIZABLE |
 #else
-    0
+        0 |
+#endif
+#if defined(MOBILE_BUILD) && !defined(MOBILE_WIP)
+        SDL_WINDOW_FULLSCREEN
+#else
+        0
 #endif
     );
     if (window == NULL)
