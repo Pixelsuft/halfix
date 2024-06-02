@@ -103,6 +103,11 @@ for (var i = 0; i < argv.length; i++) {
                 end_flags.splice(end_flags.indexOf('-lSDL2main'), 1);
             end_flags.push('-lgdi32', '-lcomdlg32');
             break;
+        case 'mobile':
+            build_type = 'mobile';
+            flags.push('-DMOBILE_BUILD');
+            end_flags.push('-lSDL2_ttf');
+            break;
         case 'libcpu':
             build_type = 'libcpu';
             files[0] = {};
@@ -221,7 +226,7 @@ if (build_type === 'emscripten') {
     console.log(end_flags);
 }
 
-if (build_type === 'native') {
+if (build_type === 'native' || build_type === 'mobile') {
     flags.push('-DSDL2_BUILD');
     flags.push('-DSDL2_INC_DIR');
 }
