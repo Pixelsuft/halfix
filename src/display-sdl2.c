@@ -124,7 +124,7 @@ void display_set_resolution(int width, int height)
     SDL_LockTexture(texture, NULL, &surface_pixels, &pitch);
 #endif
     // TODO: Should I use this?
-    // SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
+    SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
     int sw, sh;
     SDL_GetWindowSize(window, &sw, &sh);
     w = width;
