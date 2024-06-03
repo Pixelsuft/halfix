@@ -147,14 +147,15 @@ void mobui_input_draw(void* elem) {
     SDL_RenderDrawRectF(ren, &this->base.rect);
     if (this->tex == NULL)
         return;
-    this->text_rect.x = this->base.rect.x + this->base.rect.w / 2.0f - this->text_rect.w / 2.0f;
+    if (this->src_rect.x == 0)
+        this->text_rect.x = this->base.rect.x + this->base.rect.w / 2.0f - this->text_rect.w / 2.0f;
     this->text_rect.y = this->base.rect.y + this->base.rect.h / 2.0f - this->text_rect.h / 2.0f;
     SDL_Rect dst_rect;
     dst_rect.x = (int)this->text_rect.x;
     dst_rect.y = (int)this->text_rect.y;
     dst_rect.w = (int)this->text_rect.w;
     dst_rect.h = (int)this->text_rect.h;
-    SDL_RenderCopy(ren, this->tex, NULL, &dst_rect);
+    SDL_RenderCopy(ren, this->tex, &this->src_rect, &dst_rect);
 }
 
 void mobui_input_on_down(void* elem, SDL_FPoint* pos) {
@@ -177,6 +178,16 @@ void mobui_input_on_update(mobui_input* this) {
     this->tex = tex;
     this->text_rect.w = (float)tw;
     this->text_rect.h = (float)th;
+    this->src_rect.y = 0;
+    this->src_rect.h = th;
+    this->src_rect.x = 0;
+    this->src_rect.w = tw;
+    if ((float)tw > this->base.rect.w) {
+        this->src_rect.w = (int)this->base.rect.w;
+        this->src_rect.x = tw - this->src_rect.w;
+        this->text_rect.w = this->base.rect.w;
+        this->base.rect.x = this->base.rect.x;
+    }
 }
 
 void mobui_input_set_rect(void* elem, SDL_FRect* rect) {

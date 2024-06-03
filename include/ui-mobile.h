@@ -26,6 +26,7 @@ typedef struct {
 typedef struct {
     mobui_elem base;
     SDL_FRect text_rect;
+    SDL_Rect src_rect;
     SDL_Texture* tex;
     char text[1024 * 10];
 } mobui_input;
