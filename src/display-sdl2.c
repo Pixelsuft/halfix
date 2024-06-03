@@ -50,6 +50,8 @@ static float scale_x = 1.0f;
 static float scale_y = 1.0f;
 static float real_scale_x = 1.0f;
 static float real_scale_y = 1.0f;
+static float def_real_scale_x = 1.0f;
+static float def_real_scale_y = 1.0f;
 static SDL_bool resizable = SDL_FALSE;
 static int fullscreen = 0;
 static int display_inited = 0;
@@ -368,6 +370,12 @@ void display_send_hotkey(int hotkey, int down)
     }
 }
 
+#if defined(MOBILE_BUILD) || 1
+void display_on_touch_event(int64_t finger_id, SDL_FPoint* pos, int event_id) {
+
+}
+#endif
+
 void display_handle_events(void)
 {
     SDL_Event event;
@@ -409,8 +417,8 @@ void display_handle_events(void)
                         display_update_scale_mode();
                         break;
                     }
-#ifndef MOBILE_BUILD
                     case SDLK_c: {
+#ifndef MOBILE_BUILD
                         SDL_DisplayMode mode;
                         int index = SDL_GetWindowDisplayIndex(window);
                         SDL_GetCurrentDisplayMode(index, &mode);
@@ -418,9 +426,9 @@ void display_handle_events(void)
                             window,
                             (mode.w - w) >> 1, (mode.h - h) >> 1
                         );
+#endif
                         break;
                     }
-#endif
                     case SDLK_q: {
                         display_quit();
                         exit(0);
@@ -428,10 +436,14 @@ void display_handle_events(void)
                     }
                     case SDLK_r: {
                         scale_x = scale_y = 1.0f;
-#ifndef MOBILE_BUILD
+#ifdef MOBILE_BUILD
+                        real_scale_x = def_real_scale_x;
+                        real_scale_y = def_real_scale_y;
+#else
                         if (!fullscreen)
                             SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
 #endif
+                        display_update_scale_mode();
                         break;
                     }
                     case SDLK_z: {
@@ -535,6 +547,21 @@ void display_handle_events(void)
                 kbd_send_mouse_move(event.motion.xrel, event.motion.yrel, 0, 0);
             break;
         }
+        case SDL_FINGERMOTION: {
+#ifdef MOBILE_BUILD
+            SDL_FPoint pos = { event.tfinger.dx, event.tfinger.dy };
+            display_on_touch_event(event.tfinger.fingerId, &pos, SDL_FINGERMOTION);
+#endif
+            break;
+        }
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP: {
+#ifdef MOBILE_BUILD
+            SDL_FPoint pos = { event.tfinger.x, event.tfinger.y };
+            display_on_touch_event(event.tfinger.fingerId, &pos, (int)event.type);
+#endif
+            break;
+        }
         case SDL_MOUSEWHEEL: {
             if (event.wheel.which == SDL_TOUCH_MOUSEID)
                 break;
@@ -568,6 +595,12 @@ void display_handle_events(void)
                 }
                 scale_x = (float)ren_w / (float)w;
                 scale_y = (float)ren_h / (float)h;
+                if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) == 0) {
+                    int win_w, win_h;
+                    SDL_GetWindowSize(window, &win_w, &win_h);
+                    def_real_scale_x = (float)ren_w / (float)win_w;
+                    def_real_scale_y = (float)ren_h / (float)win_h;
+                }
                 display_update_scale_mode();
             }
             break;
@@ -689,12 +722,12 @@ void display_init(void)
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
         DISPLAY_FATAL("Unable to create renderer");
-    int ren_w, ren_h;
-    if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) == 0) {
+    int rren_w, rren_h;
+    if (SDL_GetRendererOutputSize(renderer, &rren_w, &rren_h) == 0) {
         int win_w, win_h;
         SDL_GetWindowSize(window, &win_w, &win_h);
-        real_scale_x = (float)ren_w / (float)win_w;
-        real_scale_y = (float)ren_h / (float)win_h;
+        def_real_scale_x = real_scale_x = (float)rren_w / (float)win_w;
+        def_real_scale_y = real_scale_y = (float)rren_h / (float)win_h;
     }
 #ifdef _WIN32
     display_check_dark_mode();
