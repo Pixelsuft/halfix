@@ -68,15 +68,15 @@ void mobui_button_draw(void* elem) {
         SDL_RenderDrawRectF(ren, &this->base.rect);
     if (this->tex == NULL)
         return;
-    this->text_rect.x = this->base.rect.x / 2.0f + this->base.rect.w / 2.0f - this->text_rect.w / 2.0f;
-    this->text_rect.y = this->base.rect.y / 2.0f + this->base.rect.h / 2.0f - this->text_rect.h / 2.0f;
+    this->text_rect.x = this->base.rect.x + this->base.rect.w / 2.0f - this->text_rect.w / 2.0f;
+    this->text_rect.y = this->base.rect.y + this->base.rect.h / 2.0f - this->text_rect.h / 2.0f;
     SDL_RenderCopyF(ren, this->tex, NULL, &this->text_rect);
 }
 
 void mobui_button_set_text(mobui_button* this, const char* text) {
     this->text = (char*)text;
     SDL_Color col = { COL_BUTTON1_R, COL_BUTTON1_G, COL_BUTTON1_B, 255 };
-    SDL_Surface* surf = TTF_RenderText_Blended(fnt, text, col);
+    SDL_Surface* surf = TTF_RenderText_Solid(fnt, text, col);
     if (surf == NULL)
         return;
     int tw = surf->w;
