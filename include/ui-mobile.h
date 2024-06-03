@@ -21,6 +21,7 @@ typedef struct {
     char* text;
     int is_down;
     int was_pressed;
+    int enabled;
 } mobui_button;
 
 typedef struct {
