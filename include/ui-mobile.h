@@ -11,6 +11,7 @@ typedef struct {
     void (*on_move)(void* this, SDL_FPoint* dt);
     void (*set_rect)(void* this, SDL_FRect* rect);
     void (*draw)(void* this);
+    void (*destroy)(void* this);
 } mobui_elem;
 
 typedef struct {

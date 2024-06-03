@@ -31,11 +31,16 @@ void mobui_elem_set_rect(void* elem, SDL_FRect* rect) {
     this->rect.h = rect->h;
 }
 
+void mobui_destroy_elem(void* elem) {
+    (void)elem;
+}
+
 void mobui_init_elem(void* elem) {
     mobui_elem* this = elem;
     this->on_down = NULL;
     this->on_up = NULL;
     this->on_move = NULL;
+    this->destroy = mobui_destroy_elem;
     this->set_rect = mobui_elem_set_rect;
     this->rect.x = this->rect.y = this->rect.w = this->rect.h = 0.0f;
 }
@@ -57,10 +62,11 @@ void mobui_place_elems(void) {
     if (SDL_GetRendererOutputSize(ren, &width, &height) < 0) {
         SDL_GetWindowSize(win, &width, &height);
     }
-    float scale_x = (float)width / 640.0f;
-    float scale_y = (float)height / 480.0f;
-    float min_scale = (scale_x > scale_y) ? scale_y : scale_x;
-    SDL_FRect temp_rect;
+    float sx = (float)width / 640.0f;
+    float sy = (float)height / 480.0f;
+    float sm = (sx > sy) ? sy : sx;
+    SDL_FRect tr = { (640.0f - 65.0f) * sx, 5.0f * sm, 60.0f * sx, 40.0f * sy };
+    page.go_btn.base.set_rect(&page.go_btn, &tr);
 }
 
 void mobui_run_main(void) {
