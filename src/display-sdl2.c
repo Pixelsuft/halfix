@@ -185,6 +185,14 @@ void display_update(int scanline_start, int scanlines)
         };
         SDL_RenderCopyF(renderer, texture, &src_rect, &dst_rect);
 #endif
+#ifdef true
+        if (!mouse_enabled) {
+            SDL_FRect rect = { 0.0f, 0.0f, 0.1f * (float)ren_w, 0.1f * (float)ren_h };
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 100);
+            SDL_RenderFillRectF(renderer, &rect);
+        }
+#endif
         SDL_RenderPresent(renderer);
     }
 }
@@ -371,8 +379,34 @@ void display_send_hotkey(int hotkey, int down)
 }
 
 #if defined(MOBILE_BUILD) || 1
+static int64_t finger_ids[5] = { -1337, -1337, -1337, -1337, -1337 };
+
 void display_on_touch_event(int64_t finger_id, SDL_FPoint* pos, int event_id) {
-    
+    if (event_id == SDL_FINGERMOTION) {
+
+    }
+    else if (event_id == SDL_FINGERDOWN) {
+        if (pos->x < 0.1f && pos->y < 0.1f) {
+            finger_ids[0] = finger_id;
+            return;
+        }
+        SDL_StopTextInput();
+        if (!mouse_enabled)
+            return;
+    }
+    else if (event_id == SDL_FINGERUP) {
+        if (finger_ids[0] == finger_id) {
+            if (pos->x < 0.1f && pos->y < 0.1) {
+                SDL_StartTextInput();
+            }
+            finger_ids[0] = -1337;
+            return;
+        }
+        if (!mouse_enabled) {
+            mouse_enabled = 1;
+            return;
+        }
+    }
 }
 #endif
 
