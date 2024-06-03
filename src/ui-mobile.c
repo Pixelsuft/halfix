@@ -225,12 +225,12 @@ void mobui_init_input(mobui_input* this) {
 
 void mobui_on_path_input_update(void) {
     struct stat path_stat;
-    stat(page.path_inp.text, &path_stat);
-    if (S_ISREG(path_stat.st_mode)) {
+    int res = stat(page.path_inp.text, &path_stat);
+    if (res == 0 && S_ISREG(path_stat.st_mode)) {
         page.go_btn.enabled = 1;
         page.cfg_btn.enabled = 0;
     }
-    else if (S_ISDIR(path_stat.st_mode)) {
+    else if (res == 0 && S_ISDIR(path_stat.st_mode)) {
         page.go_btn.enabled = 0;
         page.cfg_btn.enabled = 1;
     }
