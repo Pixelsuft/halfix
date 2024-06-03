@@ -372,7 +372,7 @@ void display_send_hotkey(int hotkey, int down)
 
 #if defined(MOBILE_BUILD) || 1
 void display_on_touch_event(int64_t finger_id, SDL_FPoint* pos, int event_id) {
-
+    
 }
 #endif
 
@@ -521,6 +521,11 @@ void display_handle_events(void)
         case SDL_MOUSEBUTTONUP: {
             if (event.button.which == SDL_TOUCH_MOUSEID)
                 break;
+#ifdef MOBILE_WIP
+            SDL_FPoint pos = { (float)event.button.x / (float)ren_w, (float)event.button.y / (float)ren_h };
+            display_on_touch_event(228, &pos, (event.type == SDL_MOUSEBUTTONDOWN) ? SDL_FINGERDOWN : SDL_FINGERUP);
+            break;
+#endif
             k = event.type == SDL_MOUSEBUTTONDOWN ? MOUSE_STATUS_PRESSED : MOUSE_STATUS_RELEASED;
             switch (event.button.button) {
             case SDL_BUTTON_LEFT:
@@ -543,6 +548,12 @@ void display_handle_events(void)
         case SDL_MOUSEMOTION: {
             if (event.motion.which == SDL_TOUCH_MOUSEID)
                 break;
+#ifdef MOBILE_BUILD
+            SDL_FPoint pos = { (float)event.motion.xrel / (float)ren_w, (float)event.motion.yrel / (float)ren_h };
+            if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_LMASK)
+                display_on_touch_event(228, &pos, SDL_FINGERMOTION);
+            break;
+#endif
             if (mouse_enabled)
                 kbd_send_mouse_move(event.motion.xrel, event.motion.yrel, 0, 0);
             break;
