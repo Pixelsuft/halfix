@@ -221,11 +221,14 @@ void mobui_run_main(void) {
                     focus_elem = NULL;
                     break;
                 }
+                case SDL_TEXTINPUT: {
+                    memcpy(page.path_inp.text + strlen(page.path_inp.text), ev.text.text, strlen(ev.text.text));
+                    break;
+                }
                 case SDL_KEYDOWN: {
                     if (ev.key.keysym.sym == SDLK_BACKSPACE) {
                         if (strlen(page.path_inp.text) > 0) {
-                            page.path_inp.text[strlen(page.path_inp.text) - 2] = '\0';
-                            printf("%s\n", page.path_inp.text);
+                            page.path_inp.text[strlen(page.path_inp.text) - 1] = '\0';
                         }
                     }
 #ifdef MOBILE_WIP
