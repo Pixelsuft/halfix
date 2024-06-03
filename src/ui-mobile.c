@@ -66,16 +66,47 @@ void mobui_button_draw(void* elem) {
         SDL_RenderFillRectF(ren, &this->base.rect);
     else
         SDL_RenderDrawRectF(ren, &this->base.rect);
+    if (this->tex == NULL)
+        return;
+    this->text_rect.x = this->base.rect.x / 2.0f + this->base.rect.w / 2.0f - this->text_rect.w / 2.0f;
+    this->text_rect.y = this->base.rect.y / 2.0f + this->base.rect.h / 2.0f - this->text_rect.h / 2.0f;
+    SDL_RenderCopyF(ren, this->tex, NULL, &this->text_rect);
+}
+
+void mobui_button_set_text(mobui_button* this, const char* text) {
+    this->text = (char*)text;
+    SDL_Color col = { COL_BUTTON1_R, COL_BUTTON1_G, COL_BUTTON1_B, 255 };
+    SDL_Surface* surf = TTF_RenderText_Blended(fnt, text, col);
+    if (surf == NULL)
+        return;
+    int tw = surf->w;
+    int th = surf->h;
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(ren, surf);
+    SDL_FreeSurface(surf);
+    if (tex == NULL)
+        return;
+    this->tex = tex;
+    this->text_rect.w = (float)tw;
+    this->text_rect.h = (float)th;
+}
+
+void mobui_button_destroy(void* elem) {
+    mobui_button* this = elem;
+    if (this->tex != NULL) {
+        SDL_DestroyTexture(this->tex);
+        this->tex = NULL;
+    }
 }
 
 void mobui_init_button(mobui_button* this) {
     mobui_init_elem(this);
     this->tex = NULL;
-    this->text = NULL;
+    this->text = "";
     this->is_down = 0;
     this->base.on_down = mobui_button_on_down;
     this->base.on_up = mobui_button_on_up;
     this->base.draw = mobui_button_draw;
+    this->base.destroy = mobui_button_destroy;
 }
 
 void mobui_place_elems(void) {
@@ -164,6 +195,7 @@ void mobui_init(void) {
     ren = display_get_handle(1);
     memset(page.elems, 0, sizeof(page.elems));
     mobui_init_button(&page.go_btn);
+    mobui_button_set_text(&page.go_btn, "GO!");
     mobui_place_elems();
     page.elems[0] = (mobui_elem*)&page.go_btn;
     page.elem_count = 10;
