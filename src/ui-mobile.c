@@ -7,9 +7,9 @@
 #include <SDL_ttf.h>
 #endif
 
-#define COL_BUTTON1_R 0
-#define COL_BUTTON1_G 255
-#define COL_BUTTON1_B 0
+#define COL1_R 0
+#define COL1_G 255
+#define COL1_B 0
 
 static SDL_Window* win = NULL;
 static SDL_Renderer* ren = NULL;
@@ -67,7 +67,7 @@ void mobui_button_on_up(void* elem, SDL_FPoint* pos) {
 
 void mobui_button_draw(void* elem) {
     mobui_button* this = elem;
-    SDL_SetRenderDrawColor(ren, COL_BUTTON1_R, COL_BUTTON1_G, COL_BUTTON1_B, 255);
+    SDL_SetRenderDrawColor(ren, COL1_R, COL1_G, COL1_B, 255);
     if (this->is_down)
         SDL_RenderFillRectF(ren, &this->base.rect);
     else
@@ -90,7 +90,7 @@ void mobui_button_set_text(mobui_button* this, const char* text) {
     if (text == NULL)
         return;
     this->text = (char*)text;
-    SDL_Color col = { COL_BUTTON1_R, COL_BUTTON1_G, COL_BUTTON1_B, 255 };
+    SDL_Color col = { COL1_R, COL1_G, COL1_B, 255 };
     SDL_Surface* surf = TTF_RenderText_Blended(fnt, text, col);
     if (surf == NULL)
         return;
@@ -142,11 +142,18 @@ void mobui_input_destroy(void* elem) {
 
 void mobui_input_draw(void* elem) {
     mobui_input* this = elem;
-}
-
-void mobui_input_set_rect(void* elem, SDL_FRect* rect) {
-    mobui_input* this = elem;
-    mobui_elem_set_rect(elem, rect);
+    SDL_SetRenderDrawColor(ren, COL1_R, COL1_G, COL1_B, 255);
+    SDL_RenderDrawRectF(ren, &this->base.rect);
+    if (this->tex == NULL)
+        return;
+    this->text_rect.x = this->base.rect.x + this->base.rect.w / 2.0f - this->text_rect.w / 2.0f;
+    this->text_rect.y = this->base.rect.y + this->base.rect.h / 2.0f - this->text_rect.h / 2.0f;
+    SDL_Rect dst_rect;
+    dst_rect.x = (int)this->text_rect.x;
+    dst_rect.y = (int)this->text_rect.y;
+    dst_rect.w = (int)this->text_rect.w;
+    dst_rect.h = (int)this->text_rect.h;
+    SDL_RenderCopy(ren, this->tex, NULL, &dst_rect);
 }
 
 void mobui_input_on_down(void* elem, SDL_FPoint* pos) {
@@ -156,7 +163,25 @@ void mobui_input_on_down(void* elem, SDL_FPoint* pos) {
 }
 
 void mobui_input_on_update(mobui_input* this) {
+    SDL_Color col = { COL1_R, COL1_G, COL1_B, 255 };
+    SDL_Surface* surf = TTF_RenderText_Blended(fnt, strlen(this->text) > 0 ? this->text : " ", col);
+    if (surf == NULL)
+        return;
+    int tw = surf->w;
+    int th = surf->h;
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(ren, surf);
+    SDL_FreeSurface(surf);
+    if (tex == NULL)
+        return;
+    this->tex = tex;
+    this->text_rect.w = (float)tw;
+    this->text_rect.h = (float)th;
+}
 
+void mobui_input_set_rect(void* elem, SDL_FRect* rect) {
+    mobui_input* this = elem;
+    mobui_elem_set_rect(elem, rect);
+    mobui_input_on_update(this);
 }
 
 void mobui_init_input(mobui_input* this) {
@@ -177,8 +202,10 @@ void mobui_place_elems(void) {
     float sy = (float)height / 480.0f;
     float sm = (sx > sy) ? sy : sx;
     TTF_SetFontSize(fnt, (int)(32.0f * sm));
-    SDL_FRect tr = { (640.0f - 65.0f) * sx, 5.0f * sm, 60.0f * sx, 40.0f * sy };
-    page.go_btn.base.set_rect(&page.go_btn, &tr);
+    SDL_FRect tr1 = { (640.0f - 65.0f) * sx, 5.0f * sm, 60.0f * sx, 40.0f * sy };
+    page.go_btn.base.set_rect(&page.go_btn, &tr1);
+    SDL_FRect tr2 = { 5.0f * sx, 5.0f * sm, (640.0f - 75.0f) * sx, 40.0f * sy };
+    page.path_inp.base.set_rect(&page.path_inp, &tr2);
 }
 
 void mobui_run_main(void) {
@@ -223,12 +250,14 @@ void mobui_run_main(void) {
                 }
                 case SDL_TEXTINPUT: {
                     memcpy(page.path_inp.text + strlen(page.path_inp.text), ev.text.text, strlen(ev.text.text));
+                    mobui_input_on_update(&page.path_inp);
                     break;
                 }
                 case SDL_KEYDOWN: {
                     if (ev.key.keysym.sym == SDLK_BACKSPACE) {
-                        if (strlen(page.path_inp.text) > 0) {
+                        if (page.path_inp.text[0] != '\0') {
                             page.path_inp.text[strlen(page.path_inp.text) - 1] = '\0';
+                            mobui_input_on_update(&page.path_inp);
                         }
                     }
 #ifdef MOBILE_WIP
