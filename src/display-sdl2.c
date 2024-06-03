@@ -383,7 +383,9 @@ static int64_t finger_ids[5] = { -1337, -1337, -1337, -1337, -1337 };
 
 void display_on_touch_event(int64_t finger_id, SDL_FPoint* pos, int event_id) {
     if (event_id == SDL_FINGERMOTION) {
-
+        if (finger_id == finger_ids[1]) {
+            kbd_send_mouse_move(pos->x * (float)ren_w, pos->y * (float)ren_h, 0, 0);
+        }
     }
     else if (event_id == SDL_FINGERDOWN) {
         if (pos->x < 0.1f && pos->y < 0.1f) {
@@ -393,6 +395,18 @@ void display_on_touch_event(int64_t finger_id, SDL_FPoint* pos, int event_id) {
         SDL_StopTextInput();
         if (!mouse_enabled)
             return;
+        if (pos->x > 0.2f) {
+            finger_ids[1] = finger_id;
+            return;
+        }
+        if (pos->y > 0.4f) {
+            finger_ids[2] = finger_id;
+            kbd_mouse_down(MOUSE_STATUS_PRESSED, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE);
+        }
+        else {
+            finger_ids[3] = finger_id;
+            kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_PRESSED);
+        }
     }
     else if (event_id == SDL_FINGERUP) {
         if (finger_ids[0] == finger_id) {
@@ -405,6 +419,17 @@ void display_on_touch_event(int64_t finger_id, SDL_FPoint* pos, int event_id) {
         if (!mouse_enabled) {
             mouse_enabled = 1;
             return;
+        }
+        if (finger_id == finger_ids[1]) {
+            finger_ids[1] = -1337;
+        }
+        else if (finger_id == finger_ids[2]) {
+            finger_ids[2] = -1337;
+            kbd_mouse_down(MOUSE_STATUS_RELEASED, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE);
+        }
+        else if (finger_id == finger_ids[3]) {
+            finger_ids[3] = -1337;
+            kbd_mouse_down(MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_NOCHANGE, MOUSE_STATUS_RELEASED);
         }
     }
 }
