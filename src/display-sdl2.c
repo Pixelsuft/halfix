@@ -48,6 +48,8 @@ void* display_get_pixels(void)
 
 static float scale_x = 1.0f;
 static float scale_y = 1.0f;
+static float real_scale_x = 1.0f;
+static float real_scale_y = 1.0f;
 static SDL_bool resizable = SDL_FALSE;
 static int fullscreen = 0;
 static int display_inited = 0;
@@ -76,21 +78,21 @@ void display_update_cycles(int cycles_elapsed, int us)
 void display_update_scale_mode(void)
 {
     if (scale_mode == 0) {
-        dst_rect.w = (float)w;
-        dst_rect.h = (float)h;
+        dst_rect.w = (float)w * real_scale_x;
+        dst_rect.h = (float)h * real_scale_y;
         dst_rect.x = (float)ren_w / 2.0f - (float)dst_rect.w / 2.0f;
         dst_rect.y = (float)ren_h / 2.0f - (float)dst_rect.h / 2.0f;
     }
     else if (scale_mode == 1) {
         float min_scale = (scale_x > scale_y) ? scale_y : scale_x;
-        dst_rect.w = (float)w * min_scale;
-        dst_rect.h = (float)h * min_scale;
+        dst_rect.w = (float)w * min_scale * real_scale_x;
+        dst_rect.h = (float)h * min_scale * real_scale_y;
         dst_rect.x = (float)ren_w / 2.0f - (float)dst_rect.w / 2.0f;
         dst_rect.y = (float)ren_h / 2.0f - (float)dst_rect.h / 2.0f;
     }
     else if (scale_mode == 2) {
-        dst_rect.w = (float)w * scale_x;
-        dst_rect.h = (float)h * scale_y;
+        dst_rect.w = (float)w * scale_x * real_scale_x;
+        dst_rect.h = (float)h * scale_y * real_scale_y;
         dst_rect.x = dst_rect.y = 0.0f;
     }
 }
@@ -436,10 +438,14 @@ void display_handle_events(void)
                         if (resizable) {
                             scale_x += 0.25f;
                             scale_y += 0.25f;
-#ifndef MOBILE_BUILD
+#ifdef MOBILE_BUILD
+                            real_scale_x += 0.25f;
+                            real_scale_y += 0.25f;
+#else
                             if (!fullscreen)
                                 SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
 #endif
+                            display_update_scale_mode();
                         }
                         break;
                     }
@@ -447,10 +453,14 @@ void display_handle_events(void)
                         if (resizable && scale_x > 0.25f && scale_y > 0.25f) {
                             scale_x -= 0.25f;
                             scale_y -= 0.25f;
-#ifndef MOBILE_BUILD
+#ifdef MOBILE_BUILD
+                            real_scale_x -= 0.25f;
+                            real_scale_y -= 0.25f;
+#else
                             if (!fullscreen)
                                 SDL_SetWindowSize(window, (int)((float)w * scale_x), (int)((float)h * scale_y));
 #endif
+                            display_update_scale_mode();
                         }
                         break;
                     }
@@ -679,6 +689,13 @@ void display_init(void)
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
         DISPLAY_FATAL("Unable to create renderer");
+    int ren_w, ren_h;
+    if (SDL_GetRendererOutputSize(renderer, &ren_w, &ren_h) == 0) {
+        int win_w, win_h;
+        SDL_GetWindowSize(window, &win_w, &win_h);
+        real_scale_x = (float)ren_w / (float)win_w;
+        real_scale_y = (float)ren_h / (float)win_h;
+    }
 #ifdef _WIN32
     display_check_dark_mode();
 #endif
