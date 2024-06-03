@@ -61,6 +61,7 @@ void mobui_button_on_up(void* elem, SDL_FPoint* pos) {
     if (this->tex != NULL)
         SDL_SetTextureColorMod(this->tex, 255, 255, 255);
     this->is_down = 0;
+    this->was_pressed = (SDL_PointInFRect(pos, &this->base.rect) == SDL_TRUE) ? 1 : 0;
 }
 
 void mobui_button_draw(void* elem) {
@@ -122,6 +123,7 @@ void mobui_init_button(mobui_button* this) {
     this->tex = NULL;
     this->text = NULL;
     this->is_down = 0;
+    this->was_pressed = 0;
     this->base.on_down = mobui_button_on_down;
     this->base.on_up = mobui_button_on_up;
     this->base.draw = mobui_button_draw;
@@ -196,6 +198,10 @@ void mobui_run_main(void) {
             if (page.elems[i]->draw == NULL)
                 continue;
             page.elems[i]->draw(page.elems[i]);
+        }
+        if (page.go_btn.was_pressed) {
+            page.go_btn.was_pressed = 0;
+            printf("GO PRESS!\n");
         }
         SDL_RenderPresent(ren);
     }

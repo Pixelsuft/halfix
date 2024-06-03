@@ -20,6 +20,7 @@ typedef struct {
     SDL_Texture* tex;
     char* text;
     int is_down;
+    int was_pressed;
 } mobui_button;
 
 void mobui_init_elem(void* elem);
