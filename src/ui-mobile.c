@@ -1,4 +1,5 @@
 #include "display.h"
+#include "util.h"
 #include "ui-mobile.h"
 #ifdef SDL2_INC_DIR
 #include <SDL2/SDL_ttf.h>
@@ -33,7 +34,7 @@ void mobui_elem_set_rect(void* elem, SDL_FRect* rect) {
 }
 
 void mobui_destroy_elem(void* elem) {
-    (void)elem;
+    UNUSED(elem);
 }
 
 void mobui_init_elem(void* elem) {
@@ -46,17 +47,35 @@ void mobui_init_elem(void* elem) {
     this->rect.x = this->rect.y = this->rect.w = this->rect.h = 0.0f;
 }
 
-void mobui_draw_button(void* elem) {
+void mobui_button_on_down(void* elem, SDL_FPoint* pos) {
+    UNUSED(pos);
+    mobui_button* this = elem;
+    this->is_down = 1;
+}
+
+void mobui_button_on_up(void* elem, SDL_FPoint* pos) {
+    UNUSED(pos);
+    mobui_button* this = elem;
+    this->is_down = 0;
+}
+
+void mobui_button_draw(void* elem) {
     mobui_button* this = elem;
     SDL_SetRenderDrawColor(ren, COL_BUTTON1_R, COL_BUTTON1_G, COL_BUTTON1_B, 255);
-    SDL_RenderDrawRectF(ren, &this->base.rect);
+    if (this->is_down)
+        SDL_RenderFillRectF(ren, &this->base.rect);
+    else
+        SDL_RenderDrawRectF(ren, &this->base.rect);
 }
 
 void mobui_init_button(mobui_button* this) {
     mobui_init_elem(this);
     this->tex = NULL;
     this->text = NULL;
-    this->base.draw = mobui_draw_button;
+    this->is_down = 0;
+    this->base.on_down = mobui_button_on_down;
+    this->base.on_up = mobui_button_on_up;
+    this->base.draw = mobui_button_draw;
 }
 
 void mobui_place_elems(void) {
