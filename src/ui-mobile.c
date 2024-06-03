@@ -26,6 +26,7 @@ typedef struct {
     mobui_button go_btn;
     mobui_input path_inp;
     int allow_to_start;
+    int allow_is_dir;
 } mobui_page;
 
 mobui_page page;
@@ -267,6 +268,7 @@ void mobui_run_main(void) {
                 case SDL_TEXTINPUT: {
                     memcpy(page.path_inp.text + strlen(page.path_inp.text), ev.text.text, strlen(ev.text.text));
                     mobui_input_on_update(&page.path_inp);
+                    page.allow_is_dir = 0;
                     break;
                 }
                 case SDL_KEYDOWN: {
@@ -274,6 +276,7 @@ void mobui_run_main(void) {
                         if (page.path_inp.text[0] != '\0') {
                             page.path_inp.text[strlen(page.path_inp.text) - 1] = '\0';
                             mobui_input_on_update(&page.path_inp);
+                            page.allow_is_dir = 0;
                         }
                     }
 #ifdef MOBILE_WIP
@@ -305,7 +308,11 @@ void mobui_run_main(void) {
             stat(page.path_inp.text, &path_stat);
             if (S_ISREG(path_stat.st_mode)) {
                 page.allow_to_start = 1;
+                page.allow_is_dir = 0;
                 running = 0;
+            }
+            else {
+                page.allow_is_dir = S_ISDIR(path_stat.st_mode) ? 1 : 0;
             }
         }
         SDL_RenderPresent(ren);
@@ -319,6 +326,7 @@ void mobui_run_main(void) {
 
 void mobui_init(void) {
     page.allow_to_start = 0;
+    page.allow_is_dir = 0;
     if (TTF_Init() < 0)
         return;
     fnt1 = TTF_OpenFont("fonts/liberationmonob.ttf", 32);

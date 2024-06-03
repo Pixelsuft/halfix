@@ -120,6 +120,8 @@ parse_config:
     mobui_run_main();
     configfile = mobui_get_config_path();
     mobui_quit();
+    if (configfile == NULL)
+        return 0;
 #endif
     f = fopen(configfile, "rb");
     if (!f) {
