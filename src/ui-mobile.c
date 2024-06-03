@@ -21,6 +21,7 @@ typedef struct {
     mobui_elem* elems[10];
     size_t elem_count;
     mobui_button go_btn;
+    mobui_input path_inp;
 } mobui_page;
 
 mobui_page page;
@@ -90,7 +91,7 @@ void mobui_button_set_text(mobui_button* this, const char* text) {
         return;
     this->text = (char*)text;
     SDL_Color col = { COL_BUTTON1_R, COL_BUTTON1_G, COL_BUTTON1_B, 255 };
-    SDL_Surface* surf = TTF_RenderText_Solid(fnt, text, col);
+    SDL_Surface* surf = TTF_RenderText_Blended(fnt, text, col);
     if (surf == NULL)
         return;
     int tw = surf->w;
@@ -129,6 +130,39 @@ void mobui_init_button(mobui_button* this) {
     this->base.draw = mobui_button_draw;
     this->base.set_rect = mobui_button_set_rect;
     this->base.destroy = mobui_button_destroy;
+}
+
+void mobui_input_destroy(void* elem) {
+    mobui_input* this = elem;
+    if (this->tex != NULL) {
+        SDL_DestroyTexture(this->tex);
+        this->tex = NULL;
+    }
+}
+
+void mobui_input_draw(void* elem) {
+    mobui_input* this = elem;
+}
+
+void mobui_input_set_rect(void* elem, SDL_FRect* rect) {
+    mobui_input* this = elem;
+    mobui_elem_set_rect(elem, rect);
+}
+
+void mobui_input_on_down(void* elem, SDL_FPoint* pos) {
+    UNUSED(elem);
+    UNUSED(pos);
+    SDL_StartTextInput();
+}
+
+void mobui_init_input(mobui_input* this) {
+    mobui_init_elem(this);
+    this->tex = NULL;
+    this->text[0] = '\0';
+    this->base.on_down = mobui_input_on_down;
+    this->base.draw = mobui_input_draw;
+    this->base.set_rect = mobui_input_set_rect;
+    this->base.destroy = mobui_input_destroy;
 }
 
 void mobui_place_elems(void) {
@@ -223,8 +257,10 @@ void mobui_init(void) {
     memset(page.elems, 0, sizeof(page.elems));
     mobui_init_button(&page.go_btn);
     mobui_button_set_text(&page.go_btn, "GO!");
+    mobui_init_input(&page.path_inp);
     mobui_place_elems();
     page.elems[0] = (mobui_elem*)&page.go_btn;
+    page.elems[1] = (mobui_elem*)&page.path_inp;
     page.elem_count = 10;
 }
 
