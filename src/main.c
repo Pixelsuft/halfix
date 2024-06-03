@@ -118,6 +118,7 @@ parse_config:
     display_init();
     mobui_init();
     mobui_run_main();
+    configfile = mobui_get_config_path();
     mobui_quit();
 #endif
     f = fopen(configfile, "rb");

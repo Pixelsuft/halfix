@@ -38,3 +38,4 @@ void mobui_button_set_text(mobui_button* this, const char* text);
 void mobui_init(void);
 void mobui_quit(void);
 void mobui_run_main(void);
+char* mobui_get_config_path(void);

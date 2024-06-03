@@ -1,6 +1,8 @@
 #include "display.h"
 #include "util.h"
 #include "ui-mobile.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 #ifdef SDL2_INC_DIR
 #include <SDL2/SDL_ttf.h>
 #else
@@ -23,6 +25,7 @@ typedef struct {
     size_t elem_count;
     mobui_button go_btn;
     mobui_input path_inp;
+    int allow_to_start;
 } mobui_page;
 
 mobui_page page;
@@ -298,7 +301,12 @@ void mobui_run_main(void) {
         }
         if (page.go_btn.was_pressed) {
             page.go_btn.was_pressed = 0;
-            printf("GO PRESS!\n");
+            struct stat path_stat;
+            stat(page.path_inp.text, &path_stat);
+            if (S_ISREG(path_stat.st_mode)) {
+                page.allow_to_start = 1;
+                running = 0;
+            }
         }
         SDL_RenderPresent(ren);
     }
@@ -310,6 +318,7 @@ void mobui_run_main(void) {
 }
 
 void mobui_init(void) {
+    page.allow_to_start = 0;
     if (TTF_Init() < 0)
         return;
     fnt1 = TTF_OpenFont("fonts/liberationmonob.ttf", 32);
@@ -338,4 +347,10 @@ void mobui_quit(void) {
     TTF_CloseFont(fnt2);
     TTF_CloseFont(fnt1);
     TTF_Quit();
+}
+
+char* mobui_get_config_path(void) {
+    if (!page.allow_to_start)
+        return NULL;
+    return (char*)page.path_inp.text;
 }
