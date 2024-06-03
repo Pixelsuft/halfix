@@ -155,6 +155,10 @@ void mobui_input_on_down(void* elem, SDL_FPoint* pos) {
     SDL_StartTextInput();
 }
 
+void mobui_input_on_update(mobui_input* this) {
+
+}
+
 void mobui_init_input(mobui_input* this) {
     mobui_init_elem(this);
     this->tex = NULL;
@@ -217,6 +221,20 @@ void mobui_run_main(void) {
                     focus_elem = NULL;
                     break;
                 }
+                case SDL_KEYDOWN: {
+                    if (ev.key.keysym.sym == SDLK_BACKSPACE) {
+                        if (strlen(page.path_inp.text) > 0) {
+                            page.path_inp.text[strlen(page.path_inp.text) - 2] = '\0';
+                            printf("%s\n", page.path_inp.text);
+                        }
+                    }
+#ifdef MOBILE_WIP
+                    else if (ev.key.keysym.sym == SDLK_q) {
+                        running = 0;
+                    }
+#endif
+                    break;
+                }
                 case SDL_WINDOWEVENT: {
                     if (ev.window.event == SDL_WINDOWEVENT_RESIZED || ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
                         mobui_place_elems();
@@ -258,6 +276,12 @@ void mobui_init(void) {
     mobui_init_button(&page.go_btn);
     mobui_button_set_text(&page.go_btn, "GO!");
     mobui_init_input(&page.path_inp);
+#ifdef MOBILE_WIP
+    strcpy(page.path_inp.text, ".");
+#else
+    strcpy(page.path_inp.text, "/storage/emulated/0/");
+#endif
+    mobui_input_on_update(&page.path_inp);
     mobui_place_elems();
     page.elems[0] = (mobui_elem*)&page.go_btn;
     page.elems[1] = (mobui_elem*)&page.path_inp;
