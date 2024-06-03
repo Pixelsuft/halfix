@@ -6,9 +6,14 @@
 #include <SDL_ttf.h>
 #endif
 
+#define COL_BUTTON1_R 0
+#define COL_BUTTON1_G 255
+#define COL_BUTTON1_B 0
+
 static SDL_Window* win = NULL;
 static SDL_Renderer* ren = NULL;
 static TTF_Font* fnt = NULL;
+static int width, height;
 
 typedef struct {
     mobui_elem* elems[10];
@@ -18,17 +23,44 @@ typedef struct {
 
 mobui_page page;
 
+void mobui_elem_set_rect(void* elem, SDL_FRect* rect) {
+    mobui_elem* this = elem;
+    this->rect.x = rect->x;
+    this->rect.y = rect->y;
+    this->rect.w = rect->w;
+    this->rect.h = rect->h;
+}
+
 void mobui_init_elem(void* elem) {
     mobui_elem* this = elem;
     this->on_down = NULL;
     this->on_up = NULL;
     this->on_move = NULL;
-    this->set_rect = NULL;
+    this->set_rect = mobui_elem_set_rect;
     this->rect.x = this->rect.y = this->rect.w = this->rect.h = 0.0f;
+}
+
+void mobui_draw_button(void* elem) {
+    mobui_button* this = elem;
+    SDL_SetRenderDrawColor(ren, COL_BUTTON1_R, COL_BUTTON1_G, COL_BUTTON1_B, 255);
+    SDL_RenderDrawRectF(ren, &this->base.rect);
 }
 
 void mobui_init_button(mobui_button* this) {
     mobui_init_elem(this);
+    this->tex = NULL;
+    this->text = NULL;
+    this->base.draw = mobui_draw_button;
+}
+
+void mobui_place_elems(void) {
+    if (SDL_GetRendererOutputSize(ren, &width, &height) < 0) {
+        SDL_GetWindowSize(win, &width, &height);
+    }
+    float scale_x = (float)width / 640.0f;
+    float scale_y = (float)height / 480.0f;
+    float min_scale = (scale_x > scale_y) ? scale_y : scale_x;
+    SDL_FRect temp_rect;
 }
 
 void mobui_run_main(void) {
@@ -41,8 +73,15 @@ void mobui_run_main(void) {
                     running = 0;
                     break;
                 }
+                case SDL_WINDOWEVENT: {
+                    if (ev.window.event == SDL_WINDOWEVENT_RESIZED || ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+                        mobui_place_elems();
+                    break;
+                }
             }
         }
+        SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+        SDL_RenderClear(ren);
         for (size_t i = 0; i < page.elem_count; i++) {
             if (page.elems[i] == NULL)
                 continue;
@@ -50,8 +89,6 @@ void mobui_run_main(void) {
                 continue;
             page.elems[i]->draw(page.elems[i]);
         }
-        SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-        SDL_RenderClear(ren);
         SDL_RenderPresent(ren);
     }
 }
@@ -65,6 +102,8 @@ void mobui_init(void) {
     win = display_get_handle(0);
     ren = display_get_handle(1);
     memset(page.elems, 0, sizeof(page.elems));
+    mobui_init_button(&page.go_btn);
+    mobui_place_elems();
     page.elems[0] = (mobui_elem*)&page.go_btn;
     page.elem_count = 10;
 }
