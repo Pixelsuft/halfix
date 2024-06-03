@@ -5,6 +5,9 @@
 #include "pc.h"
 #include "platform.h"
 #include "util.h"
+#ifdef MOBILE_BUILD
+#include "ui-mobile.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -111,6 +114,12 @@ int main(int argc, char** argv)
     }
 
 parse_config:
+#ifdef MOBILE_BUILD
+    display_init();
+    mobui_init();
+    mobui_run_main();
+    mobui_quit();
+#endif
     f = fopen(configfile, "rb");
     if (!f) {
         h_fprintf(stderr, "Cannot open configuration file %s\n", configfile);

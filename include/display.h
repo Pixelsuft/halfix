@@ -9,6 +9,7 @@ void* display_get_pixels(void);
 void display_handle_events(void);
 void display_update_cycles(int cycles_elapsed, int us);
 void display_sleep(int ms);
+void* display_get_handle(int handle_id);
 
 void display_release_mouse(void);
 

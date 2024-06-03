@@ -643,8 +643,19 @@ void display_check_dark_mode(void)
 }
 #endif
 
+void* display_get_handle(int handle_id) {
+    if (handle_id == 0)
+        return window;
+    else if (handle_id == 1)
+        return renderer;
+    else
+        return NULL;
+}
+
 void display_init(void)
 {
+    if (display_inited > 0)
+        return;
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
         DISPLAY_FATAL("Unable to initialize SDL");
     window = SDL_CreateWindow(
