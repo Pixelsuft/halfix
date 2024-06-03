@@ -13,7 +13,8 @@
 
 static SDL_Window* win = NULL;
 static SDL_Renderer* ren = NULL;
-static TTF_Font* fnt = NULL;
+static TTF_Font* fnt1 = NULL;
+static TTF_Font* fnt2 = NULL;
 static mobui_elem* focus_elem = NULL;
 static int width, height;
 
@@ -91,7 +92,7 @@ void mobui_button_set_text(mobui_button* this, const char* text) {
         return;
     this->text = (char*)text;
     SDL_Color col = { COL1_R, COL1_G, COL1_B, 255 };
-    SDL_Surface* surf = TTF_RenderText_Blended(fnt, text, col);
+    SDL_Surface* surf = TTF_RenderText_Blended(fnt1, text, col);
     if (surf == NULL)
         return;
     int tw = surf->w;
@@ -164,7 +165,7 @@ void mobui_input_on_down(void* elem, SDL_FPoint* pos) {
 
 void mobui_input_on_update(mobui_input* this) {
     SDL_Color col = { COL1_R, COL1_G, COL1_B, 255 };
-    SDL_Surface* surf = TTF_RenderText_Blended(fnt, strlen(this->text) > 0 ? this->text : " ", col);
+    SDL_Surface* surf = TTF_RenderText_Blended(fnt2, strlen(this->text) > 0 ? this->text : " ", col);
     if (surf == NULL)
         return;
     int tw = surf->w;
@@ -201,7 +202,8 @@ void mobui_place_elems(void) {
     float sx = (float)width / 640.0f;
     float sy = (float)height / 480.0f;
     float sm = (sx > sy) ? sy : sx;
-    TTF_SetFontSize(fnt, (int)(32.0f * sm));
+    TTF_SetFontSize(fnt1, (int)(32.0f * sm));
+    TTF_SetFontSize(fnt2, (int)(16.0f * sm));
     SDL_FRect tr1 = { (640.0f - 65.0f) * sx, 5.0f * sm, 60.0f * sx, 40.0f * sy };
     page.go_btn.base.set_rect(&page.go_btn, &tr1);
     SDL_FRect tr2 = { 5.0f * sx, 5.0f * sm, (640.0f - 75.0f) * sx, 40.0f * sy };
@@ -299,8 +301,9 @@ void mobui_run_main(void) {
 void mobui_init(void) {
     if (TTF_Init() < 0)
         return;
-    fnt = TTF_OpenFont("fonts/liberationmonob.ttf", 32);
-    if (fnt == NULL)
+    fnt1 = TTF_OpenFont("fonts/liberationmonob.ttf", 32);
+    fnt2 = TTF_OpenFont("fonts/liberationmonob.ttf", 16);
+    if (fnt1 == NULL || fnt2 == NULL)
         return;
     win = display_get_handle(0);
     ren = display_get_handle(1);
@@ -321,6 +324,7 @@ void mobui_init(void) {
 }
 
 void mobui_quit(void) {
-    TTF_CloseFont(fnt);
+    TTF_CloseFont(fnt2);
+    TTF_CloseFont(fnt1);
     TTF_Quit();
 }
