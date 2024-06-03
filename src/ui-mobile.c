@@ -50,12 +50,16 @@ void mobui_init_elem(void* elem) {
 void mobui_button_on_down(void* elem, SDL_FPoint* pos) {
     UNUSED(pos);
     mobui_button* this = elem;
+    if (this->tex != NULL)
+        SDL_SetTextureColorMod(this->tex, 0, 0, 0);
     this->is_down = 1;
 }
 
 void mobui_button_on_up(void* elem, SDL_FPoint* pos) {
     UNUSED(pos);
     mobui_button* this = elem;
+    if (this->tex != NULL)
+        SDL_SetTextureColorMod(this->tex, 255, 255, 255);
     this->is_down = 0;
 }
 
@@ -70,6 +74,8 @@ void mobui_button_draw(void* elem) {
         return;
     this->text_rect.x = this->base.rect.x + this->base.rect.w / 2.0f - this->text_rect.w / 2.0f;
     this->text_rect.y = this->base.rect.y + this->base.rect.h / 2.0f - this->text_rect.h / 2.0f;
+    this->text_rect.w = (int)this->text_rect.w;
+    this->text_rect.h = (int)this->text_rect.h;
     SDL_RenderCopyF(ren, this->tex, NULL, &this->text_rect);
 }
 
