@@ -3,6 +3,7 @@
 #include "ui-mobile.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 #ifdef SDL2_INC_DIR
 #include <SDL2/SDL_ttf.h>
 #else
@@ -27,6 +28,7 @@ typedef struct {
     mobui_elem* elems[10];
     size_t elem_count;
     mobui_button go_btn;
+    mobui_button cfg_btn;
     mobui_input path_inp;
     int allow_to_start;
     int allow_is_dir;
@@ -226,12 +228,15 @@ void mobui_on_path_input_update(void) {
     stat(page.path_inp.text, &path_stat);
     if (S_ISREG(path_stat.st_mode)) {
         page.go_btn.enabled = 1;
+        page.cfg_btn.enabled = 0;
     }
     else if (S_ISDIR(path_stat.st_mode)) {
         page.go_btn.enabled = 0;
+        page.cfg_btn.enabled = 1;
     }
     else {
         page.go_btn.enabled = 0;
+        page.cfg_btn.enabled = 0;
     }
 }
 
@@ -248,6 +253,8 @@ void mobui_place_elems(void) {
     page.go_btn.base.set_rect(&page.go_btn, &tr1);
     SDL_FRect tr2 = { 5.0f * sx, 5.0f * sm, (640.0f - 75.0f) * sx, 40.0f * sy };
     page.path_inp.base.set_rect(&page.path_inp, &tr2);
+    SDL_FRect tr3 = { 5.0f * sx, 50.0f * sm, 630.0f * sx, 40.0f * sy };
+    page.cfg_btn.base.set_rect(&page.cfg_btn, &tr3);
 }
 
 void mobui_run_main(void) {
@@ -333,6 +340,15 @@ void mobui_run_main(void) {
             page.allow_is_dir = 0;
             running = 0;
         }
+        if (page.cfg_btn.was_pressed) {
+            page.cfg_btn.was_pressed = 0;
+            char cmd_buf[10 * 1024] = "cp default_mobile.conf \"";
+            size_t path_len = strlen(page.path_inp.text);
+            memcpy(cmd_buf + 24, page.path_inp.text, path_len + 1);
+            cmd_buf[24 + path_len] = '"';
+            cmd_buf[25 + path_len] = '\0';
+            system(cmd_buf);
+        }
         SDL_RenderPresent(ren);
     }
     for (size_t i = 0; i < page.elem_count; i++) {
@@ -356,6 +372,8 @@ void mobui_init(void) {
     memset(page.elems, 0, sizeof(page.elems));
     mobui_init_button(&page.go_btn);
     mobui_button_set_text(&page.go_btn, "GO!");
+    mobui_init_button(&page.cfg_btn);
+    mobui_button_set_text(&page.cfg_btn, "Create default config here!");
     mobui_init_input(&page.path_inp);
 #ifdef MOBILE_WIP
     strcpy(page.path_inp.text, ".");
@@ -367,6 +385,7 @@ void mobui_init(void) {
     mobui_place_elems();
     page.elems[0] = (mobui_elem*)&page.go_btn;
     page.elems[1] = (mobui_elem*)&page.path_inp;
+    page.elems[2] = (mobui_elem*)&page.cfg_btn;
     page.elem_count = 10;
 }
 
