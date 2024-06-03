@@ -74,12 +74,19 @@ void mobui_button_draw(void* elem) {
         return;
     this->text_rect.x = this->base.rect.x + this->base.rect.w / 2.0f - this->text_rect.w / 2.0f;
     this->text_rect.y = this->base.rect.y + this->base.rect.h / 2.0f - this->text_rect.h / 2.0f;
-    this->text_rect.w = (int)this->text_rect.w;
-    this->text_rect.h = (int)this->text_rect.h;
-    SDL_RenderCopyF(ren, this->tex, NULL, &this->text_rect);
+    // WTF why it's bad
+    // SDL_RenderCopyF(ren, this->tex, NULL, &this->text_rect);
+    SDL_Rect dst_rect;
+    dst_rect.x = (int)this->text_rect.x;
+    dst_rect.y = (int)this->text_rect.y;
+    dst_rect.w = (int)this->text_rect.w;
+    dst_rect.h = (int)this->text_rect.h;
+    SDL_RenderCopy(ren, this->tex, NULL, &dst_rect);
 }
 
 void mobui_button_set_text(mobui_button* this, const char* text) {
+    if (text == NULL)
+        return;
     this->text = (char*)text;
     SDL_Color col = { COL_BUTTON1_R, COL_BUTTON1_G, COL_BUTTON1_B, 255 };
     SDL_Surface* surf = TTF_RenderText_Solid(fnt, text, col);
@@ -96,6 +103,12 @@ void mobui_button_set_text(mobui_button* this, const char* text) {
     this->text_rect.h = (float)th;
 }
 
+void mobui_button_set_rect(void* elem, SDL_FRect* rect) {
+    mobui_button* this = elem;
+    mobui_elem_set_rect(elem, rect);
+    mobui_button_set_text(this, this->text);
+}
+
 void mobui_button_destroy(void* elem) {
     mobui_button* this = elem;
     if (this->tex != NULL) {
@@ -107,11 +120,12 @@ void mobui_button_destroy(void* elem) {
 void mobui_init_button(mobui_button* this) {
     mobui_init_elem(this);
     this->tex = NULL;
-    this->text = "";
+    this->text = NULL;
     this->is_down = 0;
     this->base.on_down = mobui_button_on_down;
     this->base.on_up = mobui_button_on_up;
     this->base.draw = mobui_button_draw;
+    this->base.set_rect = mobui_button_set_rect;
     this->base.destroy = mobui_button_destroy;
 }
 
@@ -122,6 +136,7 @@ void mobui_place_elems(void) {
     float sx = (float)width / 640.0f;
     float sy = (float)height / 480.0f;
     float sm = (sx > sy) ? sy : sx;
+    TTF_SetFontSize(fnt, (int)(32.0f * sm));
     SDL_FRect tr = { (640.0f - 65.0f) * sx, 5.0f * sm, 60.0f * sx, 40.0f * sy };
     page.go_btn.base.set_rect(&page.go_btn, &tr);
 }
