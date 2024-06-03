@@ -13,6 +13,7 @@
 static SDL_Window* win = NULL;
 static SDL_Renderer* ren = NULL;
 static TTF_Font* fnt = NULL;
+static mobui_elem* focus_elem = NULL;
 static int width, height;
 
 typedef struct {
@@ -79,6 +80,36 @@ void mobui_run_main(void) {
                     running = 0;
                     break;
                 }
+                case SDL_MOUSEMOTION: {
+                    if (focus_elem == NULL || focus_elem->on_move == NULL)
+                        break;
+                    SDL_FPoint dt_move = { (float)ev.motion.xrel, (float)ev.motion.yrel };
+                    focus_elem->on_move(focus_elem, &dt_move);
+                    break;
+                }
+                case SDL_MOUSEBUTTONDOWN: {
+                    SDL_FPoint cur_pos = { (float)ev.button.x, (float)ev.button.y };
+                    for (size_t i = 0; i < page.elem_count; i++) {
+                        if (page.elems[i] == NULL)
+                            continue;
+                        if (SDL_PointInFRect(&cur_pos, &page.elems[i]->rect) == SDL_TRUE) {
+                            focus_elem = page.elems[i];
+                            if (focus_elem->on_down != NULL)
+                                focus_elem->on_down(focus_elem, &cur_pos);
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case SDL_MOUSEBUTTONUP: {
+                    if (focus_elem == NULL)
+                        break;
+                    SDL_FPoint cur_pos = { (float)ev.button.x, (float)ev.button.y };
+                    if (focus_elem->on_up != NULL)
+                        focus_elem->on_up(focus_elem, &cur_pos);
+                    focus_elem = NULL;
+                    break;
+                }
                 case SDL_WINDOWEVENT: {
                     if (ev.window.event == SDL_WINDOWEVENT_RESIZED || ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
                         mobui_place_elems();
@@ -96,6 +127,11 @@ void mobui_run_main(void) {
             page.elems[i]->draw(page.elems[i]);
         }
         SDL_RenderPresent(ren);
+    }
+    for (size_t i = 0; i < page.elem_count; i++) {
+        if (page.elems[i] == NULL)
+            continue;
+        page.elems[i]->destroy(page.elems[i]);
     }
 }
 
