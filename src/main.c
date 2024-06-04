@@ -131,9 +131,8 @@ parse_config:
         h_fprintf(stderr, "Cannot open configuration file %s\n", configfile);
         return -1;
     }
-    h_fseek(f, 0, SEEK_END);
-    buf = h_malloc((filesz = h_ftell(f)) + 1);
-    h_fseek(f, 0, SEEK_SET);
+    filesz = (int)h_fsize(f);
+    buf = h_malloc((size_t)(filesz + 1));
     if (h_fread(buf, filesz, 1, f) != 1) {
         perror("fread");
         h_fprintf(stderr, "Failed to read configuration file\n");

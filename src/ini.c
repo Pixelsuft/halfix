@@ -19,9 +19,7 @@ static int load_file(struct loaded_file* lf, char* path)
     void* f = h_fopen(path, "rb");
     if (!f)
         return -1;
-    h_fseek(f, 0, SEEK_END);
-    int l = h_ftell(f);
-    h_fseek(f, 0, SEEK_SET);
+    int l = (int)h_fsize(f);
 
     lf->length = l;
     lf->data = aalloc(l, 4096);
