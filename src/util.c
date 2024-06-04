@@ -129,7 +129,7 @@ size_t h_fread(void* buf, size_t elem_size, size_t elem_count, void* file) {
     if (ReadFile(file, buf, (DWORD)(elem_size * elem_count), &bytes_read, NULL) == FALSE) {
         return 0;
     }
-    return (size_t)bytes_read;
+    return (size_t)bytes_read / elem_size;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWread(file, buf, elem_size, elem_count);
 #else
@@ -143,7 +143,7 @@ size_t h_fwrite(const void* buf, size_t elem_size, size_t elem_count, void* file
     if (WriteFile(file, buf, (DWORD)(elem_size * elem_count), &bytes_written, NULL) == FALSE) {
         return 0;
     }
-    return (size_t)bytes_written;
+    return (size_t)bytes_written / elem_size;
 #elif defined(PREFER_SDL2) && !defined(PREFER_STD)
     return SDL_RWwrite(file, buf, elem_size, elem_count);
 #else
