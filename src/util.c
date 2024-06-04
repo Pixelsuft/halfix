@@ -8,6 +8,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#if defined(MOBILE_BUILD) && !defined(MOBILE_WIP)
+#include <SDL.h>
+#endif
 
 //#define REALTIME_TIMING
 

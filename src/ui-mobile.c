@@ -387,6 +387,14 @@ void mobui_init(void) {
     page.elems[1] = (mobui_elem*)&page.path_inp;
     page.elems[2] = (mobui_elem*)&page.cfg_btn;
     page.elem_count = 10;
+#ifndef MOBILE_WIP
+    SDL_AndroidRequestPermission("READ_EXTERNAL_STORAGE");
+    SDL_AndroidRequestPermission("permission.READ_EXTERNAL_STORAGE");
+    SDL_AndroidRequestPermission("android.permission.READ_EXTERNAL_STORAGE");
+    SDL_AndroidRequestPermission("WRITE_EXTERNAL_STORAGE");
+    SDL_AndroidRequestPermission("permission.WRITE_EXTERNAL_STORAGE");
+    SDL_AndroidRequestPermission("android.permission.WRITE_EXTERNAL_STORAGE");
+#endif
 }
 
 void mobui_quit(void) {
