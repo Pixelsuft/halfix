@@ -375,6 +375,14 @@ void display_send_hotkey(int hotkey, int down)
             display_kbd_send_key(0x0F | down);
             break;
         }
+        case 4: { // F8
+            display_kbd_send_key((0x3B + (SDLK_F8 - SDLK_F1)) | down);
+            break;
+        }
+        case 5: { // Down
+            display_kbd_send_key(0xE050 | down);
+            break;
+        }
     }
 }
 
@@ -456,7 +464,7 @@ void display_handle_events(void)
             }
             else {
                 switch (event.key.keysym.sym) {
-                    case SDLK_1...SDLK_4:
+                    case SDLK_1...SDLK_6:
                         display_send_hotkey(event.key.keysym.sym - SDLK_1, 1);
                         break;
                     case SDLK_ESCAPE: {
@@ -648,7 +656,7 @@ void display_handle_events(void)
             }
             else {
                 switch (event.key.keysym.sym) {
-                    case SDLK_1...SDLK_4:
+                    case SDLK_1...SDLK_6:
                         display_send_hotkey(event.key.keysym.sym - SDLK_1, 0);
                         break;
                     case SDLK_ESCAPE: {
