@@ -25,11 +25,19 @@ static mobui_elem* focus_elem = NULL;
 static int width, height;
 
 typedef struct {
-    mobui_elem* elems[10];
+    mobui_elem* elems[20];
     size_t elem_count;
     mobui_button go_btn;
     mobui_button cfg_btn;
     mobui_button help_btn;
+    mobui_button d50m_btn;
+    mobui_button d100m_btn;
+    mobui_button d250m_btn;
+    mobui_button d500m_btn;
+    mobui_button d1g_btn;
+    mobui_button d2g_btn;
+    mobui_button d4g_btn;
+    mobui_button d6g_btn;
     mobui_input path_inp;
     int allow_to_start;
     int allow_is_dir;
@@ -258,6 +266,11 @@ void mobui_place_elems(void) {
     page.cfg_btn.base.set_rect(&page.cfg_btn, &tr3);
     SDL_FRect tr4 = { 5.0f * sx, 95.0f * sm, 630.0f * sx, 40.0f * sy };
     page.help_btn.base.set_rect(&page.help_btn, &tr4);
+    for (size_t i = 0; i < 4; i++) {
+        mobui_button* elem = (mobui_button*)page.elems[4 + i];
+        SDL_FRect tr5 = { (5.0f + (615.0f / 4.0f + 5.0f) * (float)i) * sx, 140.0f * sm, 615.0f / 4.0f * sx, 40.0f * sy };
+        elem->base.set_rect(elem, &tr5);
+    }
 }
 
 void mobui_copy_config(void) {
@@ -288,6 +301,10 @@ void mobui_copy_config(void) {
     h_fwrite(buf, 1, (size_t)sz, out_f);
     h_fclose(out_f);
     h_free(buf);
+}
+
+void mobui_new_image(size_t size_mb) {
+
 }
 
 void mobui_run_main(void) {
@@ -381,6 +398,38 @@ void mobui_run_main(void) {
             page.help_btn.was_pressed = 0;
             SDL_OpenURL("https://github.com/Pixelsuft/halfix/blob/main/ANDROID.md");
         }
+        if (page.d50m_btn.was_pressed) {
+            page.d50m_btn.was_pressed = 0;
+            mobui_new_image(50);
+        }
+        if (page.d100m_btn.was_pressed) {
+            page.d100m_btn.was_pressed = 0;
+            mobui_new_image(100);
+        }
+        if (page.d250m_btn.was_pressed) {
+            page.d250m_btn.was_pressed = 0;
+            mobui_new_image(250);
+        }
+        if (page.d500m_btn.was_pressed) {
+            page.d500m_btn.was_pressed = 0;
+            mobui_new_image(500);
+        }
+        if (page.d1g_btn.was_pressed) {
+            page.d1g_btn.was_pressed = 0;
+            mobui_new_image(1024);
+        }
+        if (page.d2g_btn.was_pressed) {
+            page.d2g_btn.was_pressed = 0;
+            mobui_new_image(1024 * 2);
+        }
+        if (page.d4g_btn.was_pressed) {
+            page.d4g_btn.was_pressed = 0;
+            mobui_new_image(1024 * 4);
+        }
+        if (page.d6g_btn.was_pressed) {
+            page.d6g_btn.was_pressed = 0;
+            mobui_new_image(1024 * 6);
+        }
         SDL_RenderPresent(ren);
     }
     for (size_t i = 0; i < page.elem_count; i++) {
@@ -406,6 +455,22 @@ void mobui_init(void) {
     mobui_button_set_text(&page.go_btn, "GO!");
     mobui_init_button(&page.cfg_btn);
     mobui_button_set_text(&page.cfg_btn, "Create default config here!");
+    mobui_init_button(&page.d50m_btn);
+    mobui_button_set_text(&page.d50m_btn, "50MB here");
+    mobui_init_button(&page.d100m_btn);
+    mobui_button_set_text(&page.d100m_btn, "100MB");
+    mobui_init_button(&page.d250m_btn);
+    mobui_button_set_text(&page.d250m_btn, "250MB");
+    mobui_init_button(&page.d500m_btn);
+    mobui_button_set_text(&page.d500m_btn, "500MB");
+    mobui_init_button(&page.d1g_btn);
+    mobui_button_set_text(&page.d1g_btn, "1GB");
+    mobui_init_button(&page.d1g_btn);
+    mobui_button_set_text(&page.d2g_btn, "2GB");
+    mobui_init_button(&page.d1g_btn);
+    mobui_button_set_text(&page.d4g_btn, "4GB");
+    mobui_init_button(&page.d1g_btn);
+    mobui_button_set_text(&page.d6g_btn, "6GB");
     mobui_init_button(&page.help_btn);
     mobui_button_set_text(&page.help_btn, "How to use me?");
     mobui_init_input(&page.path_inp);
@@ -416,12 +481,20 @@ void mobui_init(void) {
 #endif
     mobui_input_on_update(&page.path_inp);
     mobui_on_path_input_update();
-    mobui_place_elems();
     page.elems[0] = (mobui_elem*)&page.go_btn;
     page.elems[1] = (mobui_elem*)&page.path_inp;
     page.elems[2] = (mobui_elem*)&page.cfg_btn;
     page.elems[3] = (mobui_elem*)&page.help_btn;
-    page.elem_count = 10;
+    page.elems[4] = (mobui_elem*)&page.d50m_btn;
+    page.elems[5] = (mobui_elem*)&page.d100m_btn;
+    page.elems[6] = (mobui_elem*)&page.d250m_btn;
+    page.elems[7] = (mobui_elem*)&page.d500m_btn;
+    page.elems[8] = (mobui_elem*)&page.d1g_btn;
+    page.elems[9] = (mobui_elem*)&page.d2g_btn;
+    page.elems[10] = (mobui_elem*)&page.d4g_btn;
+    page.elems[11] = (mobui_elem*)&page.d6g_btn;
+    mobui_place_elems();
+    page.elem_count = 20;
 #ifndef MOBILE_WIP
     // IDK which is right...
     SDL_AndroidRequestPermission("READ_EXTERNAL_STORAGE");
