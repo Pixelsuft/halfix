@@ -442,7 +442,7 @@ void mobui_run_main(void) {
         }
         if (page.help_btn.was_pressed) {
             page.help_btn.was_pressed = 0;
-            SDL_OpenURL("https://github.com/Pixelsuft/halfix/blob/main/ANDROID.md");
+            SDL_OpenURL("https://github.com/Pixelsuft/halfix/blob/main/docs/android.md");
         }
         if (page.d50m_btn.was_pressed) {
             page.d50m_btn.was_pressed = 0;
