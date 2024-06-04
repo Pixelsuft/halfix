@@ -238,14 +238,38 @@ void mobui_on_path_input_update(void) {
     if (res == 0 && S_ISREG(path_stat.st_mode)) {
         page.go_btn.enabled = 1;
         page.cfg_btn.enabled = 0;
+        page.d50m_btn.enabled = 0;
+        page.d100m_btn.enabled = 0;
+        page.d250m_btn.enabled = 0;
+        page.d500m_btn.enabled = 0;
+        page.d1g_btn.enabled = 0;
+        page.d2g_btn.enabled = 0;
+        page.d4g_btn.enabled = 0;
+        page.d6g_btn.enabled = 0;
     }
     else if (res == 0 && S_ISDIR(path_stat.st_mode)) {
         page.go_btn.enabled = 0;
         page.cfg_btn.enabled = 1;
+        page.d50m_btn.enabled = 1;
+        page.d100m_btn.enabled = 1;
+        page.d250m_btn.enabled = 1;
+        page.d500m_btn.enabled = 1;
+        page.d1g_btn.enabled = 1;
+        page.d2g_btn.enabled = 1;
+        page.d4g_btn.enabled = 1;
+        page.d6g_btn.enabled = 1;
     }
     else {
         page.go_btn.enabled = 0;
         page.cfg_btn.enabled = 0;
+        page.d50m_btn.enabled = 0;
+        page.d100m_btn.enabled = 0;
+        page.d250m_btn.enabled = 0;
+        page.d500m_btn.enabled = 0;
+        page.d1g_btn.enabled = 0;
+        page.d2g_btn.enabled = 0;
+        page.d4g_btn.enabled = 0;
+        page.d6g_btn.enabled = 0;
     }
 }
 
