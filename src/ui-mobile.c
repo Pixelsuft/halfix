@@ -282,22 +282,22 @@ void mobui_place_elems(void) {
     float sm = (sx > sy) ? sy : sx;
     TTF_SetFontSize(fnt1, (int)(32.0f * sm));
     TTF_SetFontSize(fnt2, (int)(16.0f * sm));
-    SDL_FRect tr1 = { (640.0f - 65.0f) * sx, 5.0f * sm, 60.0f * sx, 60.0f * sy };
+    SDL_FRect tr1 = { (640.0f - 65.0f) * sx, 5.0f * sy, 60.0f * sx, 60.0f * sy };
     page.go_btn.base.set_rect(&page.go_btn, &tr1);
-    SDL_FRect tr2 = { 5.0f * sx, 5.0f * sm, (640.0f - 75.0f) * sx, 60.0f * sy };
+    SDL_FRect tr2 = { 5.0f * sx, 5.0f * sy, (640.0f - 75.0f) * sx, 60.0f * sy };
     page.path_inp.base.set_rect(&page.path_inp, &tr2);
-    SDL_FRect tr3 = { 5.0f * sx, 70.0f * sm, 630.0f * sx, 60.0f * sy };
+    SDL_FRect tr3 = { 5.0f * sx, 70.0f * sy, 630.0f * sx, 60.0f * sy };
     page.cfg_btn.base.set_rect(&page.cfg_btn, &tr3);
-    SDL_FRect tr4 = { 5.0f * sx, 135.0f * sm, 630.0f * sx, 60.0f * sy };
+    SDL_FRect tr4 = { 5.0f * sx, 135.0f * sy, 630.0f * sx, 60.0f * sy };
     page.help_btn.base.set_rect(&page.help_btn, &tr4);
     for (size_t i = 0; i < 4; i++) {
         mobui_button* elem = (mobui_button*)page.elems[4 + i];
-        SDL_FRect tr5 = { (5.0f + (615.0f / 4.0f + 5.0f) * (float)i) * sx, 200.0f * sm, 615.0f / 4.0f * sx, 60.0f * sy };
+        SDL_FRect tr5 = { (5.0f + (615.0f / 4.0f + 5.0f) * (float)i) * sx, 200.0f * sy, 615.0f / 4.0f * sx, 60.0f * sy };
         elem->base.set_rect(elem, &tr5);
     }
     for (size_t i = 0; i < 4; i++) {
         mobui_button* elem = (mobui_button*)page.elems[8 + i];
-        SDL_FRect tr5 = { (5.0f + (615.0f / 4.0f + 5.0f) * (float)i) * sx, 265.0f * sm, 615.0f / 4.0f * sx, 60.0f * sy };
+        SDL_FRect tr5 = { (5.0f + (615.0f / 4.0f + 5.0f) * (float)i) * sx, 265.0f * sy, 615.0f / 4.0f * sx, 60.0f * sy };
         elem->base.set_rect(elem, &tr5);
     }
 }
