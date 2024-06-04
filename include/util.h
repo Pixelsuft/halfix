@@ -22,7 +22,9 @@
 #define MAP_ANONYMOUS 0x20
 #endif
 
-// #define PREFER_SDL2
+#if !defined(_WIN32)
+#define PREFER_SDL2
+#endif
 // #define PREFER_STD
 // #define FILES_WIN32_USE_ANSI
 
