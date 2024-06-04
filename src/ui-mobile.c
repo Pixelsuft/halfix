@@ -256,7 +256,7 @@ void mobui_place_elems(void) {
     page.path_inp.base.set_rect(&page.path_inp, &tr2);
     SDL_FRect tr3 = { 5.0f * sx, 50.0f * sm, 630.0f * sx, 40.0f * sy };
     page.cfg_btn.base.set_rect(&page.cfg_btn, &tr3);
-    SDL_FRect tr4 = { 5.0f * sx, 50.0f * sm, 630.0f * sx, 40.0f * sy };
+    SDL_FRect tr4 = { 5.0f * sx, 95.0f * sm, 630.0f * sx, 40.0f * sy };
     page.help_btn.base.set_rect(&page.help_btn, &tr4);
 }
 
@@ -407,7 +407,7 @@ void mobui_init(void) {
     mobui_init_button(&page.cfg_btn);
     mobui_button_set_text(&page.cfg_btn, "Create default config here!");
     mobui_init_button(&page.help_btn);
-    mobui_button_set_text(&page.help_btn, "Create default config here!");
+    mobui_button_set_text(&page.help_btn, "How to use me?");
     mobui_init_input(&page.path_inp);
 #ifdef MOBILE_WIP
     strcpy(page.path_inp.text, ".");
