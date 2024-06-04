@@ -784,7 +784,11 @@ void display_init(void)
     window = SDL_CreateWindow(
         "halfix",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+#ifdef MOBILE_BUILD
+        800, 480,
+#else
         640, 480,
+#endif
         SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN |
 #ifdef MOBILE_BUILD
         SDL_WINDOW_RESIZABLE |

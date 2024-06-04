@@ -309,7 +309,24 @@ void mobui_copy_config(void) {
 }
 
 void mobui_new_image(size_t size_mb) {
-
+    void* buf = h_malloc(1024 * 1024 * 2);
+    if (buf == NULL)
+        return;
+    char out_path[1024 * 10];
+    size_t path_inp_len = strlen(page.path_inp.text);
+    memcpy(out_path, page.path_inp.text, path_inp_len);
+    strcpy(out_path + path_inp_len, "/hd_image.img");
+    void* out_file = h_fopen(out_path, "wb");
+    if (out_file == NULL) {
+        h_free(buf);
+        return;
+    }
+    memset(buf, 0, 1024 * 1024 * 2);
+    for (size_t i = 0; i < (size_mb / 2); i++) {
+        h_fwrite(buf, 1, 1024 * 1024 * 2, out_file);
+    }
+    h_fclose(out_file);
+    h_free(buf);
 }
 
 void mobui_run_main(void) {
