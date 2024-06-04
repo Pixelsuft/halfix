@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(MOBILE_BUILD) && !defined(MOBILE_WIP)
+#include <SDL.h>
+#endif
 
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
