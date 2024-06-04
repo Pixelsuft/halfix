@@ -449,7 +449,7 @@ void mobui_init(void) {
     page.allow_is_dir = 0;
     if (TTF_Init() < 0)
         return;
-    fnt1 = TTF_OpenFont("fonts/liberationmonob.ttf", 32);
+    fnt1 = TTF_OpenFont("fonts/liberationmonob.ttf", 30);
     fnt2 = TTF_OpenFont("fonts/liberationmonob.ttf", 16);
     if (fnt1 == NULL || fnt2 == NULL)
         return;
