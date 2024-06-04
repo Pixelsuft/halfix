@@ -11,6 +11,7 @@ vs
 *.o
 *.a
 *.exe
+*.apk
 *.dll
 *.zip
 *.rar

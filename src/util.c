@@ -77,11 +77,11 @@ void h_free(void* ptr) {
 
 void* h_fopen(const char* fp, const char* mode) {
 #if defined(_WIN32) && !defined(PREFER_SDL2) && !defined(PREFER_STD)
-    int can_write = mode[0] == 'r' && mode[1] == 'b' && mode[2] == '+'; // Hack
+    int can_write = (mode[0] == 'r' && mode[1] == 'b' && mode[2] == '+') || (mode[0] == 'w'); // Hack
 #ifdef FILES_WIN32_USE_ANSI
     HANDLE res = CreateFileA(
         fp, GENERIC_READ | (can_write ? GENERIC_WRITE : 0), FILE_SHARE_READ, NULL,
-        OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
+        (mode[0] == 'w') ? CREATE_ALWAYS : OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
     );
 #else
     int count = MultiByteToWideChar(CP_UTF8, 0, fp, (int)strlen(fp), NULL, 0);
@@ -98,7 +98,7 @@ void* h_fopen(const char* fp, const char* mode) {
     fp_buf[encode_res] = L'\0';
     HANDLE res = CreateFileW(
         fp_buf, GENERIC_READ | (can_write ? GENERIC_WRITE : 0), FILE_SHARE_READ, NULL,
-        OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
+        (mode[0] == 'w') ? CREATE_ALWAYS : OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
     );
     h_free(fp_buf);
 #endif

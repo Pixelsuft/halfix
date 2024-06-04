@@ -257,6 +257,36 @@ void mobui_place_elems(void) {
     page.cfg_btn.base.set_rect(&page.cfg_btn, &tr3);
 }
 
+void mobui_copy_config(void) {
+    void* in_f = h_fopen("default_mobile.conf", "rb");
+    if (in_f == NULL)
+        return;
+    int64_t sz = h_fsize(in_f);
+    if (sz <= 0) {
+        fclose(in_f);
+        return;
+    }
+    void* buf = h_malloc((size_t)sz + 1);
+    if (buf == NULL) {
+        fclose(in_f);
+        return;
+    }
+    h_fread(buf, 1, (size_t)sz, in_f);
+    h_fclose(in_f);
+    char out_path[1024 * 10];
+    size_t path_inp_len = strlen(page.path_inp.text);
+    memcpy(out_path, page.path_inp.text, path_inp_len);
+    strcpy(out_path + path_inp_len, "/halfix.conf");
+    void* out_f = h_fopen(out_path, "wb");
+    if (out_f == NULL) {
+        h_free(buf);
+        return;
+    }
+    h_fwrite(buf, 1, (size_t)sz, out_f);
+    h_fclose(out_f);
+    h_free(buf);
+}
+
 void mobui_run_main(void) {
     int running = 1;
     SDL_Event ev;
@@ -342,12 +372,7 @@ void mobui_run_main(void) {
         }
         if (page.cfg_btn.was_pressed) {
             page.cfg_btn.was_pressed = 0;
-            char cmd_buf[10 * 1024] = "cp default_mobile.conf \"";
-            size_t path_len = strlen(page.path_inp.text);
-            memcpy(cmd_buf + 24, page.path_inp.text, path_len + 1);
-            cmd_buf[24 + path_len] = '"';
-            cmd_buf[25 + path_len] = '\0';
-            system(cmd_buf);
+            mobui_copy_config();
         }
         SDL_RenderPresent(ren);
     }
@@ -388,6 +413,7 @@ void mobui_init(void) {
     page.elems[2] = (mobui_elem*)&page.cfg_btn;
     page.elem_count = 10;
 #ifndef MOBILE_WIP
+    // IDK which is right...
     SDL_AndroidRequestPermission("READ_EXTERNAL_STORAGE");
     SDL_AndroidRequestPermission("permission.READ_EXTERNAL_STORAGE");
     SDL_AndroidRequestPermission("android.permission.READ_EXTERNAL_STORAGE");
