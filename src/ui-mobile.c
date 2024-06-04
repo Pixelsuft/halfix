@@ -271,6 +271,11 @@ void mobui_place_elems(void) {
         SDL_FRect tr5 = { (5.0f + (615.0f / 4.0f + 5.0f) * (float)i) * sx, 140.0f * sm, 615.0f / 4.0f * sx, 40.0f * sy };
         elem->base.set_rect(elem, &tr5);
     }
+    for (size_t i = 0; i < 4; i++) {
+        mobui_button* elem = (mobui_button*)page.elems[8 + i];
+        SDL_FRect tr5 = { (5.0f + (615.0f / 4.0f + 5.0f) * (float)i) * sx, 185.0f * sm, 615.0f / 4.0f * sx, 40.0f * sy };
+        elem->base.set_rect(elem, &tr5);
+    }
 }
 
 void mobui_copy_config(void) {
@@ -465,11 +470,11 @@ void mobui_init(void) {
     mobui_button_set_text(&page.d500m_btn, "500MB");
     mobui_init_button(&page.d1g_btn);
     mobui_button_set_text(&page.d1g_btn, "1GB");
-    mobui_init_button(&page.d1g_btn);
+    mobui_init_button(&page.d2g_btn);
     mobui_button_set_text(&page.d2g_btn, "2GB");
-    mobui_init_button(&page.d1g_btn);
+    mobui_init_button(&page.d4g_btn);
     mobui_button_set_text(&page.d4g_btn, "4GB");
-    mobui_init_button(&page.d1g_btn);
+    mobui_init_button(&page.d6g_btn);
     mobui_button_set_text(&page.d6g_btn, "6GB");
     mobui_init_button(&page.help_btn);
     mobui_button_set_text(&page.help_btn, "How to use me?");
