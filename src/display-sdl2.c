@@ -185,7 +185,7 @@ void display_update(int scanline_start, int scanlines)
         };
         SDL_RenderCopyF(renderer, texture, &src_rect, &dst_rect);
 #endif
-#ifdef true
+#ifdef MOBILE_BUILD
         if (!mouse_enabled) {
             SDL_FRect rect = { 0.0f, 0.0f, 0.1f * (float)ren_w, 0.1f * (float)ren_h };
             SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);

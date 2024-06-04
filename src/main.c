@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 
     char* configfile = "default.conf";
     int filesz, realtime = 0;
-    FILE* f;
+    void* f;
     char* buf;
 
     if (argc == 1)
@@ -126,15 +126,15 @@ parse_config:
     if (configfile == NULL)
         return 0;
 #endif
-    f = fopen(configfile, "rb");
+    f = h_fopen(configfile, "rb");
     if (!f) {
         h_fprintf(stderr, "Cannot open configuration file %s\n", configfile);
         return -1;
     }
-    fseek(f, 0, SEEK_END);
-    buf = h_malloc((filesz = ftell(f)) + 1);
-    fseek(f, 0, SEEK_SET);
-    if (fread(buf, filesz, 1, f) != 1) {
+    h_fseek(f, 0, SEEK_END);
+    buf = h_malloc((filesz = h_ftell(f)) + 1);
+    h_fseek(f, 0, SEEK_SET);
+    if (h_fread(buf, filesz, 1, f) != 1) {
         perror("fread");
         h_fprintf(stderr, "Failed to read configuration file\n");
         return -1;
@@ -142,7 +142,7 @@ parse_config:
 
     buf[filesz] = 0;
 
-    fclose(f);
+    h_fclose(f);
 
     int result = parse_cfg(&pc, buf);
     h_free(buf);

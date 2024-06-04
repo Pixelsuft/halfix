@@ -16,19 +16,19 @@
 static int load_file(struct loaded_file* lf, char* path)
 {
 #ifndef EMSCRIPTEN
-    FILE* f = fopen(path, "rb");
+    void* f = h_fopen(path, "rb");
     if (!f)
         return -1;
-    fseek(f, 0, SEEK_END);
-    int l = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    h_fseek(f, 0, SEEK_END);
+    int l = h_ftell(f);
+    h_fseek(f, 0, SEEK_SET);
 
     lf->length = l;
     lf->data = aalloc(l, 4096);
-    if (fread(lf->data, l, 1, f) != 1)
+    if (h_fread(lf->data, l, 1, f) != 1)
         return -1;
 
-    fclose(f);
+    h_fclose(f);
     return 0;
 #else
     EM_ASM_({
