@@ -82,7 +82,6 @@ void* h_calloc(size_t elem_count, size_t elem_size);
 void* h_realloc(void* ptr, size_t new_size);
 void h_free(void* ptr);
 
-// TODO
 void* h_fopen(const char* fp, const char* mode);
 int h_fclose(void* file);
 size_t h_fread(void* buf, size_t elem_size, size_t elem_count, void* file);

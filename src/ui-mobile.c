@@ -29,6 +29,7 @@ typedef struct {
     size_t elem_count;
     mobui_button go_btn;
     mobui_button cfg_btn;
+    mobui_button help_btn;
     mobui_input path_inp;
     int allow_to_start;
     int allow_is_dir;
@@ -255,6 +256,8 @@ void mobui_place_elems(void) {
     page.path_inp.base.set_rect(&page.path_inp, &tr2);
     SDL_FRect tr3 = { 5.0f * sx, 50.0f * sm, 630.0f * sx, 40.0f * sy };
     page.cfg_btn.base.set_rect(&page.cfg_btn, &tr3);
+    SDL_FRect tr4 = { 5.0f * sx, 50.0f * sm, 630.0f * sx, 40.0f * sy };
+    page.help_btn.base.set_rect(&page.help_btn, &tr4);
 }
 
 void mobui_copy_config(void) {
@@ -374,6 +377,10 @@ void mobui_run_main(void) {
             page.cfg_btn.was_pressed = 0;
             mobui_copy_config();
         }
+        if (page.help_btn.was_pressed) {
+            page.help_btn.was_pressed = 0;
+            SDL_OpenURL("https://github.com/Pixelsuft/halfix/blob/main/ANDROID.md");
+        }
         SDL_RenderPresent(ren);
     }
     for (size_t i = 0; i < page.elem_count; i++) {
@@ -399,6 +406,8 @@ void mobui_init(void) {
     mobui_button_set_text(&page.go_btn, "GO!");
     mobui_init_button(&page.cfg_btn);
     mobui_button_set_text(&page.cfg_btn, "Create default config here!");
+    mobui_init_button(&page.help_btn);
+    mobui_button_set_text(&page.help_btn, "Create default config here!");
     mobui_init_input(&page.path_inp);
 #ifdef MOBILE_WIP
     strcpy(page.path_inp.text, ".");
@@ -411,6 +420,7 @@ void mobui_init(void) {
     page.elems[0] = (mobui_elem*)&page.go_btn;
     page.elems[1] = (mobui_elem*)&page.path_inp;
     page.elems[2] = (mobui_elem*)&page.cfg_btn;
+    page.elems[3] = (mobui_elem*)&page.help_btn;
     page.elem_count = 10;
 #ifndef MOBILE_WIP
     // IDK which is right...

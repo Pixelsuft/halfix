@@ -450,6 +450,8 @@ void display_handle_events(void)
         case SDL_KEYDOWN: {
             display_set_title();
             if (mouse_enabled) {
+                if (event.key.keysym.sym == SDLK_AC_BACK)
+                    mouse_enabled = 0;
                 display_kbd_send_key(sdl_keysym_to_scancode(event.key.keysym.sym));
             }
             else {
