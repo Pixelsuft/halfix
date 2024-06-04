@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(MOBILE_BUILD) && !defined(MOBILE_WIP)
+#include <SDL.h>
+#endif
 
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
@@ -66,11 +69,7 @@ static void generic_help(const struct option* options)
     }
 }
 
-#if defined(MOBILE_BUILD) && !defined(MOBILE_WIP)
-int SDL_main(int argc, char* argv[])
-#else
-int main(int argc, char* argv[])
-#endif
+int main(int argc, char** argv)
 {
     UNUSED(argc);
     UNUSED(argv);
