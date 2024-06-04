@@ -394,6 +394,9 @@ void mobui_init(void) {
     SDL_AndroidRequestPermission("WRITE_EXTERNAL_STORAGE");
     SDL_AndroidRequestPermission("permission.WRITE_EXTERNAL_STORAGE");
     SDL_AndroidRequestPermission("android.permission.WRITE_EXTERNAL_STORAGE");
+    SDL_AndroidRequestPermission("MANAGE_EXTERNAL_STORAGE");
+    SDL_AndroidRequestPermission("permission.MANAGE_EXTERNAL_STORAGE");
+    SDL_AndroidRequestPermission("android.permission.MANAGE_EXTERNAL_STORAGE");
 #endif
 }
 
