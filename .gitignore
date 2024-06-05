@@ -3,6 +3,7 @@
 .gradle
 .idea
 __pycache__
+keystore
 node_modules
 Release
 Debug
