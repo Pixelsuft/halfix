@@ -7,6 +7,8 @@ keystore
 node_modules
 Release
 Debug
+debug
+release
 x64
 vs
 SDL*
