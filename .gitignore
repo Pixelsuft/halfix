@@ -1,6 +1,7 @@
 .vscode
 .vs
 .gradle
+.idea
 __pycache__
 node_modules
 Release
