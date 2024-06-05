@@ -26,6 +26,7 @@ android/app/src/main/assets/*
 *.a
 *.exe
 *.apk
+*.aab
 *.dll
 *.zip
 *.rar
