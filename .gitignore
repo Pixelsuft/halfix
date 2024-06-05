@@ -6,8 +6,17 @@ Release
 Debug
 x64
 vs
+SDL*
 [Bb]uild/
 [Bb]uild-*/
+android/app/jni/src/*.c
+android/app/jni/src/cpu
+android/app/jni/src/emscripten
+android/app/jni/src/hardware
+android/app/jni/src/host
+android/app/jni/src/kvm
+android/app/src/main/java/org/libsdl/app
+android/app/src/main/assets/*
 *.o
 *.a
 *.exe
@@ -27,8 +36,8 @@ vs
 *.old
 *.bat
 test*.conf
-#seabios.bin
-#seavgabios.bin
-#et4000.bin
-#86c764x1.bin
+# seabios.bin
+# seavgabios.bin
+# et4000.bin
+# 86c764x1.bin
 halfix
