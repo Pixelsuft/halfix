@@ -104,7 +104,7 @@ void io_register_reset(io_reset cb)
 {
     if (io_reset_ptr == MAX_RESETS) {
         IO_LOG("Too many I/O reset callbacks registered\n");
-        abort();
+        // abort();
     }
     resets[io_reset_ptr++] = cb;
 }
@@ -238,7 +238,7 @@ void io_register_mmio_read(uint32_t start, uint32_t length, io_read b, io_read w
 {
     if (tf && mmio_pos[0] == MAX_MMIO) {
         IO_LOG("Too many read areas\n");
-        abort();
+        // abort();
     }
     mmio[mmio_pos[0]].begin = start;
     mmio[mmio_pos[0]].end = start + length;
@@ -252,7 +252,7 @@ void io_register_mmio_write(uint32_t start, uint32_t length, io_write b, io_writ
 {
     if (tf && mmio_pos[1] == MAX_MMIO) {
         IO_LOG("Too many write areas\n");
-        abort();
+        // abort();
     }
 
     mmio[mmio_pos[1]].begin = start;
@@ -284,7 +284,7 @@ void io_handle_mmio_write(uint32_t addr, uint32_t data, int size)
             return;
         }
     }
-    abort();
+    // abort();
 }
 uint32_t io_handle_mmio_read(uint32_t addr, int size)
 {
@@ -296,7 +296,8 @@ uint32_t io_handle_mmio_read(uint32_t addr, int size)
         }
     }
     IO_LOG(" ??? should not be here ??? Unknown mmio read: %08x\n", addr);
-    abort();
+    return 0;
+    // abort();
 }
 
 // Checks if address is mmapped for reading

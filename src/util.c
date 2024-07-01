@@ -85,13 +85,13 @@ void* h_fopen(const char* fp, const char* mode) {
         (mode[0] == 'w') ? CREATE_ALWAYS : OPEN_EXISTING,  FILE_ATTRIBUTE_NORMAL, NULL
     );
 #else
-    int count = MultiByteToWideChar(CP_UTF8, 0, fp, (int)strlen(fp), NULL, 0);
+    int count = MultiByteToWideChar(CP_UTF8, 0, fp, (int)h_strlen(fp), NULL, 0);
     if (count <= 0)
         return NULL;
     wchar_t* fp_buf = h_malloc((size_t)(count + 1) * sizeof(wchar_t));
     if (fp_buf == NULL)
         return NULL;
-    int encode_res = MultiByteToWideChar(CP_UTF8, 0, fp, (int)strlen(fp), fp_buf, count);
+    int encode_res = MultiByteToWideChar(CP_UTF8, 0, fp, (int)h_strlen(fp), fp_buf, count);
     if (encode_res <= 0) {
         h_free(fp_buf);
         return NULL;
@@ -271,6 +271,89 @@ void* h_memset(void* dst, int ch, size_t n) {
 #endif
 }
 
+size_t h_strlen(const char* str) {
+#if defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_strlen(str);
+#elif !defined(NOSTDLIB)
+    return strlen(str);
+#else
+    uint8_t* my_str = (uint8_t*)str;
+    while (*my_str)
+        my_str++;
+    return (size_t)my_str - (size_t)str;
+#endif
+}
+
+int h_strcmp(const char* str1, const char* str2) {
+#if defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_strcmp(str1, str2);
+#elif !defined(NOSTDLIB)
+    return strcmp(str1, str2);
+#else
+    uint8_t* my_str1 = (uint8_t*)str1;
+    uint8_t* my_str2 = (uint8_t*)str2;
+    while (*my_str1 && *my_str2) {
+        if (*my_str1 != *my_str2)
+            return 1337;
+    }
+    return (*my_str1 == *my_str2) ? 0 : 1337;
+#endif
+}
+
+#ifdef NOSTDLIB
+void* memset(void* dst, int ch, size_t n) {
+    return h_memset(dst, ch, n);
+}
+
+void* memcpy(void* dst, const void* src, size_t n) {
+    return h_memcpy(dst, src, n);
+}
+
+int puts(const char* str) {
+    UNUSED(str);
+    return 0;
+}
+
+void perror(const char* str) {
+    UNUSED(str);
+}
+
+void exit(int code) {
+#ifdef _WIN32
+    ExitProcess(code);
+#else
+    UNUSED(code);
+#endif
+}
+
+void abort() {
+    exit(1);
+}
+
+time_t time(time_t* timer) {
+    UNUSED(timer);
+#ifdef _WIN32
+    return (time_t)GetTicks();
+#elif defined(PREFER_SDL2)
+    return (time_t)SDL_GetTicks64();
+#else
+    return 0;
+#endif
+}
+
+time_t mktime(struct tm* tp) {
+    return (tp->tm_sec + (tp->tm_min + (tp->tm_hour + tp->tm_yday * 24) * 60) * 60);
+}
+
+struct tm* localtime(const time_t* time) {
+    static struct tm res;
+    h_memset(&res, 0, sizeof(struct tm));
+    res.tm_sec = *time % 60;
+    res.tm_min = (*time / 60) % 60;
+    return &res;
+}
+#endif
+
 static void qmalloc_slabs_resize(void)
 {
     qmalloc_slabs = h_realloc(qmalloc_slabs, qmalloc_slabs_size * sizeof(void*));
@@ -393,11 +476,11 @@ void util_debug(void)
 #endif
 #else
     h_printf("Breakpoint reached -- aborting\n");
-    abort();
+    // abort();
 #endif
 }
 void util_abort(void)
 {
     display_release_mouse();
-    abort();
+    // abort();
 }

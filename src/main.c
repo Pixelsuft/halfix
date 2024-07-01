@@ -69,11 +69,8 @@ static void generic_help(const struct option* options)
     }
 }
 
-int main(int argc, char** argv)
+int main(int argc, char* argv[])
 {
-    UNUSED(argc);
-    UNUSED(argv);
-
     char* configfile = "default.conf";
     int filesz, realtime = 0;
     void* f;
@@ -90,7 +87,7 @@ int main(int argc, char** argv)
 
             if (!o->name)
                 break;
-            if (!strcmp(long_ver ? o->name : o->alias, arg + (long_ver + 1))) {
+            if (!h_strcmp(long_ver ? o->name : o->alias, arg + (long_ver + 1))) {
                 char* data;
                 if (o->flags & HASARG) {
                     if (!(data = argv[++i])) {
@@ -179,3 +176,9 @@ parse_config:
     }
 #endif
 }
+
+#if defined(NOSTDLIB) && 0
+void _start(void) {
+    main(0, NULL);
+}
+#endif

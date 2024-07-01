@@ -751,7 +751,8 @@ static uint32_t cmpps(float32 dest, float32 src, int cmp)
     case 7:
         return -float32_ordered_quiet(dest, src, &status);
     }
-    abort();
+    return 0;
+    // abort();
 }
 static uint64_t cmppd(float64 dest, float64 src, int cmp)
 {
@@ -773,7 +774,8 @@ static uint64_t cmppd(float64 dest, float64 src, int cmp)
     case 7:
         return -float64_ordered_quiet(dest, src, &status);
     }
-    abort();
+    return 0;
+    // abort();
 }
 static void shufps(void* dest, void* src, int imm)
 {

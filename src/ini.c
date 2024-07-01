@@ -68,7 +68,7 @@ static inline char* slice_string(char* y, int start, int end)
 static struct ini_section* ini_parse(char* x)
 {
     int state = STATE_DEFAULT,
-        length = (int)strlen(x),
+        length = (int)h_strlen(x),
         i = 0, strstart = 0, strend = 0, include_whitespace = 0;
     struct ini_section *result = h_calloc(1, sizeof(struct ini_section)), *head = result;
     h_memset(result, 0, sizeof(struct ini_section));
@@ -156,7 +156,7 @@ static struct ini_section* get_section(struct ini_section* sect, char* name)
 {
     while (sect) {
         if (sect->name) {
-            if (!strcmp(sect->name, name))
+            if (!h_strcmp(sect->name, name))
                 return sect;
         }
         sect = sect->next;
@@ -167,7 +167,7 @@ static char* get_field_string(struct ini_section* sect, char* name)
 {
     struct ini_field* f = sect->fields;
     while (f) {
-        if (!strcmp(f->name, name))
+        if (!h_strcmp(f->name, name))
             return f->data;
         f = f->next;
     }
@@ -180,7 +180,7 @@ static int get_field_enum(struct ini_section* sect, char* name, const struct ini
         return def;
     int i = 0;
     while (vals[i].name) {
-        if (!strcmp(vals[i].name, x))
+        if (!h_strcmp(vals[i].name, x))
             return vals[i].value;
         i++;
     }
@@ -349,7 +349,7 @@ static char* dupstr(char* src)
 {
     if (!src)
         return NULL;
-    int len = (int)strlen(src);
+    int len = (int)h_strlen(src);
     char* res = h_malloc(len + 1);
     h_strcpy(res, src);
     return res;

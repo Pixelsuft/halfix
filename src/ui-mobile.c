@@ -192,7 +192,7 @@ void mobui_input_on_down(void* elem, SDL_FPoint* pos) {
 
 void mobui_input_on_update(mobui_input* this) {
     SDL_Color col = { COL1_R, COL1_G, COL1_B, 255 };
-    SDL_Surface* surf = TTF_RenderText_Blended(fnt2, strlen(this->text) > 0 ? this->text : " ", col);
+    SDL_Surface* surf = TTF_RenderText_Blended(fnt2, h_strlen(this->text) > 0 ? this->text : " ", col);
     if (surf == NULL)
         return;
     int tw = surf->w;
@@ -319,7 +319,7 @@ void mobui_copy_config(void) {
     h_fread(buf, 1, (size_t)sz, in_f);
     h_fclose(in_f);
     char out_path[1024 * 10];
-    size_t path_inp_len = strlen(page.path_inp.text);
+    size_t path_inp_len = h_strlen(page.path_inp.text);
     h_memcpy(out_path, page.path_inp.text, path_inp_len);
     h_strcpy(out_path + path_inp_len, "/halfix.conf");
     void* out_f = h_fopen(out_path, "wb");
@@ -337,7 +337,7 @@ void mobui_new_image(size_t size_mb) {
     if (buf == NULL)
         return;
     char out_path[1024 * 10];
-    size_t path_inp_len = strlen(page.path_inp.text);
+    size_t path_inp_len = h_strlen(page.path_inp.text);
     h_memcpy(out_path, page.path_inp.text, path_inp_len);
     h_strcpy(out_path + path_inp_len, "/hd_image.img");
     void* out_file = h_fopen(out_path, "wb");
@@ -394,7 +394,7 @@ void mobui_run_main(void) {
                     break;
                 }
                 case SDL_TEXTINPUT: {
-                    h_memcpy(page.path_inp.text + strlen(page.path_inp.text), ev.text.text, strlen(ev.text.text));
+                    h_memcpy(page.path_inp.text + h_strlen(page.path_inp.text), ev.text.text, h_strlen(ev.text.text));
                     mobui_input_on_update(&page.path_inp);
                     mobui_on_path_input_update();
                     break;
@@ -402,7 +402,7 @@ void mobui_run_main(void) {
                 case SDL_KEYDOWN: {
                     if (ev.key.keysym.sym == SDLK_BACKSPACE) {
                         if (page.path_inp.text[0] != '\0') {
-                            page.path_inp.text[strlen(page.path_inp.text) - 1] = '\0';
+                            page.path_inp.text[h_strlen(page.path_inp.text) - 1] = '\0';
                             mobui_input_on_update(&page.path_inp);
                             mobui_on_path_input_update();
                         }

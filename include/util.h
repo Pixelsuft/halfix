@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #ifdef SDL2_BUILD
 #if defined(_WIN32) && !defined(_MSC_VER)
 #define SDL_MAIN_HANDLED
@@ -25,7 +26,6 @@
 #if !defined(_WIN32)
 #define PREFER_SDL2
 #endif
-#define NOSTDLIB
 // #define PREFER_STD
 // #define FILES_WIN32_USE_ANSI
 
@@ -95,6 +95,18 @@ void* h_memcpy(void* dst, const void* src, size_t n);
 void* h_strcpy(void* dst, const void* src);
 void* h_memmove(void* dst, const void* src, size_t n);
 void* h_memset(void* dst, int ch, size_t n);
+size_t h_strlen(const char* str);
+int h_strcmp(const char* str1, const char* str2);
+
+#ifdef NOSTDLIB
+int puts(const char* str);
+void perror(const char* str);
+void exit(int code);
+
+time_t time(time_t* timer);
+time_t mktime(struct tm* tp);
+struct tm* localtime(const time_t* time);
+#endif
 
 // Functions that mess around with timing
 void add_now(itick_t a);

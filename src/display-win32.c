@@ -599,7 +599,7 @@ void display_set_resolution(int width, int height)
     ReleaseDC(hWnd, hdc);
     if (!hBmp) {
         // h_printf("Failed to create DIB section: %p [%dx%d]\n", dc_dest, width, height);
-        abort();
+        // abort();
     }
     pixels = pvBits;
 

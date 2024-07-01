@@ -211,7 +211,7 @@ void util_abort(void)
 {
     // Notify host and then abort
     onabort();
-    abort();
+    // abort();
 }
 
 // pic.c

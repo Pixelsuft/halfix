@@ -180,7 +180,8 @@ static int pit_get_out(struct pit_channel* pit)
     case 5:
         return current_counter != 0;
     }
-    abort();
+    return 0;
+    // abort();
 }
 
 static int pit_get_count(struct pit_channel* pit)

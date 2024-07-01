@@ -390,7 +390,8 @@ static void* dma_get_buf(int line)
     default:
         DMA_FATAL("Unknown line: %d\n", line);
     }
-    abort();
+    return NULL;
+    // abort();
 }
 static void dma_done(int line)
 {

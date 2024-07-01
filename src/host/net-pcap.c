@@ -25,7 +25,7 @@ int net_init(char* netarg)
 
     for (temp = devlist; temp; temp = temp->next) {
         if (netarg) {
-            if (strcmp(temp->name, netarg) == 0) {
+            if (h_strcmp(temp->name, netarg) == 0) {
                 intf = temp->name;
                 break;
             }

@@ -8,14 +8,14 @@
 // In Halfix, it releases the mouse from SDL before aborting, which makes debugging in GDB infinitely easier.
 void util_abort(void)
 {
-    abort();
+    // abort();
 }
 
 // Convert a pointer p to a physical address that the code cache can work with
 uint32_t cpulib_ptr_to_phys(void* p)
 {
     UNUSED(p);
-    abort();
+    // abort();
 }
 
 // Set to 1 if the APIC is enabled.
@@ -47,7 +47,7 @@ void io_register_reset(void* cb)
 void* get_phys_ram_ptr(uint32_t addr, int write)
 {
     UNUSED(addr | write);
-    abort();
+    // abort();
 }
 
 // Given a linear address, convert to a physical address (useful for process emulators and mmap).
@@ -72,7 +72,7 @@ void* get_lin_ram_ptr(uint32_t addr, int flags, int* fault)
     *fault = 0;
     UNUSED(addr | flags);
     UNUSED(fault);
-    abort();
+    // abort();
 }
 
 // Handle a MMIO read. Possible sizes are 0 (byte), 1 (word), and 2 (dword).

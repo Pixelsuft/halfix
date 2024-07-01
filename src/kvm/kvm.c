@@ -347,7 +347,7 @@ int cpu_run(int cycles)
             CPU_FATAL("Failed to enter: %llx\n", kvm_run->fail_entry.hardware_entry_failure_reason);
         default:
             h_printf("todo: exit reason %d\n", kvm_run->exit_reason);
-            abort();
+            // abort();
             break;
         }
         goto top;
@@ -365,7 +365,7 @@ uint32_t cpu_read_phys(uint32_t addr)
 void cpu_init_dma(uint32_t x)
 {
     UNUSED(x);
-    abort();
+    // abort();
 }
 
 void cpu_write_mem(uint32_t addr, void* data, uint32_t length)

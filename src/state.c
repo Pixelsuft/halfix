@@ -69,7 +69,7 @@ static uint32_t read32(struct rstream* r)
 }
 static char* readstr(struct rstream* r)
 {
-    int length = (int)strlen((void*)&r->buf[r->pos]) + 1;
+    int length = (int)h_strlen((void*)&r->buf[r->pos]) + 1;
     char* dest = h_malloc(length);
     h_memcpy(dest, &r->buf[r->pos], length);
     r->pos += length;
@@ -122,7 +122,7 @@ static void wstream_destroy(struct wstream* w)
 static void wstream_grow(struct wstream* w)
 {
     w->bufsize <<= 1;
-    w->buf = realloc(w->buf, w->bufsize);
+    w->buf = h_realloc(w->buf, w->bufsize);
 }
 static void write8(struct wstream* w, uint8_t a)
 {
@@ -150,7 +150,7 @@ static void write32(struct wstream* w, uint32_t a)
 }
 static void writestr(struct wstream* w, char* str)
 {
-    int len = (int)strlen(str) + 1;
+    int len = (int)h_strlen(str) + 1;
     if ((w->pos + len) >= w->bufsize)
         wstream_grow(w);
     h_memcpy(&w->buf[w->pos], str, len);
@@ -187,7 +187,7 @@ static struct bjson_key_value* get_value(struct bjson_object* o, char* key)
     for (unsigned int i = 0; i < o->length; i++) {
         if (!o->keys[i].key)
             break; // Is NULL pointer, invalid
-        if (!strcmp(key, o->keys[i].key))
+        if (!h_strcmp(key, o->keys[i].key))
             return &o->keys[i];
     }
     return NULL;
@@ -215,7 +215,7 @@ struct bjson_object* state_get_object(struct bjson_object* o, char* key)
 
 static char* dupstr(char* v)
 {
-    int len = (int)strlen(v) + 1;
+    int len = (int)h_strlen(v) + 1;
     char* res = h_malloc(len + 1);
     h_memcpy(res, v, len);
     return res;
@@ -228,7 +228,7 @@ static struct bjson_key_value* set_value(struct bjson_object* o, char* key)
     for (; i < o->length; i++) {
         if (!o->keys[i].key)
             break;
-        if (!strcmp(key, o->keys[i].key)) {
+        if (!h_strcmp(key, o->keys[i].key)) {
             STATE_FATAL("Key %s already in object\n", key);
         }
     }
@@ -317,7 +317,7 @@ void state_string(struct bjson_object* cur, char* name, char** val)
         *val = dest;
     } else {
         char* src = *val;
-        int length = (int)strlen(src) + 1;
+        int length = (int)h_strlen(src) + 1;
 
         struct bjson_data arr;
         state_init_bjson_mem(&arr, length);
@@ -430,7 +430,7 @@ void state_file(int size, char* name, void* ptr)
 }
 static char* normalize(char* a)
 {
-    int len = (int)strlen(a);
+    int len = (int)h_strlen(a);
     char* res;
     if (a[len - 1] == PATHSEP) {
         res = h_malloc(len);
@@ -542,7 +542,7 @@ char* state_get_path_base(void)
 
 void state_mkdir(char* path)
 {
-#ifndef EMSCRIPTEN
+#if !defined(EMSCRIPTEN) && !defined(NOSTDLIB)
 #ifdef _WIN32
     // TODO: Unicode
     if (!CreateDirectoryA(path, NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {

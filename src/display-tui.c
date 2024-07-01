@@ -587,7 +587,7 @@ static void display_blit_statusbar(void)
 
 static int make_menu_item(int index, int pos, char* name, topmenu_cb_t cbclick, struct menubar_listing* menulist)
 {
-    int len = strlen(name);
+    int len = h_strlen(name);
     menubar[index].name = name;
     menubar[index].cbclick = cbclick;
     menubar[index].cpos = pos;
@@ -654,7 +654,7 @@ static void realloc_bar_sizes(int width)
     for (int i = 0; i < MAX_MENUBAR_ITEMS; i++) {
         if (!menubar[i].name)
             continue;
-        int rpos = menubar[i].cpos << 1, len = strlen(menubar[i].name);
+        int rpos = menubar[i].cpos << 1, len = h_strlen(menubar[i].name);
         // Add spacer before
         menubar_textbuffer[rpos++] = ' ';
         menubar_textbuffer[rpos++] = 0x70;
@@ -797,7 +797,7 @@ static struct menubar_listing* init_menubar_listing(int sz)
 
 static int add_menu_entry(struct menubar_listing* mbl, int idx, char* value, menu_click_cb cb)
 {
-    int width = strlen(value);
+    int width = h_strlen(value);
     if (width > mbl->max_width)
         mbl->max_width = width;
     mbl->entries[idx] = value;

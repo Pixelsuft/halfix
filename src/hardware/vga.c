@@ -18,7 +18,6 @@
 #define VGA_FATAL(x, ...)          \
     do {                           \
         VGA_LOG(x, ##__VA_ARGS__); \
-        abort();                   \
     } while (0)
 
 #define VBE_LFB_BASE 0xE0000000
@@ -948,6 +947,7 @@ static
         VGA_LOG("Unknown read: 0x%x\n", port);
         return -1;
     }
+    return 0;
 }
 
 static inline uint8_t bpp4_to_offset(uint8_t i, uint8_t j, uint8_t k)

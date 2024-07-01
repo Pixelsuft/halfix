@@ -128,7 +128,7 @@ static void drive_get_path(char* dest, char* pathbase, uint32_t x)
 {
     char temp[16];
     h_sprintf(temp, "blk%08x.bin", x);
-    join_path(dest, (int)strlen(pathbase), pathbase, temp);
+    join_path(dest, (int)h_strlen(pathbase), pathbase, temp);
 }
 
 // ============================================================================
@@ -624,7 +624,7 @@ static void drive_internal_state(void* this_ptr, char* pn)
         int existing_add = 1;
         for (unsigned int i = 0; i < this->path_count; i++) {
             h_printf("%s %s\n", pathname, this->paths[i]);
-            if (!strcmp(pathname, this->paths[i])) {
+            if (!h_strcmp(pathname, this->paths[i])) {
                 existing_add = 0;
                 break;
             }
@@ -634,7 +634,7 @@ static void drive_internal_state(void* this_ptr, char* pn)
 
         int pwdindex = 0, pwdinc = 1;
         for (unsigned int i = 0; i < this->path_count; i++) {
-            if (!strcmp(pathname, this->paths[i]))
+            if (!h_strcmp(pathname, this->paths[i]))
                 pwdinc = 0; // Stop counting
             pwdindex += pwdinc;
             h_sprintf(temp, "path%d", i);
@@ -668,7 +668,7 @@ static
 {
     struct drive_internal_info* drv = h_malloc(sizeof(struct drive_internal_info));
 
-    int len = (int)strlen(filename);
+    int len = (int)h_strlen(filename);
     void* pathbase = h_malloc(len + 1);
     h_strcpy(pathbase, filename);
 
@@ -737,7 +737,7 @@ function join_path(a, b) {
 int drive_init(struct drive_info* info, char* filename)
 {
     char buf[1024];
-    int filelen = (int)strlen(filename);
+    int filelen = (int)h_strlen(filename);
     if (filelen > 1000)
         return -1;
     join_path(buf, filelen, filename, "info.dat");
@@ -959,15 +959,21 @@ int drive_autodetect_type(char* path)
 {
     struct stat statbuf;
     // Check for URL
+#ifndef NOSTDLIB
     if (strstr(path, "http://") != NULL || strstr(path, "https://") != NULL)
         return 2;
+#endif
     void* fh = h_fopen(path, "r");
     if (!fh)
         return -1;
-    if(stat(path, &statbuf)){
+#ifdef NOSTDLIB
+    return -1;
+#else
+    if(stat(path, &statbuf)) {
         h_fclose(fh);
         return -1;
     }
+#endif
     h_fclose(fh);
     if(S_ISDIR(statbuf.st_mode))
         return 0; // Chunked file 
