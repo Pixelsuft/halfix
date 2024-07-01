@@ -386,7 +386,7 @@ void display_send_hotkey(int hotkey, int down)
     }
 }
 
-#if defined(MOBILE_BUILD) || 1
+#if defined(MOBILE_BUILD)
 static int64_t finger_ids[5] = { -1337, -1337, -1337, -1337, -1337 };
 
 void display_on_touch_event(int64_t finger_id, SDL_FPoint* pos, int event_id) {
