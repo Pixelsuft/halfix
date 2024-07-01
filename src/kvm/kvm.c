@@ -98,7 +98,7 @@ int cpu_init(void)
     }
 
     struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
+    h_memset(&sa, 0, sizeof(sa));
     sa.sa_handler = sig_handler;
     sigaction(SIGALRM, &sa, NULL);
 
@@ -150,7 +150,7 @@ void* cpu_get_ram_ptr(void) { return mem; }
 int cpu_add_rom(int addr, int length, void* data)
 {
     if ((uint32_t)addr < memsz) {
-        memcpy(mem + addr, data, length);
+        h_memcpy(mem + addr, data, length);
         return kvm_register_area(KVM_MEM_READONLY, addr, mem + addr, (length + 0xFFF) & ~0xFFF);
     }
     return kvm_register_area(KVM_MEM_READONLY, addr, data, (length + 0xFFF) & ~0xFFF);
@@ -370,7 +370,7 @@ void cpu_init_dma(uint32_t x)
 
 void cpu_write_mem(uint32_t addr, void* data, uint32_t length)
 {
-    memcpy(data + addr, data, length);
+    h_memcpy(data + addr, data, length);
 }
 
 void cpu_request_fast_return(int e)

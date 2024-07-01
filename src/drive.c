@@ -115,12 +115,12 @@ struct drive_info_file {
 // Join two paths together
 static void join_path(char* dest, int alen, char* a, char* b)
 {
-    strcpy(dest, a);
+    h_strcpy(dest, a);
     if (dest[alen - 1] != PATHSEP) {
         dest[alen] = PATHSEP;
         alen++;
     }
-    strcpy(dest + alen, b);
+    h_strcpy(dest + alen, b);
 
 }
 
@@ -148,7 +148,7 @@ static int drive_read_block_internal(struct drive_internal_info* this, struct bl
     },
         this->drive_id, position / this->block_size, buffer, blockoffs, length);
 #else
-    memcpy(buffer, info->data + blockoffs, length);
+    h_memcpy(buffer, info->data + blockoffs, length);
     return 0;
 #endif
 }
@@ -241,7 +241,7 @@ static int drive_internal_read_remote(struct drive_internal_info* this, struct b
 
 // If we want to run in sync mode, then copy the data
 #ifndef SIMULATE_ASYNC_ACCESS
-    memcpy(buffer, blockinfo->data + (pos % this->block_size), length);
+    h_memcpy(buffer, blockinfo->data + (pos % this->block_size), length);
 #else
     UNUSED(buffer);
     UNUSED(length);
@@ -365,7 +365,7 @@ static int drive_internal_write_remote(struct drive_internal_info* this, struct 
 
 // If we want to run in sync mode, then copy the data
 #ifndef SIMULATE_ASYNC_ACCESS
-    memcpy(blockinfo->data + (pos % this->block_size), buffer, length);
+    h_memcpy(blockinfo->data + (pos % this->block_size), buffer, length);
 #else
     UNUSED(buffer);
     UNUSED(length);
@@ -388,7 +388,7 @@ static int drive_write_block_internal(struct drive_internal_info* this, struct b
     },
         this->drive_id, position / this->block_size, buffer, blockoffs, length);
 #else
-    memcpy(info->data + blockoffs, buffer, length);
+    h_memcpy(info->data + blockoffs, buffer, length);
     return 0;
 #endif
 }
@@ -670,7 +670,7 @@ static
 
     int len = (int)strlen(filename);
     void* pathbase = h_malloc(len + 1);
-    strcpy(pathbase, filename);
+    h_strcpy(pathbase, filename);
 
     drv->path_count = 1;
     drv->paths = h_malloc(sizeof(char*));
@@ -687,7 +687,7 @@ static
     drv->size = internal->size;
     drv->block_count = (internal->block_size + internal->size - 1) / internal->block_size;
     drv->blocks = h_calloc(drv->block_count, sizeof(struct block_info));
-    memset(drv->blocks, 0, sizeof(struct block_info) * drv->block_count);
+    h_memset(drv->blocks, 0, sizeof(struct block_info) * drv->block_count);
 
     info->data = drv;
     info->read = drive_internal_read;
@@ -817,7 +817,7 @@ static int drive_simple_fetch_cache(struct simple_driver* info, void* buffer, dr
         // Get the offset inside the block, get the physical position of the block, and copy 512 bytes into the destination buffer
         uint32_t block_offset = (uint32_t)(offset % info->block_size);
         void* ptr = info->blocks[blockid] + block_offset;
-        memcpy(buffer, ptr, 512); // Copy all the bytes from offset to the end of the file
+        h_memcpy(buffer, ptr, 512); // Copy all the bytes from offset to the end of the file
         return 1;
     }
 
@@ -837,7 +837,7 @@ static inline int drive_simple_write_cache(struct simple_driver* info, void* buf
 {
     uint32_t block_offset = (uint32_t)(offset % info->block_size);
     void* ptr = info->blocks[offset / info->block_size] + block_offset;
-    memcpy(ptr, buffer, 512); // Copy all the bytes from offset to the end of the file
+    h_memcpy(ptr, buffer, 512); // Copy all the bytes from offset to the end of the file
     return 0;
 }
 
@@ -926,7 +926,7 @@ int drive_simple_init(struct drive_info* info, char* filename)
     sync_info->block_size = (drv_offset_t)BLOCK_SIZE;
     sync_info->block_array_size = (uint32_t)((sync_info->image_size + sync_info->block_size - 1) / sync_info->block_size);
     sync_info->blocks = h_calloc(sync_info->block_array_size, sizeof(uint8_t*));
-    memset(sync_info->blocks, 0, sync_info->block_array_size * sizeof(uint8_t*));
+    h_memset(sync_info->blocks, 0, sync_info->block_array_size * sizeof(uint8_t*));
 
     sync_info->raw_file_access = info->modify_backing_file;
 

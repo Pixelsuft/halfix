@@ -722,7 +722,7 @@ static void fdc_handle_format(void* a, int b)
         fdc.format_dma_pos += 4;
         
         // Fill sector
-        memset(sector, fdc.format_byte, 512);
+        h_memset(sector, fdc.format_byte, 512);
 
         // Seek to right location
         if(fdc_seek(fdc.selected_drive, track, head, sector_number) == -1)

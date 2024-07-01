@@ -445,7 +445,7 @@ static void render_windows(void)
         int sw_pos = 0;
 
         for (int j = 0; j < scanlines; j++) {
-            memcpy(&pix[pos], &sw->pixbuf[sw_pos], line_length * SCREEN_BYTPP);
+            h_memcpy(&pix[pos], &sw->pixbuf[sw_pos], line_length * SCREEN_BYTPP);
 
             // Advance to next scanline
             sw_pos += sw->w;

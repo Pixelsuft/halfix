@@ -31,7 +31,7 @@ for (var i = 0; i < files.length; i++) {
 var bits = os.arch() === 'x64' ? 64 : 32; // Add your architecture here!
 var flags = [
     '-Wall', '-Wextra',
-    '-g3', '-std=c99',
+    '-g3', '-std=c99'
     // '-Wno-format-extra-args', '-Wno-format'
 ];
 var end_flags = [], fincc_flags = [];

@@ -1040,7 +1040,7 @@ static void ide_pio_read_callback(struct ide_controller* ctrl)
                     // There is still more to be read.
                     ide_atapi_read(ctrl);
                     // Copy the rest of the data to the beginning
-                    memmove(ctrl->pio_buffer, ctrl->pio_buffer + continue_frame, ctrl->atapi_sector_size - continue_frame);
+                    h_memmove(ctrl->pio_buffer, ctrl->pio_buffer + continue_frame, ctrl->atapi_sector_size - continue_frame);
                     ctrl->pio_position = 0;
                     ctrl->pio_length = ctrl->atapi_sector_size - continue_frame;
                     ctrl->atapi_frame_bytes_transferred = 0;

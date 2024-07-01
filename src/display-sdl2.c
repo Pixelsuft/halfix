@@ -729,7 +729,7 @@ void display_check_dark_mode(void)
         UCHAR wProductType;
         UCHAR wReserved;
     } ntdll_ver_struct;
-    memset(&ntdll_ver_struct, 0, sizeof(ntdll_ver_struct));
+    h_memset(&ntdll_ver_struct, 0, sizeof(ntdll_ver_struct));
     ntdll_ver_struct.dwOSVersionInfoSize = sizeof(ntdll_ver_struct);
     if (!RtlGetVersion || !DwmSetWindowAttribute) {
         FreeLibrary(uxtheme);

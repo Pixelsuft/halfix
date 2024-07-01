@@ -320,8 +320,8 @@ void mobui_copy_config(void) {
     h_fclose(in_f);
     char out_path[1024 * 10];
     size_t path_inp_len = strlen(page.path_inp.text);
-    memcpy(out_path, page.path_inp.text, path_inp_len);
-    strcpy(out_path + path_inp_len, "/halfix.conf");
+    h_memcpy(out_path, page.path_inp.text, path_inp_len);
+    h_strcpy(out_path + path_inp_len, "/halfix.conf");
     void* out_f = h_fopen(out_path, "wb");
     if (out_f == NULL) {
         h_free(buf);
@@ -338,14 +338,14 @@ void mobui_new_image(size_t size_mb) {
         return;
     char out_path[1024 * 10];
     size_t path_inp_len = strlen(page.path_inp.text);
-    memcpy(out_path, page.path_inp.text, path_inp_len);
-    strcpy(out_path + path_inp_len, "/hd_image.img");
+    h_memcpy(out_path, page.path_inp.text, path_inp_len);
+    h_strcpy(out_path + path_inp_len, "/hd_image.img");
     void* out_file = h_fopen(out_path, "wb");
     if (out_file == NULL) {
         h_free(buf);
         return;
     }
-    memset(buf, 0, 1024 * 1024 * 2);
+    h_memset(buf, 0, 1024 * 1024 * 2);
     for (size_t i = 0; i < (size_mb / 2); i++) {
         h_fwrite(buf, 1, 1024 * 1024 * 2, out_file);
     }
@@ -394,7 +394,7 @@ void mobui_run_main(void) {
                     break;
                 }
                 case SDL_TEXTINPUT: {
-                    memcpy(page.path_inp.text + strlen(page.path_inp.text), ev.text.text, strlen(ev.text.text));
+                    h_memcpy(page.path_inp.text + strlen(page.path_inp.text), ev.text.text, strlen(ev.text.text));
                     mobui_input_on_update(&page.path_inp);
                     mobui_on_path_input_update();
                     break;
@@ -496,7 +496,7 @@ void mobui_init(void) {
         return;
     win = display_get_handle(0);
     ren = display_get_handle(1);
-    memset(page.elems, 0, sizeof(page.elems));
+    h_memset(page.elems, 0, sizeof(page.elems));
     mobui_init_button(&page.go_btn);
     mobui_button_set_text(&page.go_btn, "GO!");
     mobui_init_button(&page.cfg_btn);
@@ -521,9 +521,9 @@ void mobui_init(void) {
     mobui_button_set_text(&page.help_btn, "How to use me?");
     mobui_init_input(&page.path_inp);
 #ifdef MOBILE_WIP
-    strcpy(page.path_inp.text, ".");
+    h_strcpy(page.path_inp.text, ".");
 #else
-    strcpy(page.path_inp.text, "/storage/emulated/0/");
+    h_strcpy(page.path_inp.text, "/storage/emulated/0/");
 #endif
     mobui_input_on_update(&page.path_inp);
     mobui_on_path_input_update();

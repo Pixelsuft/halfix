@@ -272,7 +272,7 @@ static void punpckh(void* dst, void* src, int size, int copysize)
             tmp[idx++ ^ xormask] = dst8[(nidx + i) ^ xormask]; // Copy destination bytes
         nidx += copysize;
     }
-    memcpy(dst, tmp, size);
+    h_memcpy(dst, tmp, size);
 }
 static inline uint16_t pack_i32_to_i16(uint32_t x)
 {
@@ -319,7 +319,7 @@ static void packssdw(void* dest, void* src, int dwordcount)
         res[i] = pack_i32_to_i16(dest32[i]);
         res[i | dwordcount] = pack_i32_to_i16(src32[i]);
     }
-    memcpy(dest, res, dwordcount << 2);
+    h_memcpy(dest, res, dwordcount << 2);
 }
 static void punpckl(void* dst, void* src, int size, int copysize)
 {
@@ -336,7 +336,7 @@ static void punpckl(void* dst, void* src, int size, int copysize)
             tmp[idx++] = src8[(nidx + i)]; // Copy source bytes
         nidx += copysize;
     }
-    memcpy(dst, tmp, size);
+    h_memcpy(dst, tmp, size);
 }
 static void psubsb(uint8_t* dest, uint8_t* src, int bytecount)
 {
@@ -425,7 +425,7 @@ static void pshuf(void* dest, void* src, int imm, int shift)
         }
         imm >>= 2;
     }
-    memcpy(dest, res, 4 << shift);
+    h_memcpy(dest, res, 4 << shift);
 }
 
 // Not the same as pshuf
@@ -438,7 +438,7 @@ static void pshufb(void* dest, void* src, int bytes)
     for (int i = 0; i < bytes; i++) {
         res[i] = src8[i] < 0 ? 0 : dest8[src8[i] & mask];
     }
-    memcpy(dest, res, bytes);
+    h_memcpy(dest, res, bytes);
 }
 
 static void cpu_psraw(uint16_t* a, int shift, int mask, int wordcount)
@@ -592,7 +592,7 @@ static void packuswb(void* dest, void* src, int wordcount)
         res[i] = (uint8_t)pack_i16_to_u8(dest16[i]);
         res[i | wordcount] = (uint8_t)pack_i16_to_u8(src16[i]);
     }
-    memcpy(dest, res, wordcount << 1);
+    h_memcpy(dest, res, wordcount << 1);
 }
 static void packsswb(void* dest, void* src, int wordcount)
 {
@@ -602,7 +602,7 @@ static void packsswb(void* dest, void* src, int wordcount)
         res[i] = pack_i16_to_i8(dest16[i]);
         res[i | wordcount] = pack_i16_to_i8(src16[i]);
     }
-    memcpy(dest, res, wordcount << 1);
+    h_memcpy(dest, res, wordcount << 1);
 }
 static void pmullw(uint16_t* dest, uint16_t* src, int wordcount, int shift)
 {
@@ -783,7 +783,7 @@ static void shufps(void* dest, void* src, int imm)
     res[1] = dest32[imm >> 2 & 3];
     res[2] = src32[imm >> 4 & 3];
     res[3] = src32[imm >> 6 & 3];
-    memcpy(dest32, res, 16);
+    h_memcpy(dest32, res, 16);
 }
 static void shufpd(void* dest, void* src, int imm)
 {
@@ -822,7 +822,7 @@ static void pmaddwd(void* dest, void* src, int dwordcount)
         res[i] = ((uint32_t)(int16_t)src16[idx] * (uint32_t)(int16_t)dest16[idx]) + ((uint32_t)(int16_t)src16[idx + 1] * (uint32_t)(int16_t)dest16[idx + 1]);
         idx += 2;
     }
-    memcpy(dest, res, dwordcount << 2);
+    h_memcpy(dest, res, dwordcount << 2);
 }
 static void psadbw(void* dest, void* src, int qwordcount)
 {
@@ -2769,7 +2769,7 @@ int execute_0F7C_7D(struct decoded_instruction* i)
         temp.b32[3] = float32_sub(*(float32*)(result_ptr + 8), *(float32*)(result_ptr + 12), &status);
         break;
     }
-    memcpy(dest32, temp.b32, 16);
+    h_memcpy(dest32, temp.b32, 16);
     return cpu_sse_handle_exceptions();
 }
 

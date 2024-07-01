@@ -7,7 +7,7 @@
 #include "io.h"
 #include "net.h"
 #include "pc.h"
-#include <string.h> // memcpy
+#include <string.h> // h_memcpy
 
 #define NE2K_LOG(x, ...) LOG("NE2K", x, ##__VA_ARGS__)
 #define NE2K_DEBUG(x, ...) LOG("NE2K", x, ##__VA_ARGS__)
@@ -560,11 +560,11 @@ static void ne2000_receive(void* data, int len)
         (ne2000.curr < nextpg) ||
         // Or if we fit perfectly into the pagestart-pageend area
         (ne2000.curr + total_pages == ne2000.pagestop)) {
-        memcpy(memstart + 4, data, len); // We've already written the packet address
+        h_memcpy(memstart + 4, data, len); // We've already written the packet address
     } else {
         // What if the packet is too big?
         int len1 = ne2000.pagestop - ne2000.curr;
-        memcpy(memstart + 4, data, len1 - 4);
+        h_memcpy(memstart + 4, data, len1 - 4);
 
         memstart = ne2000.mem + ne2000.pagestart;
         // Copy the rest of the bytes to the beginning of pagestart
@@ -573,7 +573,7 @@ static void ne2000_receive(void* data, int len)
         if ((len - (len1 + 4)) < 0)
             __asm__("int3");
 #endif
-        memcpy(memstart, data + (len1 - 4), len - (len1 + 4));
+        h_memcpy(memstart, data + (len1 - 4), len - (len1 + 4));
     }
     ne2000.curr = nextpg;
     ne2000_trigger_irq(ISR_PRX);

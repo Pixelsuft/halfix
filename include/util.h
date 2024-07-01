@@ -25,6 +25,7 @@
 #if !defined(_WIN32)
 #define PREFER_SDL2
 #endif
+#define NOSTDLIB
 // #define PREFER_STD
 // #define FILES_WIN32_USE_ANSI
 
@@ -89,6 +90,11 @@ size_t h_fwrite(const void* buf, size_t elem_size, size_t elem_count, void* file
 int64_t h_ftell(void* file);
 int64_t h_fsize(void* file);
 int h_fseek(void* file, int64_t offset, int origin);
+
+void* h_memcpy(void* dst, const void* src, size_t n);
+void* h_strcpy(void* dst, const void* src);
+void* h_memmove(void* dst, const void* src, size_t n);
+void* h_memset(void* dst, int ch, size_t n);
 
 // Functions that mess around with timing
 void add_now(itick_t a);

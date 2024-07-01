@@ -71,7 +71,7 @@ static char* readstr(struct rstream* r)
 {
     int length = (int)strlen((void*)&r->buf[r->pos]) + 1;
     char* dest = h_malloc(length);
-    memcpy(dest, &r->buf[r->pos], length);
+    h_memcpy(dest, &r->buf[r->pos], length);
     r->pos += length;
     return dest;
 }
@@ -153,14 +153,14 @@ static void writestr(struct wstream* w, char* str)
     int len = (int)strlen(str) + 1;
     if ((w->pos + len) >= w->bufsize)
         wstream_grow(w);
-    memcpy(&w->buf[w->pos], str, len);
+    h_memcpy(&w->buf[w->pos], str, len);
     w->pos += len;
 }
 static void writemem(struct wstream* w, void* mem, int len)
 {
     if ((w->pos + len) >= w->bufsize)
         wstream_grow(w);
-    memcpy(&w->buf[w->pos], mem, len);
+    h_memcpy(&w->buf[w->pos], mem, len);
     w->pos += len;
 }
 
@@ -217,7 +217,7 @@ static char* dupstr(char* v)
 {
     int len = (int)strlen(v) + 1;
     char* res = h_malloc(len + 1);
-    memcpy(res, v, len);
+    h_memcpy(res, v, len);
     return res;
 }
 
@@ -283,16 +283,16 @@ void state_field(struct bjson_object* cur, int length, char* name, void* data)
     if (is_reading) {
         struct bjson_data* arr = state_get_mem(cur, name);
         if (arr == NULL) {
-            memset(data, 0, length);
+            h_memset(data, 0, length);
         } else {
             if ((unsigned int)length > arr->length)
                 length = arr->length;
-            memcpy(data, arr->data, length);
+            h_memcpy(data, arr->data, length);
         }
     } else {
         struct bjson_data arr;
         state_init_bjson_mem(&arr, length);
-        memcpy(arr.data, data, length);
+        h_memcpy(arr.data, data, length);
         state_add_mem(cur, name, &arr);
     }
 }
@@ -313,7 +313,7 @@ void state_string(struct bjson_object* cur, char* name, char** val)
         if (!ok) // Either we hit an unexpected \00 or we didn't hit one at all!
             STATE_FATAL("Invalid string literal");
         char* dest = h_malloc(length);
-        memcpy(dest, arr->data, length);
+        h_memcpy(dest, arr->data, length);
         *val = dest;
     } else {
         char* src = *val;
@@ -321,7 +321,7 @@ void state_string(struct bjson_object* cur, char* name, char** val)
 
         struct bjson_data arr;
         state_init_bjson_mem(&arr, length);
-        memcpy(arr.data, src, length);
+        h_memcpy(arr.data, src, length);
         state_add_mem(cur, name, &arr);
     }
 }
@@ -434,11 +434,11 @@ static char* normalize(char* a)
     char* res;
     if (a[len - 1] == PATHSEP) {
         res = h_malloc(len);
-        memcpy(res, a, len);
+        h_memcpy(res, a, len);
         res[len - 1] = 0;
     } else {
         res = h_malloc(len + 1);
-        memcpy(res, a, len + 1);
+        h_memcpy(res, a, len + 1);
     }
     return res;
 }

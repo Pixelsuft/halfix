@@ -5,6 +5,7 @@
 #include "display.h"
 #include "state.h"
 #include <stdlib.h>
+#include <string.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -210,6 +211,63 @@ int h_fseek(void* file, int64_t offset, int origin) {
     return SDL_RWseek(file, offset, origin);
 #else
     return fseek(file, (long)offset, origin);
+#endif
+}
+
+void* h_memcpy(void* dst, const void* src, size_t n) {
+#if defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_memcpy(dst, src, n);
+#elif !defined(NOSTDLIB)
+    return memcpy(dst, src, n);
+#else
+    for (size_t i = 0; i < n; i++) {
+        *((uint8_t*)dst + (uint8_t*)i) = *((uint8_t*)src + (uint8_t*)i);
+    }
+    return dst;
+#endif
+}
+
+void* h_memmove(void* dst, const void* src, size_t n) {
+#if defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return SDL_memmove(dst, src, n);
+#elif !defined(NOSTDLIB)
+    return memmove(dst, src, n);
+#else
+    // TODO
+    for (size_t i = 0; i < n; i++) {
+        *((uint8_t*)dst + (uint8_t*)i) = *((uint8_t*)src + (uint8_t*)i);
+    }
+    return dst;
+#endif
+}
+
+void* h_strcpy(void* dst, const void* src) {
+#if defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return (void*)SDL_strlcpy(dst, src, 1024 * 1024);
+#elif !defined(NOSTDLIB)
+    return strcpy(dst, src);
+#else
+    uint8_t* my_src = (uint8_t*)src;
+    uint8_t* my_dst = (uint8_t*)src;
+    while (*my_src) {
+        *my_dst = *my_src;
+        my_src++;
+        my_dst++;
+    }
+    return dst;
+#endif
+}
+
+void* h_memset(void* dst, int ch, size_t n) {
+#if defined(PREFER_SDL2) && !defined(PREFER_STD)
+    return (void*)SDL_memset(dst, ch, n);
+#elif !defined(NOSTDLIB)
+    return memset(dst, ch, n)
+#else
+    for (size_t i = 0; i < n; i++) {
+        *((uint8_t*)dst + (uint8_t*)i) = (uint8_t)ch;
+    }
+    return dst;
 #endif
 }
 

@@ -12,7 +12,7 @@ static uint32_t hash_eip(uint32_t phys)
 
 void cpu_trace_flush(void)
 {
-    memset(cpu.trace_info, 0, sizeof(struct trace_info) * TRACE_INFO_ENTRIES);
+    h_memset(cpu.trace_info, 0, sizeof(struct trace_info) * TRACE_INFO_ENTRIES);
     cpu.trace_cache_usage = 0;
 }
 

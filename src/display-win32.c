@@ -319,7 +319,7 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
         break;
     case WM_DESTROY:
         display_quit();
-        exit(0);
+        ExitProcess(0);
         break;
     case WM_KEYDOWN:
         if (wparam == VK_ESCAPE && mouse_enabled) {
@@ -382,11 +382,11 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
         switch (LOWORD(wparam)) {
         case MENU_EXIT:
             display_quit();
-            exit(0);
+            ExitProcess(0);
         case MENU_SAVE_STATE: {
             // this currently doesn't support unicode
             OPENFILENAMEA ofn;
-            ZeroMemory(&ofn, sizeof(OPENFILENAMEA));
+            h_memset(&ofn, 0, sizeof(OPENFILENAMEA));
 
             ofn.lStructSize = sizeof(OPENFILENAMEA);
             ofn.hwndOwner = hWnd;
@@ -427,14 +427,14 @@ static LRESULT CALLBACK display_callback(HWND hwnd, UINT msg, WPARAM wparam, LPA
 void display_init(void)
 {
 #ifdef DISPLAY_WIN32_USE_ANSI
-    ZeroMemory(&wc, sizeof(WNDCLASSEXA));
+    h_memset(&wc, 0, sizeof(WNDCLASSEXA));
     hInst = GetModuleHandleA(NULL);
     wc.cbSize = sizeof(WNDCLASSEXA);
     wc.lpszClassName = "Halfix";
     wc.lpszMenuName = "HalfixMenu";
     wc.hCursor = LoadCursorA(0, MAKEINTRESOURCEA(32512));
 #else
-    ZeroMemory(&wc, sizeof(WNDCLASSEXW));
+    h_memset(&wc, 0, sizeof(WNDCLASSEXW));
     hInst = GetModuleHandleW(NULL);
     wc.cbSize = sizeof(WNDCLASSEXW);
     wc.lpszClassName = L"Halfix";
@@ -581,7 +581,7 @@ void display_set_resolution(int width, int height)
     dc_src = CreateCompatibleDC(dc_dest);
 
     BITMAPINFO i;
-    ZeroMemory(&i.bmiHeader, sizeof(BITMAPINFOHEADER));
+    h_memset(&i.bmiHeader, 0, sizeof(BITMAPINFOHEADER));
     i.bmiHeader.biWidth = width;
     // Force the DIB to follow VGA/VESA rules:
     //  "If biHeight is negative, the bitmap is a top-down DIB with the origin at the upper left corner."
@@ -621,7 +621,7 @@ void display_set_resolution(int width, int height)
     rect.bottom = cheight;
     if (!AdjustWindowRectEx(&rect, GetWindowLong(hWnd, GWL_STYLE), TRUE, 0)) {
         // h_printf("Failed to AdjustWindowRect\n");
-        exit(0);
+        ExitProcess(0);
     }
     SetWindowPos(hWnd, (HWND)0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOMOVE | SWP_NOOWNERZORDER);
     LONG offsetx = -rect.left;

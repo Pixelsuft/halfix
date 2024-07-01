@@ -109,7 +109,7 @@ static void vga_alloc_mem(void)
     if (vga.vram)
         afree(vga.vram);
     vga.vram = aalloc(vga.vram_size, 8);
-    memset(vga.vram, 0, vga.vram_size);
+    h_memset(vga.vram, 0, vga.vram_size);
 }
 
 static void vga_state(void)
@@ -316,7 +316,7 @@ static void vga_update_size(void)
         vga.vbe_scanlines_modified = h_realloc(vga.vbe_scanlines_modified, vga.total_height);
     else
         vga.vbe_scanlines_modified = h_malloc(vga.total_height);
-    memset(vga.vbe_scanlines_modified, 1, vga.total_height);
+    h_memset(vga.vbe_scanlines_modified, 1, vga.total_height);
 
     vga.scanlines_to_update = height >> 1;
 }
@@ -418,7 +418,7 @@ static
                     vga_change_renderer();
                     if (vga.vbe_enable & VBE_DISPI_ENABLED)
                         if (!(data & VBE_DISPI_NOCLEARMEM)) { // should i use diffxor or data?
-                            // memset(vga.vram, 0, vga.vram_size);
+                            // h_memset(vga.vram, 0, vga.vram_size);
                             // This looks better
                             for (int i = 0; i < vga.vram_size; i += 4) {
                                 vga.vram[i] = 100;
@@ -1037,7 +1037,7 @@ void vga_update(void)
         // Therefore, we can come to the conclusion that if scanline doubling is enabled, then all odd scanlines are simply copies of the one preceding them
         if ((vga.current_scanline & 1) && (vga.crt[9] & 0x80)) {
             // See above for
-            memcpy(&vga.framebuffer[vga.framebuffer_offset], &vga.framebuffer[vga.framebuffer_offset - vga.total_width], vga.total_width);
+            h_memcpy(&vga.framebuffer[vga.framebuffer_offset], &vga.framebuffer[vga.framebuffer_offset - vga.total_width], vga.total_width);
         } else {
             if (vga.current_scanline < vga.total_height) {
                 uint32_t fboffset = vga.framebuffer_offset;
@@ -1579,7 +1579,7 @@ static void vga_pci_init(struct loaded_file* vgabios)
     io_register_mmio_write(vga.vgabios_addr, 0x20000, vga_rom_writeb, NULL, NULL);
 
     vga.rom = h_calloc(1, 65536);
-    memcpy(vga.rom, vgabios->data, vgabios->length & 65535);
+    h_memcpy(vga.rom, vgabios->data, vgabios->length & 65535);
     vga.rom_size = vgabios->length;
 
     dev[0x30] = vga.vgabios_addr;

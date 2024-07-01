@@ -168,7 +168,7 @@ void pci_copy_default_configuration(void* confptr, void* area, int size)
 {
     if (size > 256)
         size = 256;
-    memcpy(confptr, area, size);
+    h_memcpy(confptr, area, size);
 }
 
 void* pci_get_configuration_ptr(uint32_t bus, uint32_t device, uint32_t function)
