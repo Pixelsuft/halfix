@@ -221,7 +221,7 @@ void* h_memcpy(void* dst, const void* src, size_t n) {
     return memcpy(dst, src, n);
 #else
     for (size_t i = 0; i < n; i++) {
-        *((uint8_t*)dst + (uint8_t*)i) = *((uint8_t*)src + (uint8_t*)i);
+        *(uint8_t*)((size_t)dst + i) = *(uint8_t*)((size_t)src + i);
     }
     return dst;
 #endif
@@ -235,7 +235,7 @@ void* h_memmove(void* dst, const void* src, size_t n) {
 #else
     // TODO
     for (size_t i = 0; i < n; i++) {
-        *((uint8_t*)dst + (uint8_t*)i) = *((uint8_t*)src + (uint8_t*)i);
+        *(uint8_t*)((size_t)dst + i) = *(uint8_t*)((size_t)src + i);
     }
     return dst;
 #endif
@@ -265,7 +265,7 @@ void* h_memset(void* dst, int ch, size_t n) {
     return memset(dst, ch, n);
 #else
     for (size_t i = 0; i < n; i++) {
-        *((uint8_t*)dst + (uint8_t*)i) = (uint8_t)ch;
+        *(uint8_t*)((size_t)dst + i) = (uint8_t)ch;
     }
     return dst;
 #endif
