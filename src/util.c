@@ -262,7 +262,7 @@ void* h_memset(void* dst, int ch, size_t n) {
 #if defined(PREFER_SDL2) && !defined(PREFER_STD)
     return (void*)SDL_memset(dst, ch, n);
 #elif !defined(NOSTDLIB)
-    return memset(dst, ch, n)
+    return memset(dst, ch, n);
 #else
     for (size_t i = 0; i < n; i++) {
         *((uint8_t*)dst + (uint8_t*)i) = (uint8_t)ch;
