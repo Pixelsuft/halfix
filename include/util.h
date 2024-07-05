@@ -26,7 +26,6 @@
 #if !defined(_WIN32)
 #define PREFER_SDL2
 #endif
-#define NOSTDLIB
 // #define PREFER_STD
 // #define FILES_WIN32_USE_ANSI
 
